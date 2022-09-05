@@ -361,6 +361,7 @@ void CCMTLDevice::initFormatFeatures(uint32_t gpuFamily) {
 
     FormatFeature tempFeature = FormatFeature::RENDER_TARGET | FormatFeature::SAMPLED_TEXTURE | FormatFeature::STORAGE_TEXTURE;
 
+    _formatFeatures[toNumber(Format::BGRA8)] = FormatFeature::RENDER_TARGET | FormatFeature::SAMPLED_TEXTURE;
     _formatFeatures[toNumber(Format::R8UI)] = tempFeature;
     _formatFeatures[toNumber(Format::RG8UI)] = tempFeature;
     _formatFeatures[toNumber(Format::RGBA8UI)] = tempFeature;
