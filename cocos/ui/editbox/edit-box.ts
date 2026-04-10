@@ -23,8 +23,24 @@
  THE SOFTWARE.
 */
 
-import { ccclass, help, executeInEditMode, executionOrder, menu, requireComponent, tooltip, displayOrder, type, serializable } from 'cc.decorator';
-import { EDITOR_NOT_IN_PREVIEW, JSB, MINIGAME, RUNTIME_BASED, USE_XR } from 'internal:constants';
+import {
+    ccclass,
+    help,
+    executeInEditMode,
+    executionOrder,
+    menu,
+    requireComponent,
+    tooltip,
+    displayOrder,
+    type,
+    serializable,
+} from 'cc.decorator';
+import {
+    EDITOR_NOT_IN_PREVIEW,
+    JSB,
+    MINIGAME,
+    RUNTIME_BASED,
+} from 'internal:constants';
 import { UITransform } from '../../2d/framework';
 import { SpriteFrame } from '../../2d/assets/sprite-frame';
 import { Component } from '../../scene-graph/component';
@@ -39,7 +55,6 @@ import { EditBoxImplBase } from './edit-box-impl-base';
 import { InputFlag, InputMode, KeyboardReturnType } from './types';
 import { legacyCC } from '../../core/global-exports';
 import { NodeEventType } from '../../scene-graph/node-event';
-import { XrKeyboardEventType, XrUIPressEventType } from '../../xr/event/xr-event-handle';
 import { director, DirectorEvent } from '../../game/director';
 
 const LEFT_PADDING = 2;
@@ -393,19 +408,19 @@ export class EditBox extends Component {
     @serializable
     protected _placeholderLabel: Label | null = null;
     @serializable
-    protected  _returnType = KeyboardReturnType.DEFAULT;
+    protected _returnType = KeyboardReturnType.DEFAULT;
     @serializable
-    protected  _string = '';
+    protected _string = '';
     @serializable
-    protected  _tabIndex = 0;
+    protected _tabIndex = 0;
     @serializable
-    protected  _backgroundImage: SpriteFrame | null = null;
+    protected _backgroundImage: SpriteFrame | null = null;
     @serializable
-    protected  _inputFlag = InputFlag.DEFAULT;
+    protected _inputFlag = InputFlag.DEFAULT;
     @serializable
-    protected  _inputMode = InputMode.ANY;
+    protected _inputMode = InputMode.ANY;
     @serializable
-    protected  _maxLength = 20;
+    protected _maxLength = 20;
 
     private _isLabelVisible = false;
 
@@ -575,7 +590,7 @@ export class EditBox extends Component {
         this.node.on(NodeEventType.SIZE_CHANGED, this._resizeChildNodes, this);
         director.on(DirectorEvent.BEFORE_DRAW, this._beforeDraw, this);
 
-        const impl = this._impl = new EditBox._EditBoxImpl();
+        const impl = (this._impl = new EditBox._EditBoxImpl());
         impl.init(this);
         this._updateString(this._string);
         this._syncSize();
@@ -670,10 +685,10 @@ export class EditBox extends Component {
         if (this._isLabelVisible) {
             const content = this._string;
             if (this._textLabel) {
-                this._textLabel.node.active = (content !== '');
+                this._textLabel.node.active = content !== '';
             }
             if (this._placeholderLabel) {
-                this._placeholderLabel.node.active = (content === '');
+                this._placeholderLabel.node.active = content === '';
             }
         }
     }
@@ -695,7 +710,10 @@ export class EditBox extends Component {
         this._updateLabels();
     }
 
-    protected _updateLabelStringStyle (text: string, ignorePassword = false): string {
+    protected _updateLabelStringStyle (
+        text: string,
+        ignorePassword = false,
+    ): string {
         const inputFlag = this._inputFlag;
         if (!ignorePassword && inputFlag === InputFlag.PASSWORD) {
             let passwordString = '';
@@ -720,11 +738,6 @@ export class EditBox extends Component {
         const node = self.node;
         node.on(NodeEventType.TOUCH_START, self._onTouchBegan, self);
         node.on(NodeEventType.TOUCH_END, self._onTouchEnded, self);
-
-        if (USE_XR) {
-            node.on(XrUIPressEventType.XRUI_UNCLICK, self._xrUnClick, self);
-            node.on(XrKeyboardEventType.XR_KEYBOARD_INPUT, self._xrKeyBoardInput, self);
-        }
     }
 
     protected _unregisterEvent (): void {
@@ -732,11 +745,6 @@ export class EditBox extends Component {
         const node = self.node;
         node.off(NodeEventType.TOUCH_START, self._onTouchBegan, self);
         node.off(NodeEventType.TOUCH_END, self._onTouchEnded, self);
-
-        if (USE_XR) {
-            node.off(XrUIPressEventType.XRUI_UNCLICK, self._xrUnClick, self);
-            node.off(XrKeyboardEventType.XR_KEYBOARD_INPUT, self._xrKeyBoardInput, self);
-        }
     }
 
     private _onBackgroundSpriteFrameChanged (): void {
@@ -748,12 +756,20 @@ export class EditBox extends Component {
 
     private _registerBackgroundEvent (): void {
         const node = this._background && this._background.node;
-        node?.on(SpriteEventType.SPRITE_FRAME_CHANGED, this._onBackgroundSpriteFrameChanged, this);
+        node?.on(
+            SpriteEventType.SPRITE_FRAME_CHANGED,
+            this._onBackgroundSpriteFrameChanged,
+            this,
+        );
     }
 
     private _unregisterBackgroundEvent (): void {
         const node = this._background && this._background.node;
-        node?.off(SpriteEventType.SPRITE_FRAME_CHANGED, this._onBackgroundSpriteFrameChanged, this);
+        node?.off(
+            SpriteEventType.SPRITE_FRAME_CHANGED,
+            this._onBackgroundSpriteFrameChanged,
+            this,
+        );
     }
 
     protected _updateLabelPosition (size: Size): void {
@@ -764,8 +780,14 @@ export class EditBox extends Component {
         const placeholderLabel = this._placeholderLabel;
         const textLabel = this._textLabel;
         if (textLabel) {
-            textLabel.node._getUITransformComp()!.setContentSize(size.width - LEFT_PADDING, size.height);
-            textLabel.node.setPosition(offX + LEFT_PADDING, offY + size.height, textLabel.node.position.z);
+            textLabel.node
+                ._getUITransformComp()!
+                .setContentSize(size.width - LEFT_PADDING, size.height);
+            textLabel.node.setPosition(
+                offX + LEFT_PADDING,
+                offY + size.height,
+                textLabel.node.position.z,
+            );
             if (this._inputMode === InputMode.ANY) {
                 textLabel.verticalAlign = VerticalTextAlignment.TOP;
             }
@@ -773,8 +795,14 @@ export class EditBox extends Component {
         }
 
         if (placeholderLabel) {
-            placeholderLabel.node._getUITransformComp()!.setContentSize(size.width - LEFT_PADDING, size.height);
-            placeholderLabel.node.setPosition(offX + LEFT_PADDING, offY + size.height, placeholderLabel.node.position.z);
+            placeholderLabel.node
+                ._getUITransformComp()!
+                .setContentSize(size.width - LEFT_PADDING, size.height);
+            placeholderLabel.node.setPosition(
+                offX + LEFT_PADDING,
+                offY + size.height,
+                placeholderLabel.node.position.z,
+            );
             placeholderLabel.enableWrapText = this._inputMode === InputMode.ANY;
         }
     }
@@ -783,36 +811,46 @@ export class EditBox extends Component {
         const trans = this.node._getUITransformComp()!;
         const textLabelNode = this._textLabel && this._textLabel.node;
         if (textLabelNode) {
-            textLabelNode.setPosition(-trans.width / 2, trans.height / 2, textLabelNode.position.z);
-            textLabelNode._getUITransformComp()!.setContentSize(trans.contentSize);
+            textLabelNode.setPosition(
+                -trans.width / 2,
+                trans.height / 2,
+                textLabelNode.position.z,
+            );
+            textLabelNode
+                ._getUITransformComp()!
+                .setContentSize(trans.contentSize);
         }
-        const placeholderLabelNode = this._placeholderLabel && this._placeholderLabel.node;
+        const placeholderLabelNode =            this._placeholderLabel && this._placeholderLabel.node;
         if (placeholderLabelNode) {
-            placeholderLabelNode.setPosition(-trans.width / 2, trans.height / 2, placeholderLabelNode.position.z);
-            placeholderLabelNode._getUITransformComp()!.setContentSize(trans.contentSize);
+            placeholderLabelNode.setPosition(
+                -trans.width / 2,
+                trans.height / 2,
+                placeholderLabelNode.position.z,
+            );
+            placeholderLabelNode
+                ._getUITransformComp()!
+                .setContentSize(trans.contentSize);
         }
         const backgroundNode = this._background && this._background.node;
         if (backgroundNode) {
-            backgroundNode._getUITransformComp()!.setContentSize(trans.contentSize);
+            backgroundNode
+                ._getUITransformComp()!
+                .setContentSize(trans.contentSize);
         }
 
         this._syncSize();
-    }
-
-    protected _xrUnClick (): void {
-        if (!USE_XR) return;
-        this.node.emit(EditBoxEventType.XR_EDITING_DID_BEGAN, this._maxLength, this.string);
-    }
-
-    protected _xrKeyBoardInput (str: string): void {
-        if (!USE_XR) return;
-        this.string = str;
     }
 }
 
 // this equals to sys.isBrowser
 // now we have no web-adapter yet
-if (typeof window === 'object' && typeof document === 'object' && !MINIGAME && !JSB && !RUNTIME_BASED) {
+if (
+    typeof window === 'object'
+    && typeof document === 'object'
+    && !MINIGAME
+    && !JSB
+    && !RUNTIME_BASED
+) {
     EditBox._EditBoxImpl = EditBoxImpl;
 }
 

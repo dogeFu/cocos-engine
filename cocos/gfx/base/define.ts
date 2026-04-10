@@ -2259,7 +2259,7 @@ export const DESCRIPTOR_STORAGE_BUFFER_TYPE = DescriptorType.STORAGE_BUFFER | De
 
 export const DRAW_INFO_SIZE = 28;
 
-export type BufferSource = ArrayBuffer | IndirectBuffer;
+export type BufferSource = ArrayBuffer | ArrayBufferView | IndirectBuffer;
 
 export function IsPowerOf2 (x: number): boolean {
     return x > 0 && (x & (x - 1)) === 0;

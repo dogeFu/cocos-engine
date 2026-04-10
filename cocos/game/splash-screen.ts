@@ -22,25 +22,61 @@
  THE SOFTWARE.
 */
 
-import { EDITOR, USE_XR } from 'internal:constants';
+import { EDITOR } from 'internal:constants';
 import { Material, MaterialPropertyFull } from '../asset/assets/material';
-import { clamp01, Mat4, Vec2, settings, sys, cclegacy, easing, preTransforms, SettingsCategory } from '../core';
 import {
-    Sampler, SamplerInfo, Shader, Texture, TextureInfo, Device, InputAssembler, InputAssemblerInfo, Attribute, Buffer,
-    BufferInfo, Rect, Color, BufferTextureCopy, CommandBuffer, BufferUsageBit, Format,
-    MemoryUsageBit, TextureType, TextureUsageBit, Address, Swapchain, Framebuffer,
+    clamp01,
+    Mat4,
+    Vec2,
+    settings,
+    sys,
+    cclegacy,
+    easing,
+    preTransforms,
+    SettingsCategory,
+} from '../core';
+import {
+    Sampler,
+    SamplerInfo,
+    Shader,
+    Texture,
+    TextureInfo,
+    Device,
+    InputAssembler,
+    InputAssemblerInfo,
+    Attribute,
+    Buffer,
+    BufferInfo,
+    Rect,
+    Color,
+    BufferTextureCopy,
+    CommandBuffer,
+    BufferUsageBit,
+    Format,
+    MemoryUsageBit,
+    TextureType,
+    TextureUsageBit,
+    Address,
+    Swapchain,
+    Framebuffer,
 } from '../gfx';
 import { PipelineStateManager } from '../rendering';
 import { SetIndex } from '../rendering/define';
 import { ccwindow, legacyCC } from '../core/global-exports';
-import { XREye } from '../xr/xr-enums';
 import { PipelineRuntime } from '../rendering/custom';
 import { ResolutionPolicy } from '../ui/view';
 
 const v2_0 = new Vec2();
 type SplashLogoType = 'default' | 'none' | 'custom';
 type SplashBackgroundType = 'default' | 'color' | 'custom';
-type WatermarkLocationType = 'default' | 'topLeft' | 'topRight' | 'topCenter' | 'bottomLeft' | 'bottomCenter' | 'bottomRight';
+type WatermarkLocationType =
+    | 'default'
+    | 'topLeft'
+    | 'topRight'
+    | 'topCenter'
+    | 'bottomLeft'
+    | 'bottomCenter'
+    | 'bottomRight';
 
 /** @mangle */
 interface ISplashSetting {
@@ -66,7 +102,12 @@ interface SplashLogo {
     base64?: string;
 }
 
-function setMaterialProperty (mat: Material, key: string, value: MaterialPropertyFull | MaterialPropertyFull[], passIdx?: number): void {
+function setMaterialProperty (
+    mat: Material,
+    key: string,
+    value: MaterialPropertyFull | MaterialPropertyFull[],
+    passIdx?: number,
+): void {
     mat.setProperty(key, value, passIdx);
 }
 
@@ -105,14 +146,14 @@ export class SplashScreen {
     private logoHeightTemp = 200;
     private logoWidth = 0;
     private logoHeight = 0;
-    private logoXTrans = 1 / 2;// Percent
-    private logoYTrans = 1 / 6 + 2.5 / 6;// Percent
+    private logoXTrans = 1 / 2; // Percent
+    private logoYTrans = 1 / 6 + 2.5 / 6; // Percent
 
     private textSize = 24; // font size
     private textHeight = 24; // line height
-    private textXTrans = 1 / 2;// Percent
-    private textYExtraTrans = 32;// px
-    private textExpandSize = 4;// px
+    private textXTrans = 1 / 2; // Percent
+    private textYExtraTrans = 32; // px
+    private textExpandSize = 4; // px
 
     private scaleSize = 1;
 
@@ -131,23 +172,55 @@ export class SplashScreen {
     public init (): Promise<void[]> {
         let policy: number = ResolutionPolicy.SHOW_ALL;
         if (!EDITOR) {
-            const designResolution = settings.querySettings(SettingsCategory.SCREEN, 'designResolution');
+            const designResolution = settings.querySettings(
+                SettingsCategory.SCREEN,
+                'designResolution',
+            );
             if (designResolution !== null) {
                 policy = designResolution.policy as number;
             }
         }
         this.settings = {
-            policy: (policy) ?? ResolutionPolicy.SHOW_ALL,
-            displayRatio: settings.querySettings<number>(SettingsCategory.SPLASH_SCREEN, 'displayRatio') ?? 0.4,
-            totalTime: settings.querySettings<number>(SettingsCategory.SPLASH_SCREEN, 'totalTime') ?? 3000,
-            watermarkLocation: settings.querySettings<WatermarkLocationType>(SettingsCategory.SPLASH_SCREEN, 'watermarkLocation') ?? 'default',
-            autoFit: settings.querySettings<boolean>(SettingsCategory.SPLASH_SCREEN, 'autoFit') ?? true,
-            logo: settings.querySettings<SplashLogo>(SettingsCategory.SPLASH_SCREEN, 'logo') ?? undefined,
-            background: settings.querySettings<SplashBackground>(SettingsCategory.SPLASH_SCREEN, 'background') ?? undefined,
+            policy: policy ?? ResolutionPolicy.SHOW_ALL,
+            displayRatio:
+                settings.querySettings<number>(
+                    SettingsCategory.SPLASH_SCREEN,
+                    'displayRatio',
+                ) ?? 0.4,
+            totalTime:
+                settings.querySettings<number>(
+                    SettingsCategory.SPLASH_SCREEN,
+                    'totalTime',
+                ) ?? 3000,
+            watermarkLocation:
+                settings.querySettings<WatermarkLocationType>(
+                    SettingsCategory.SPLASH_SCREEN,
+                    'watermarkLocation',
+                ) ?? 'default',
+            autoFit:
+                settings.querySettings<boolean>(
+                    SettingsCategory.SPLASH_SCREEN,
+                    'autoFit',
+                ) ?? true,
+            logo:
+                settings.querySettings<SplashLogo>(
+                    SettingsCategory.SPLASH_SCREEN,
+                    'logo',
+                ) ?? undefined,
+            background:
+                settings.querySettings<SplashBackground>(
+                    SettingsCategory.SPLASH_SCREEN,
+                    'background',
+                ) ?? undefined,
         };
         this._curTime = 0;
 
-        if (EDITOR || this.settings.totalTime <= 0 || this.settings.logo === undefined || this.settings.background === undefined) {
+        if (
+            EDITOR
+            || this.settings.totalTime <= 0
+            || this.settings.logo === undefined
+            || this.settings.background === undefined
+        ) {
             this.settings.totalTime = 0;
         } else {
             this.device = cclegacy.director.root!.device;
@@ -194,7 +267,16 @@ export class SplashScreen {
 
     private preInit (): void {
         const clearColor = this.settings.background?.color;
-        this.clearColors = clearColor ? [new Color(clearColor.x, clearColor.y, clearColor.z, clearColor.w)] : [new Color(0, 0, 0, 1)];
+        this.clearColors = clearColor
+            ? [
+                new Color(
+                    clearColor.x,
+                    clearColor.y,
+                    clearColor.z,
+                    clearColor.w,
+                ),
+            ]
+            : [new Color(0, 0, 0, 1)];
         const { device, swapchain } = this;
         const { capabilities } = device;
         this.renderArea = new Rect(0, 0, swapchain.width, swapchain.height);
@@ -202,34 +284,44 @@ export class SplashScreen {
 
         // create input assembler
         // create vertex buffer
-        const verts = new Float32Array([0.5, 0.5, 1, 0, -0.5, 0.5, 0, 0, 0.5, -0.5, 1, 1, -0.5, -0.5, 0, 1]);
+        const verts = new Float32Array([
+            0.5, 0.5, 1, 0, -0.5, 0.5, 0, 0, 0.5, -0.5, 1, 1, -0.5, -0.5, 0, 1,
+        ]);
         const vbStride = Float32Array.BYTES_PER_ELEMENT * 4;
         const vbSize = vbStride * 4;
-        this.vertexBuffers = device.createBuffer(new BufferInfo(
-            BufferUsageBit.VERTEX | BufferUsageBit.TRANSFER_DST,
-            MemoryUsageBit.DEVICE,
-            vbSize,
-            vbStride,
-        ));
+        this.vertexBuffers = device.createBuffer(
+            new BufferInfo(
+                BufferUsageBit.VERTEX | BufferUsageBit.TRANSFER_DST,
+                MemoryUsageBit.DEVICE,
+                vbSize,
+                vbStride,
+            ),
+        );
         this.vertexBuffers.update(verts);
 
         // create index buffer
         const indices = new Uint16Array([0, 1, 2, 1, 3, 2]);
         const ibStride = Uint16Array.BYTES_PER_ELEMENT;
         const ibSize = ibStride * 6;
-        this.indicesBuffers = device.createBuffer(new BufferInfo(
-            BufferUsageBit.INDEX | BufferUsageBit.TRANSFER_DST,
-            MemoryUsageBit.DEVICE,
-            ibSize,
-            ibStride,
-        ));
+        this.indicesBuffers = device.createBuffer(
+            new BufferInfo(
+                BufferUsageBit.INDEX | BufferUsageBit.TRANSFER_DST,
+                MemoryUsageBit.DEVICE,
+                ibSize,
+                ibStride,
+            ),
+        );
         this.indicesBuffers.update(indices);
 
         const attributes: Attribute[] = [
             new Attribute('a_position', Format.RG32F),
             new Attribute('a_texCoord', Format.RG32F),
         ];
-        const IAInfo = new InputAssemblerInfo(attributes, [this.vertexBuffers], this.indicesBuffers);
+        const IAInfo = new InputAssemblerInfo(
+            attributes,
+            [this.vertexBuffers],
+            this.indicesBuffers,
+        );
         this.quadAssmebler = device.createInputAssembler(IAInfo);
 
         this.projection = new Mat4();
@@ -259,8 +351,8 @@ export class SplashScreen {
 
             this.textSize = 12; // font size
             this.textHeight = this.textSize + this.textExpandSize; // line height
-            this.textXTrans = 1 / 2;// Percent
-            this.textYExtraTrans = 16;// px
+            this.textXTrans = 1 / 2; // Percent
+            this.textYExtraTrans = 16; // px
         } else {
             this.bgWidth = 1920;
             this.bgHeight = 1080;
@@ -270,11 +362,11 @@ export class SplashScreen {
 
             this.textSize = 24; // font size
             this.textHeight = this.textSize + this.textExpandSize; // line height
-            this.textXTrans = 1 / 2;// Percent
-            this.textYExtraTrans = 32;// px
+            this.textXTrans = 1 / 2; // Percent
+            this.textYExtraTrans = 32; // px
         }
-        this.logoXTrans = 1 / 2;// Percent
-        this.logoYTrans = 1 / 6 + 2.5 / 6;// Percent
+        this.logoXTrans = 1 / 2; // Percent
+        this.logoYTrans = 1 / 6 + 2.5 / 6; // Percent
         this.initScale();
     }
 
@@ -311,7 +403,8 @@ export class SplashScreen {
             capabilities.clipSpaceSignY,
             swapchain.surfaceTransform,
         );
-        const dw = swapchain.width; const dh = swapchain.height;
+        const dw = swapchain.width;
+        const dh = swapchain.height;
         this.initScale();
 
         this._curTime += deltaTime * 1000;
@@ -330,7 +423,7 @@ export class SplashScreen {
                 scaleX = (dh / bgImage.height) * bgImage.width;
                 scaleY = dh;
             } else if (settings.policy === ResolutionPolicy.SHOW_ALL) {
-                if ((bgImage.width / this.bgHeight) > (dw / dh)) {
+                if (bgImage.width / this.bgHeight > dw / dh) {
                     scaleX = dw;
                     scaleY = (dw / bgImage.width) * bgImage.height;
                 } else {
@@ -338,7 +431,7 @@ export class SplashScreen {
                     scaleY = dh;
                 }
             } else if (settings.policy === ResolutionPolicy.NO_BORDER) {
-                if ((bgImage.width / bgImage.height) > (dw / dh)) {
+                if (bgImage.width / bgImage.height > dw / dh) {
                     scaleX = (dh / bgImage.height) * bgImage.width;
                     scaleY = dh;
                 } else {
@@ -353,7 +446,12 @@ export class SplashScreen {
             const bgMat = this.bgMat;
             setMaterialProperty(bgMat, 'resolution', v2_0.set(dw, dh), 0);
             setMaterialProperty(bgMat, 'scale', v2_0.set(scaleX, scaleY), 0);
-            setMaterialProperty(bgMat, 'translate', v2_0.set(dw * 0.5, dh * 0.5), 0);
+            setMaterialProperty(
+                bgMat,
+                'translate',
+                v2_0.set(dw * 0.5, dh * 0.5),
+                0,
+            );
             setMaterialProperty(bgMat, 'percent', 1.0);
             setMaterialProperty(bgMat, 'u_projection', this.projection);
             bgMat.passes[0].update();
@@ -363,11 +461,18 @@ export class SplashScreen {
         if (this.settings.logo!.type !== 'none') {
             // Product design is 0.185 of the height of the screen resolution as the display height of the logo.
             scaleY = dh * 0.185 * settings.displayRatio;
-            scaleX = this.logoWidth * (dh * 0.185 / this.logoHeight) * settings.displayRatio;
+            scaleX =                this.logoWidth
+                * ((dh * 0.185) / this.logoHeight)
+                * settings.displayRatio;
             const logoMat = this.logoMat;
             setMaterialProperty(logoMat, 'resolution', v2_0.set(dw, dh), 0);
             setMaterialProperty(logoMat, 'scale', v2_0.set(scaleX, scaleY), 0);
-            setMaterialProperty(logoMat, 'translate', v2_0.set(dw * this.logoXTrans, logoYTrans), 0);
+            setMaterialProperty(
+                logoMat,
+                'translate',
+                v2_0.set(dw * this.logoXTrans, logoYTrans),
+                0,
+            );
             setMaterialProperty(logoMat, 'percent', u_p);
             setMaterialProperty(logoMat, 'u_projection', this.projection);
             logoMat.passes[0].update();
@@ -375,15 +480,34 @@ export class SplashScreen {
 
         // update watermark uniform
         if (this.settings.logo!.type === 'default' && this.watermarkMat) {
-            const watermarkTW = this.watermarkTexture.width; const watermarkTH = this.watermarkTexture.height;
+            const watermarkTW = this.watermarkTexture.width;
+            const watermarkTH = this.watermarkTexture.height;
             scaleX = watermarkTW;
             scaleY = watermarkTH;
-            const textYTrans = logoYTrans - (this.logoHeight * 0.5 * settings.displayRatio + this.textYExtraTrans)
-                * this.scaleSize - watermarkTH * 0.5;
+            const textYTrans =                logoYTrans
+                - (this.logoHeight * 0.5 * settings.displayRatio
+                    + this.textYExtraTrans)
+                    * this.scaleSize
+                - watermarkTH * 0.5;
             const watermarkMat = this.watermarkMat;
-            setMaterialProperty(watermarkMat, 'resolution', v2_0.set(dw, dh), 0);
-            setMaterialProperty(watermarkMat, 'scale', v2_0.set(scaleX, scaleY), 0);
-            setMaterialProperty(watermarkMat, 'translate', v2_0.set(dw * this.textXTrans, textYTrans), 0);
+            setMaterialProperty(
+                watermarkMat,
+                'resolution',
+                v2_0.set(dw, dh),
+                0,
+            );
+            setMaterialProperty(
+                watermarkMat,
+                'scale',
+                v2_0.set(scaleX, scaleY),
+                0,
+            );
+            setMaterialProperty(
+                watermarkMat,
+                'translate',
+                v2_0.set(dw * this.textXTrans, textYTrans),
+                0,
+            );
             setMaterialProperty(watermarkMat, 'percent', u_p);
             setMaterialProperty(watermarkMat, 'u_projection', this.projection);
             watermarkMat.passes[0].update();
@@ -403,13 +527,15 @@ export class SplashScreen {
         samplerInfo.addressW = Address.CLAMP;
         this.sampler = device.getSampler(samplerInfo);
 
-        this.bgTexture = device.createTexture(new TextureInfo(
-            TextureType.TEX2D,
-            TextureUsageBit.SAMPLED | TextureUsageBit.TRANSFER_DST,
-            Format.RGBA8,
-            this.bgImage.width,
-            this.bgImage.height,
-        ));
+        this.bgTexture = device.createTexture(
+            new TextureInfo(
+                TextureType.TEX2D,
+                TextureUsageBit.SAMPLED | TextureUsageBit.TRANSFER_DST,
+                Format.RGBA8,
+                this.bgImage.width,
+                this.bgImage.height,
+            ),
+        );
 
         const pass = this.bgMat.passes[0];
         const binding = pass.getBinding('mainTexture');
@@ -438,13 +564,15 @@ export class SplashScreen {
         samplerInfo.addressW = Address.CLAMP;
         this.sampler = device.getSampler(samplerInfo);
 
-        this.logoTexture = device.createTexture(new TextureInfo(
-            TextureType.TEX2D,
-            TextureUsageBit.SAMPLED | TextureUsageBit.TRANSFER_DST,
-            Format.RGBA8,
-            this.logoImage.width,
-            this.logoImage.height,
-        ));
+        this.logoTexture = device.createTexture(
+            new TextureInfo(
+                TextureType.TEX2D,
+                TextureUsageBit.SAMPLED | TextureUsageBit.TRANSFER_DST,
+                Format.RGBA8,
+                this.logoImage.width,
+                this.logoImage.height,
+            ),
+        );
 
         const pass = this.logoMat.passes[0];
         const binding = pass.getBinding('mainTexture');
@@ -458,7 +586,9 @@ export class SplashScreen {
         regionTexExtent.width = this.logoImage.width;
         regionTexExtent.height = this.logoImage.height;
         regionTexExtent.depth = 1;
-        device.copyTexImagesToTexture([this.logoImage], this.logoTexture, [region]);
+        device.copyTexImagesToTexture([this.logoImage], this.logoTexture, [
+            region,
+        ]);
 
         const logoRatio = this.logoImage.width / this.logoImage.height;
         if (logoRatio < 1) {
@@ -479,24 +609,36 @@ export class SplashScreen {
 
         const text = 'Created with Cocos';
         const ctx = watermarkImg.getContext('2d')!;
-        ctx.font = `${this.textSize * this.scaleSize}px Arial`; ctx.textBaseline = 'top'; ctx.textAlign = 'center'; ctx.fillStyle = '#707070';
+        ctx.font = `${this.textSize * this.scaleSize}px Arial`;
+        ctx.textBaseline = 'top';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#707070';
         const textLength = ctx.measureText(text).width + 10;
         watermarkImg.width = textLength; // Tips: Set canvas width will clean context style
-        ctx.font = `${this.textSize * this.scaleSize}px Arial`; ctx.textBaseline = 'top'; ctx.textAlign = 'center'; ctx.fillStyle = '#707070';
+        ctx.font = `${this.textSize * this.scaleSize}px Arial`;
+        ctx.textBaseline = 'top';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#707070';
         ctx.fillText(text, watermarkImg.width / 2, 0);
         const region = new BufferTextureCopy();
         const regionTexExtent = region.texExtent;
         regionTexExtent.width = watermarkImg.width;
         regionTexExtent.height = watermarkImg.height;
         regionTexExtent.depth = 1;
-        this.watermarkTexture = this.device.createTexture(new TextureInfo(
-            TextureType.TEX2D,
-            TextureUsageBit.SAMPLED | TextureUsageBit.TRANSFER_DST,
-            Format.RGBA8,
-            watermarkImg.width,
-            watermarkImg.height,
-        ));
-        this.device.copyTexImagesToTexture([watermarkImg], this.watermarkTexture, [region]);
+        this.watermarkTexture = this.device.createTexture(
+            new TextureInfo(
+                TextureType.TEX2D,
+                TextureUsageBit.SAMPLED | TextureUsageBit.TRANSFER_DST,
+                Format.RGBA8,
+                watermarkImg.width,
+                watermarkImg.height,
+            ),
+        );
+        this.device.copyTexImagesToTexture(
+            [watermarkImg],
+            this.watermarkTexture,
+            [region],
+        );
         // create material
         this.watermarkMat = new Material();
         this.watermarkMat.initialize({ effectName: 'util/splash-screen' });
@@ -507,128 +649,101 @@ export class SplashScreen {
     }
 
     private frame (): void {
-        const { device, swapchain, projection, bgMat, logoMat, watermarkMat, settings, quadAssmebler } = this;
+        const {
+            device,
+            swapchain,
+            projection,
+            bgMat,
+            logoMat,
+            watermarkMat,
+            settings,
+            quadAssmebler,
+        } = this;
         const { capabilities } = device;
 
-        if (!sys.isXR || xr.entry.isRenderAllowable()) {
-            const renderSize = sys.isXR ? 2 : 1;
-            for (let xrEye = 0; xrEye < renderSize; xrEye++) {
-                if (USE_XR && sys.isXR) {
-                    xr.entry.renderLoopStart(xrEye);
-                    const xrFov = xr.entry.getEyeFov(xrEye);
-                    // device's fov may be asymmetry
-                    let radioLeft = 1.0;
-                    let radioRight = 1.0;
-                    if (xrEye === XREye.LEFT as number) {
-                        radioLeft = Math.abs(Math.tan(xrFov[0] as number)) / Math.abs(Math.tan(xrFov[1] as number));
-                    } else if (xrEye === XREye.RIGHT as number) {
-                        radioRight = Math.abs(Math.tan(xrFov[1] as number)) / Math.abs(Math.tan(xrFov[0] as number));
-                    }
+        // for legacy pipeline
+        device.enableAutoBarrier(true);
 
-                    Mat4.ortho(
-                        projection,
-                        -radioLeft,
-                        radioRight,
-                        -1,
-                        1,
-                        -1,
-                        1,
-                        capabilities.clipSpaceMinZ,
-                        capabilities.clipSpaceSignY,
-                        swapchain.surfaceTransform,
-                    );
-                    // keep scale to [-1, 1] only use offset
-                    projection.m00 = preTransforms[swapchain.surfaceTransform][0];
-                    projection.m05 = preTransforms[swapchain.surfaceTransform][3] * capabilities.clipSpaceSignY;
-                    if (settings.background!.type === 'custom') {
-                        setMaterialProperty(bgMat, 'u_projection', projection);
-                        bgMat.passes[0].update();
-                    }
-                    if (settings.logo!.type !== 'none') {
-                        setMaterialProperty(logoMat, 'u_projection', projection);
-                        logoMat.passes[0].update();
-                    }
-                    if (settings.logo!.type === 'default' && watermarkMat) {
-                        setMaterialProperty(watermarkMat, 'u_projection', projection);
-                        watermarkMat.passes[0].update();
-                    }
-                }
+        device.acquire([swapchain]);
+        // record command
+        const cmdBuff = this.cmdBuff;
+        const framebuffer = cclegacy.director.root!.mainWindow!
+            .framebuffer as Framebuffer;
+        const renderArea = this.renderArea;
 
-                // for legacy pipeline
-                device.enableAutoBarrier(true);
+        renderArea.width = swapchain.width;
+        renderArea.height = swapchain.height;
 
-                device.acquire([swapchain]);
-                // record command
-                const cmdBuff = this.cmdBuff;
-                const framebuffer = cclegacy.director.root!.mainWindow!.framebuffer as Framebuffer;
-                const renderArea = this.renderArea;
+        cmdBuff.begin();
+        cmdBuff.beginRenderPass(
+            framebuffer.renderPass,
+            framebuffer,
+            renderArea,
+            this.clearColors,
+            1.0,
+            0,
+        );
+        const pipeline = cclegacy.director.root.pipeline as PipelineRuntime;
+        if (settings.background!.type === 'custom') {
+            const bgPass = bgMat.passes[0];
+            const bgPso = PipelineStateManager.getOrCreatePipelineState(
+                device,
+                bgPass,
+                this.shader,
+                framebuffer.renderPass,
+                quadAssmebler,
+            );
 
-                renderArea.width = swapchain.width;
-                renderArea.height = swapchain.height;
-
-                cmdBuff.begin();
-                cmdBuff.beginRenderPass(framebuffer.renderPass, framebuffer, renderArea, this.clearColors, 1.0, 0);
-                const pipeline = cclegacy.director.root.pipeline as PipelineRuntime;
-                if (settings.background!.type === 'custom') {
-                    const bgPass = bgMat.passes[0];
-                    const bgPso = PipelineStateManager.getOrCreatePipelineState(
-                        device,
-                        bgPass,
-                        this.shader,
-                        framebuffer.renderPass,
-                        quadAssmebler,
-                    );
-
-                    cmdBuff.bindPipelineState(bgPso);
-                    cmdBuff.bindDescriptorSet(SetIndex.MATERIAL, bgPass.descriptorSet);
-                    cmdBuff.bindInputAssembler(quadAssmebler);
-                    cmdBuff.draw(quadAssmebler);
-                }
-
-                if (settings.logo!.type !== 'none') {
-                    const logoPass = logoMat.passes[0];
-                    const logoPso = PipelineStateManager.getOrCreatePipelineState(
-                        device,
-                        logoPass,
-                        this.shader,
-                        framebuffer.renderPass,
-                        quadAssmebler,
-                    );
-
-                    cmdBuff.bindPipelineState(logoPso);
-                    cmdBuff.bindDescriptorSet(SetIndex.MATERIAL, logoPass.descriptorSet);
-                    cmdBuff.bindInputAssembler(quadAssmebler);
-                    cmdBuff.draw(quadAssmebler);
-                }
-
-                if (settings.logo!.type === 'default' && watermarkMat) {
-                    const wartermarkPass = this.watermarkMat.passes[0];
-                    const watermarkPso = PipelineStateManager.getOrCreatePipelineState(
-                        device,
-                        wartermarkPass,
-                        this.shader,
-                        framebuffer.renderPass,
-                        quadAssmebler,
-                    );
-
-                    cmdBuff.bindPipelineState(watermarkPso);
-                    cmdBuff.bindDescriptorSet(SetIndex.MATERIAL, wartermarkPass.descriptorSet);
-                    cmdBuff.bindInputAssembler(quadAssmebler);
-                    cmdBuff.draw(quadAssmebler);
-                }
-
-                cmdBuff.endRenderPass();
-                cmdBuff.end();
-                device.flushCommands([cmdBuff]);
-                device.queue.submit([cmdBuff]);
-                device.present();
-                device.enableAutoBarrier(!legacyCC.rendering);
-
-                if (USE_XR && sys.isXR) {
-                    xr.entry.renderLoopEnd(xrEye);
-                }
-            }
+            cmdBuff.bindPipelineState(bgPso);
+            cmdBuff.bindDescriptorSet(SetIndex.MATERIAL, bgPass.descriptorSet);
+            cmdBuff.bindInputAssembler(quadAssmebler);
+            cmdBuff.draw(quadAssmebler);
         }
+
+        if (settings.logo!.type !== 'none') {
+            const logoPass = logoMat.passes[0];
+            const logoPso = PipelineStateManager.getOrCreatePipelineState(
+                device,
+                logoPass,
+                this.shader,
+                framebuffer.renderPass,
+                quadAssmebler,
+            );
+
+            cmdBuff.bindPipelineState(logoPso);
+            cmdBuff.bindDescriptorSet(
+                SetIndex.MATERIAL,
+                logoPass.descriptorSet,
+            );
+            cmdBuff.bindInputAssembler(quadAssmebler);
+            cmdBuff.draw(quadAssmebler);
+        }
+
+        if (settings.logo!.type === 'default' && watermarkMat) {
+            const wartermarkPass = this.watermarkMat.passes[0];
+            const watermarkPso = PipelineStateManager.getOrCreatePipelineState(
+                device,
+                wartermarkPass,
+                this.shader,
+                framebuffer.renderPass,
+                quadAssmebler,
+            );
+
+            cmdBuff.bindPipelineState(watermarkPso);
+            cmdBuff.bindDescriptorSet(
+                SetIndex.MATERIAL,
+                wartermarkPass.descriptorSet,
+            );
+            cmdBuff.bindInputAssembler(quadAssmebler);
+            cmdBuff.draw(quadAssmebler);
+        }
+
+        cmdBuff.endRenderPass();
+        cmdBuff.end();
+        device.flushCommands([cmdBuff]);
+        device.queue.submit([cmdBuff]);
+        device.present();
+        device.enableAutoBarrier(!legacyCC.rendering);
     }
 
     private destroy (): void {

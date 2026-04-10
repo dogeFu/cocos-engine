@@ -20,9 +20,7 @@
             "modules": ["gfx-empty"]
         },
         "gfx-webgpu": {
-            "modules": [
-                "gfx-webgpu"
-            ]
+            "modules": ["gfx-webgpu"]
         },
         "3d": {
             "modules": ["3d"],
@@ -174,14 +172,8 @@
         "video": {
             "modules": ["video"]
         },
-        "xr": {
-            "modules": ["xr"],
-            "overrideConstants": {
-                "USE_XR": true
-            }
-        },
         "light-probe": {
-            "modules": [ "light-probe" ]
+            "modules": ["light-probe"]
         },
         "webview": {
             "modules": ["webview"]
@@ -223,7 +215,7 @@
         },
         "dragon-bones": {
             "modules": ["dragon-bones"],
-            "dependentAssets":[ 
+            "dependentAssets": [
                 "c27215d8-6835-4b68-bfbb-bdeac6100c04",
                 "b5d6115f-0370-4d7c-aad3-c194cc71cf98"
             ],
@@ -243,9 +235,7 @@
         },
         "custom-pipeline": {
             "modules": ["custom-pipeline"],
-            "dependentAssets": [
-                "6a2d0734-bd9e-4ddf-946e-caa52498cb75"
-            ]
+            "dependentAssets": ["6a2d0734-bd9e-4ddf-946e-caa52498cb75"]
         },
         "custom-pipeline-builtin-scripts": {
             "modules": [],
@@ -258,7 +248,7 @@
         },
         "custom-pipeline-post-process": {
             "modules": ["custom-pipeline-post-process"],
-            "dependentAssets":[ 
+            "dependentAssets": [
                 "15049ccd-4dd7-451e-a8ae-af66735c929e",
                 "521c5f6e-1a26-42e2-8108-4400c912d9bf",
                 "4c3ce6de-e6d1-47f7-aa36-36b9b58f72d3",
@@ -279,9 +269,7 @@
         },
         "legacy-pipeline": {
             "modules": ["legacy-pipeline"],
-            "dependentScripts": [
-                "b2bd1fa7-8d7c-49c5-a158-df29a6d3a594"
-            ]
+            "dependentScripts": ["b2bd1fa7-8d7c-49c5-a158-df29a6d3a594"]
         },
         "websocket": {
             "modules": [],
@@ -298,7 +286,8 @@
             }
         }
     },
-    "moduleOverrides": [{
+    "moduleOverrides": [
+        {
             "test": "true",
             "isVirtualModule": true,
             "overrides": {
@@ -531,7 +520,7 @@
             "value": false,
             "internal": false,
             "dynamic": false
-        },        
+        },
         "OHOS": {
             "comment": "Running in OHOS platform",
             "type": "boolean",
@@ -642,7 +631,7 @@
             "internal": false,
             "dynamic": true
         },
-        "EDITOR_NOT_IN_PREVIEW" : {
+        "EDITOR_NOT_IN_PREVIEW": {
             "comment": "Run in editor but not in editor preview.",
             "type": "boolean",
             "value": false,
@@ -746,7 +735,7 @@
         "NATIVE_CODE_BUNDLE_MODE": {
             "comment": "Native code (wasm/asmjs) bundle mode, 0: asmjs, 1: wasm, 2: both",
             "type": "number",
-            "value": 2, 
+            "value": 2,
             "internal": true
         },
         "WASM_SUBPACKAGE": {
@@ -797,12 +786,6 @@
             "value": false,
             "internal": true
         },
-        "USE_XR": {
-            "comment": "An internal constant to indicate whether we're using xr module.",
-            "type": "boolean",
-            "value": false,
-            "internal": true
-        },
         "USE_SORTING_2D": {
             "comment": "An internal constant to indicate whether we're using sorting-2d module.",
             "type": "boolean",
@@ -813,25 +796,71 @@
 
     "optimizeDecorators": {
         "fieldDecorators": [
-            "property", "serializable", "formerlySerializedAs", "editorOnly", "uniquelyReferenced",
-            "type", "override", "executeInEditMode", "menu", "playOnFocus", "inspector", "icon", "help",
-            "editable", "visible", "readOnly", "displayName", "tooltip", "group", "range", "rangeMin",
-            "rangeMax", "rangeStep", "slide", "displayOrder", "unit", "radian", "multiline", "disallowAnimation",
-            "requireComponent", "executionOrder", "disallowMultiple", "allowReplicated", "ccclass"
+            "property",
+            "serializable",
+            "formerlySerializedAs",
+            "editorOnly",
+            "uniquelyReferenced",
+            "type",
+            "override",
+            "executeInEditMode",
+            "menu",
+            "playOnFocus",
+            "inspector",
+            "icon",
+            "help",
+            "editable",
+            "visible",
+            "readOnly",
+            "displayName",
+            "tooltip",
+            "group",
+            "range",
+            "rangeMin",
+            "rangeMax",
+            "rangeStep",
+            "slide",
+            "displayOrder",
+            "unit",
+            "radian",
+            "multiline",
+            "disallowAnimation",
+            "requireComponent",
+            "executionOrder",
+            "disallowMultiple",
+            "allowReplicated",
+            "ccclass"
         ],
-        
+
         "editorDecorators": [
-            "executeInEditMode", "menu", "playOnFocus", "inspector", "icon", "help", "editable", "visible",
-            "readOnly", "displayName", "tooltip", "group", "range", "rangeMin", "rangeMax", "rangeStep", "slide",
-            "displayOrder", "unit", "radian", "multiline", "disallowAnimation"
+            "executeInEditMode",
+            "menu",
+            "playOnFocus",
+            "inspector",
+            "icon",
+            "help",
+            "editable",
+            "visible",
+            "readOnly",
+            "displayName",
+            "tooltip",
+            "group",
+            "range",
+            "rangeMin",
+            "rangeMax",
+            "rangeStep",
+            "slide",
+            "displayOrder",
+            "unit",
+            "radian",
+            "multiline",
+            "disallowAnimation"
         ]
     },
 
     "treeShake": {
         "noSideEffectFiles": [
             "cocos/sorting/sorting-layers.ts",
-            "cocos/xr/event/xr-event-handle.ts",
-            "cocos/xr/xr-enums.ts",
             "cocos/serialization/instantiate-jit.ts",
             "cocos/game/splash-screen.ts",
             "cocos/core/utils/jsb-utils.ts",

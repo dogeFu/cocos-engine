@@ -23,11 +23,26 @@
  THE SOFTWARE.
 */
 
-import { ccclass, help, executionOrder, menu, requireComponent, tooltip, displayOrder, type, rangeMin,
-    rangeMax, serializable, executeInEditMode } from 'cc.decorator';
-import { DEBUG, EDITOR, EDITOR_NOT_IN_PREVIEW, USE_XR } from 'internal:constants';
+import {
+    ccclass,
+    help,
+    executionOrder,
+    menu,
+    requireComponent,
+    tooltip,
+    displayOrder,
+    type,
+    rangeMin,
+    rangeMax,
+    serializable,
+    executeInEditMode,
+} from 'cc.decorator';
+import { DEBUG, EDITOR, EDITOR_NOT_IN_PREVIEW } from 'internal:constants';
 import { SpriteFrame } from '../2d/assets';
-import { Component, EventHandler as ComponentEventHandler } from '../scene-graph';
+import {
+    Component,
+    EventHandler as ComponentEventHandler,
+} from '../scene-graph';
 import { UITransform, UIRenderer } from '../2d/framework';
 import { EventMouse, EventTouch } from '../input/types';
 import { Color, v3, Vec3 } from '../core/math';
@@ -38,7 +53,6 @@ import { Sprite, SpriteEventType } from '../2d/components/sprite';
 import { legacyCC } from '../core/global-exports';
 import { TransformBit } from '../scene-graph/node-enum';
 import { NodeEventType } from '../scene-graph/node-event';
-import { XrUIPressEventType } from '../xr/event/xr-event-handle';
 import { warn } from '../core';
 
 const _tempColor = new Color();
@@ -601,17 +615,21 @@ export class Button extends Component {
         if (!EDITOR_NOT_IN_PREVIEW) {
             this._registerNodeEvent();
         } else {
-            this.node.on(SpriteEventType.SPRITE_FRAME_CHANGED, (comp: Sprite) => {
-                if (this._transition === Transition.SPRITE) {
-                    this._setCurrentStateSpriteFrame(comp.spriteFrame);
-                } else {
-                    // avoid serialization data loss when in no-sprite mode
-                    this._normalSprite = null;
-                    this._hoverSprite = null;
-                    this._pressedSprite = null;
-                    this._disabledSprite = null;
-                }
-            }, this);
+            this.node.on(
+                SpriteEventType.SPRITE_FRAME_CHANGED,
+                (comp: Sprite) => {
+                    if (this._transition === Transition.SPRITE) {
+                        this._setCurrentStateSpriteFrame(comp.spriteFrame);
+                    } else {
+                        // avoid serialization data loss when in no-sprite mode
+                        this._normalSprite = null;
+                        this._hoverSprite = null;
+                        this._pressedSprite = null;
+                        this._disabledSprite = null;
+                    }
+                },
+                this,
+            );
         }
     }
 
@@ -637,7 +655,10 @@ export class Button extends Component {
             return;
         }
 
-        if (this._transition !== Transition.COLOR && this._transition !== Transition.SCALE) {
+        if (
+            this._transition !== Transition.COLOR
+            && this._transition !== Transition.SCALE
+        ) {
             return;
         }
 
@@ -659,8 +680,16 @@ export class Button extends Component {
             }
         } else if (this.transition === Transition.SCALE) {
             target.getScale(this._targetScale);
-            this._targetScale.x = lerp(this._fromScale.x, this._toScale.x, ratio);
-            this._targetScale.y = lerp(this._fromScale.y, this._toScale.y, ratio);
+            this._targetScale.x = lerp(
+                this._fromScale.x,
+                this._toScale.x,
+                ratio,
+            );
+            this._targetScale.y = lerp(
+                this._fromScale.y,
+                this._toScale.y,
+                ratio,
+            );
             target.setScale(this._targetScale);
         }
 
@@ -675,7 +704,9 @@ export class Button extends Component {
         }
         const targetTrans = this.target._getUITransformComp();
         if (EDITOR && targetTrans) {
-            this.node._getUITransformComp()!.setContentSize(targetTrans.contentSize);
+            this.node
+                ._getUITransformComp()!
+                .setContentSize(targetTrans.contentSize);
         }
     }
 
@@ -709,21 +740,26 @@ export class Button extends Component {
 
         node.on(NodeEventType.MOUSE_ENTER, self._onMouseMoveIn, self);
         node.on(NodeEventType.MOUSE_LEAVE, self._onMouseMoveOut, self);
-
-        if (USE_XR) {
-            node.on(XrUIPressEventType.XRUI_HOVER_ENTERED, self._xrHoverEnter, self);
-            node.on(XrUIPressEventType.XRUI_HOVER_EXITED, self._xrHoverExit, self);
-            node.on(XrUIPressEventType.XRUI_CLICK, self._xrClick, self);
-            node.on(XrUIPressEventType.XRUI_UNCLICK, self._xrUnClick, self);
-        }
     }
 
     protected _registerTargetEvent (target): void {
         if (EDITOR_NOT_IN_PREVIEW) {
-            target.on(SpriteEventType.SPRITE_FRAME_CHANGED, this._onTargetSpriteFrameChanged, this);
-            target.on(NodeEventType.COLOR_CHANGED, this._onTargetColorChanged, this);
+            target.on(
+                SpriteEventType.SPRITE_FRAME_CHANGED,
+                this._onTargetSpriteFrameChanged,
+                this,
+            );
+            target.on(
+                NodeEventType.COLOR_CHANGED,
+                this._onTargetColorChanged,
+                this,
+            );
         }
-        target.on(NodeEventType.TRANSFORM_CHANGED, this._onTargetTransformChanged, this);
+        target.on(
+            NodeEventType.TRANSFORM_CHANGED,
+            this._onTargetTransformChanged,
+            this,
+        );
     }
 
     protected _unregisterNodeEvent (): void {
@@ -737,13 +773,6 @@ export class Button extends Component {
 
         node.off(NodeEventType.MOUSE_ENTER, self._onMouseMoveIn, self);
         node.off(NodeEventType.MOUSE_LEAVE, self._onMouseMoveOut, self);
-
-        if (USE_XR) {
-            node.off(XrUIPressEventType.XRUI_HOVER_ENTERED, self._xrHoverEnter, self);
-            node.off(XrUIPressEventType.XRUI_HOVER_EXITED, self._xrHoverExit, self);
-            node.off(XrUIPressEventType.XRUI_CLICK, self._xrClick, self);
-            node.off(XrUIPressEventType.XRUI_UNCLICK, self._xrUnClick, self);
-        }
     }
 
     protected _unregisterTargetEvent (target): void {
@@ -828,15 +857,21 @@ export class Button extends Component {
 
     private _onTargetTransformChanged (transformBit: TransformBit): void {
         // update originalScale
-        if ((transformBit & TransformBit.SCALE) && this._originalScale
-            && this._transition === Transition.SCALE && this._transitionFinished) {
+        if (
+            transformBit & TransformBit.SCALE
+            && this._originalScale
+            && this._transition === Transition.SCALE
+            && this._transitionFinished
+        ) {
             Vec3.copy(this._originalScale, this.target.scale);
         }
     }
 
     // touch event handler
     protected _onTouchBegan (event?: EventTouch): void {
-        if (!this._interactable || !this.enabledInHierarchy) { return; }
+        if (!this._interactable || !this.enabledInHierarchy) {
+            return;
+        }
 
         this._pressed = true;
         this._updateState();
@@ -846,24 +881,36 @@ export class Button extends Component {
     }
 
     protected _onTouchMove (event?: EventTouch): void {
-        if (!this._interactable || !this.enabledInHierarchy || !this._pressed) { return; }
+        if (!this._interactable || !this.enabledInHierarchy || !this._pressed) {
+            return;
+        }
         // mobile phone will not emit _onMouseMoveOut,
         // so we have to do hit test when touch moving
         if (!event) {
             return;
         }
 
-        const touch = (event).touch;
+        const touch = event.touch;
         if (!touch) {
             return;
         }
 
-        const hit = this.node._getUITransformComp()!.hitTest(touch.getLocation(), event.windowId);
+        const hit = this.node
+            ._getUITransformComp()!
+            .hitTest(touch.getLocation(), event.windowId);
 
-        if (this._transition === Transition.SCALE && this.target && this._originalScale) {
+        if (
+            this._transition === Transition.SCALE
+            && this.target
+            && this._originalScale
+        ) {
             if (hit) {
                 Vec3.copy(this._fromScale, this._originalScale);
-                Vec3.multiplyScalar(this._toScale, this._originalScale, this._zoomScale);
+                Vec3.multiplyScalar(
+                    this._toScale,
+                    this._originalScale,
+                    this._zoomScale,
+                );
                 this._transitionFinished = false;
             } else {
                 this._time = 0;
@@ -903,15 +950,21 @@ export class Button extends Component {
     }
 
     protected _onTouchCancel (event?: EventTouch): void {
-        if (!this._interactable || !this.enabledInHierarchy) { return; }
+        if (!this._interactable || !this.enabledInHierarchy) {
+            return;
+        }
 
         this._pressed = false;
         this._updateState();
     }
 
     protected _onMouseMoveIn (event?: EventMouse): void {
-        if (this._pressed || !this.interactable || !this.enabledInHierarchy) { return; }
-        if (this._transition === Transition.SPRITE && !this._hoverSprite) { return; }
+        if (this._pressed || !this.interactable || !this.enabledInHierarchy) {
+            return;
+        }
+        if (this._transition === Transition.SPRITE && !this._hoverSprite) {
+            return;
+        }
 
         if (!this._hovered) {
             this._hovered = true;
@@ -988,7 +1041,11 @@ export class Button extends Component {
             return;
         }
         Vec3.copy(this._fromScale, this._originalScale);
-        Vec3.multiplyScalar(this._toScale, this._originalScale, this._zoomScale);
+        Vec3.multiplyScalar(
+            this._toScale,
+            this._originalScale,
+            this._zoomScale,
+        );
         this._time = 0;
         this._transitionFinished = false;
     }
@@ -1050,42 +1107,6 @@ export class Button extends Component {
             }
             return new Color();
         }
-    }
-
-    private _xrHoverEnter (): void {
-        if (!USE_XR) return;
-        this._onMouseMoveIn();
-        this._updateState();
-    }
-
-    private _xrHoverExit (): void {
-        if (!USE_XR) return;
-        this._onMouseMoveOut();
-        if (this._pressed) {
-            this._pressed = false;
-            this._updateState();
-        }
-    }
-
-    private _xrClick (): void {
-        if (!USE_XR) return;
-        if (!this._interactable || !this.enabledInHierarchy) { return; }
-        this._pressed = true;
-        this._updateState();
-    }
-
-    private _xrUnClick (): void {
-        if (!USE_XR) return;
-        if (!this._interactable || !this.enabledInHierarchy) {
-            return;
-        }
-
-        if (this._pressed) {
-            ComponentEventHandler.emitEvents(this.clickEvents, this);
-            this.node.emit(ButtonEventType.CLICK, this);
-        }
-        this._pressed = false;
-        this._updateState();
     }
 }
 

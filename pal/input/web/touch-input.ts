@@ -23,7 +23,7 @@
 */
 
 import { TouchCallback } from 'pal/input';
-import { EDITOR, TEST, USE_XR } from 'internal:constants';
+import { EDITOR, TEST } from 'internal:constants';
 import { systemInfo } from 'pal/system-info';
 import { screenAdapter } from 'pal/screen-adapter';
 import { Rect, Vec2 } from '../../../cocos/core/math';
@@ -110,11 +110,6 @@ export class TouchInputSource {
     }
 
     private _getLocation (touch: globalThis.Touch, canvasRect: Rect): Vec2 {
-        // webxr has been converted to screen coordinates via camera
-        if (USE_XR && globalThis.__globalXR && globalThis.__globalXR.ar && globalThis.__globalXR.ar.isWebXR()) {
-            return new Vec2(touch.clientX, touch.clientY);
-        }
-
         let x = touch.clientX - canvasRect.x;
         let y = canvasRect.y + canvasRect.height - touch.clientY;
         if (screenAdapter.isFrameRotated) {

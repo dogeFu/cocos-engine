@@ -21,8 +21,7 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
 */
-
-import { EDITOR, USE_XR } from 'internal:constants';
+import { EDITOR } from 'internal:constants';
 import { warnID } from '../cocos/core/platform/debug';
 
 /**
@@ -30,7 +29,10 @@ import { warnID } from '../cocos/core/platform/debug';
  * @param targetObject Usually it's specified as the minigame module.
  * @param originObj Original minigame environment such as `wx`, `swan` etc.
  */
-export function cloneObject<T extends object = any> (targetObject: T, originObj: T): void {
+export function cloneObject<T extends object = any> (
+    targetObject: T,
+    originObj: T,
+): void {
     Object.keys(originObj).forEach((key) => {
         if (typeof originObj[key] === 'function') {
             targetObject[key] = originObj[key].bind(originObj);
@@ -51,9 +53,13 @@ type InnerAudioContextPolyfillConfig = {
  * @param isAsynchronous Specify whether the callback is called asynchronous.
  * @returns A polyfilled createInnerAudioContext method.
  */
-export function createInnerAudioContextPolyfill (minigameEnv: any, polyfillConfig: InnerAudioContextPolyfillConfig, isAsynchronous = false) {
+export function createInnerAudioContextPolyfill (
+    minigameEnv: any,
+    polyfillConfig: InnerAudioContextPolyfillConfig,
+    isAsynchronous = false,
+) {
     return (): InnerAudioContext => {
-        const audioContext: InnerAudioContext = minigameEnv.createInnerAudioContext();
+        const audioContext: InnerAudioContext =            minigameEnv.createInnerAudioContext();
 
         // add polyfill if onPlay method doesn't work this platform
         if (polyfillConfig.onPlay) {
@@ -173,8 +179,12 @@ export function versionCompare (versionA: string, versionB: string): number {
         warnID(16356);
         return 0;
     }
-    const versionNumbersA = versionA.split('.').map((num: string) => Number.parseInt(num));
-    const versionNumbersB = versionB.split('.').map((num: string) => Number.parseInt(num));
+    const versionNumbersA = versionA
+        .split('.')
+        .map((num: string) => Number.parseInt(num));
+    const versionNumbersB = versionB
+        .split('.')
+        .map((num: string) => Number.parseInt(num));
     for (let i = 0; i < 3; ++i) {
         const numberA = versionNumbersA[i];
         const numberB = versionNumbersB[i];
@@ -192,17 +202,21 @@ export function versionCompare (versionA: string, versionB: string): number {
  * @param args The arguments to be passed to the callback function.
  * @returns A unique identifier for the timer.
  */
-export function setTimeoutRAF<T extends any[]> (callback: (...args: T) => void, delay: number, ...args: T): number {
+export function setTimeoutRAF<T extends any[]> (
+    callback: (...args: T) => void,
+    delay: number,
+    ...args: T
+): number {
     const start = performance.now();
 
-    const raf = requestAnimationFrame
-    || window.requestAnimationFrame
-    || window.webkitRequestAnimationFrame
-    || window.mozRequestAnimationFrame
-    || window.oRequestAnimationFrame
-    || window.msRequestAnimationFrame;
+    const raf =        requestAnimationFrame
+        || window.requestAnimationFrame
+        || window.webkitRequestAnimationFrame
+        || window.mozRequestAnimationFrame
+        || window.oRequestAnimationFrame
+        || window.msRequestAnimationFrame;
 
-    if (EDITOR || raf === undefined || (USE_XR && globalThis.__globalXR?.isWebXR)) {
+    if (EDITOR || raf === undefined) {
         return setTimeout(callback, delay, ...args);
     }
 
@@ -223,7 +237,7 @@ export function setTimeoutRAF<T extends any[]> (callback: (...args: T) => void, 
  * @returns Nothing.
  */
 export function clearTimeoutRAF (id: number): void {
-    const caf = cancelAnimationFrame
+    const caf =        cancelAnimationFrame
         || window.cancelAnimationFrame
         || window.cancelRequestAnimationFrame
         || window.msCancelRequestAnimationFrame
@@ -234,7 +248,7 @@ export function clearTimeoutRAF (id: number): void {
         || window.mozCancelAnimationFrame
         || window.webkitCancelAnimationFrame
         || window.ocancelAnimationFrame;
-    if (EDITOR || caf === undefined || (USE_XR && globalThis.__globalXR?.isWebXR)) {
+    if (EDITOR || caf === undefined) {
         clearTimeout(id);
     } else {
         caf(id);

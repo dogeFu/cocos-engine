@@ -22,25 +22,63 @@
  THE SOFTWARE.
 */
 
-import { USE_XR } from 'internal:constants';
-import { Pool, cclegacy, warnID, settings, macro, log, errorID, SettingsCategory } from './core';
+import {
+    Pool,
+    cclegacy,
+    warnID,
+    settings,
+    macro,
+    log,
+    errorID,
+    SettingsCategory,
+} from './core';
 import { DebugView } from './rendering/debug-view';
-import { Camera, CameraType, Light, Model, TrackingType } from './render-scene/scene';
+import {
+    Camera,
+    CameraType,
+    Light,
+    Model,
+    TrackingType,
+} from './render-scene/scene';
 import type { DataPoolManager } from './3d/skeletal-animation/data-pool-manager';
 import { LightType } from './render-scene/scene/light';
-import { IRenderSceneInfo, RenderScene } from './render-scene/core/render-scene';
+import {
+    IRenderSceneInfo,
+    RenderScene,
+} from './render-scene/core/render-scene';
 import { DirectionalLight } from './render-scene/scene/directional-light';
 import { SphereLight } from './render-scene/scene/sphere-light';
 import { SpotLight } from './render-scene/scene/spot-light';
 import { PointLight } from './render-scene/scene/point-light';
 import { RangedDirectionalLight } from './render-scene/scene/ranged-directional-light';
-import { RenderWindow, IRenderWindowInfo } from './render-scene/core/render-window';
-import { ColorAttachment, DepthStencilAttachment, RenderPassInfo, StoreOp, Device, Swapchain, deviceManager, LegacyRenderMode } from './gfx';
+import {
+    RenderWindow,
+    IRenderWindowInfo,
+} from './render-scene/core/render-window';
+import {
+    ColorAttachment,
+    DepthStencilAttachment,
+    RenderPassInfo,
+    StoreOp,
+    Device,
+    Swapchain,
+    deviceManager,
+    LegacyRenderMode,
+} from './gfx';
 import { BasicPipeline, PipelineRuntime } from './rendering/custom/pipeline';
 import { Batcher2D } from './2d/renderer/batcher-2d';
-import { IPipelineEvent, PipelineEventProcessor } from './rendering/pipeline-event';
-import { localDescriptorSetLayout_ResizeMaxJoints, UBOCameraEnum, UBOGlobalEnum, UBOLocalEnum, UBOShadowEnum, UBOWorldBound } from './rendering/define';
-import { XREye, XRPoseType } from './xr/xr-enums';
+import {
+    IPipelineEvent,
+    PipelineEventProcessor,
+} from './rendering/pipeline-event';
+import {
+    localDescriptorSetLayout_ResizeMaxJoints,
+    UBOCameraEnum,
+    UBOGlobalEnum,
+    UBOLocalEnum,
+    UBOShadowEnum,
+    UBOWorldBound,
+} from './rendering/define';
 import { ICustomJointTextureLayout } from './3d/skeletal-animation/skeletal-animation-utils';
 import { getPipelineSceneData } from './rendering/pipeline-scene-data-utils';
 
@@ -244,18 +282,18 @@ export class Root {
      */
     public _createWindowFun: (root: Root) => RenderWindow = null!;
 
-    private declare _device: Device;
+    declare private _device: Device;
     private _windows: RenderWindow[] = [];
     private _mainWindow: RenderWindow | null = null;
     private _curWindow: RenderWindow | null = null;
     private _tempWindow: RenderWindow | null = null;
     private _usesCustomPipeline = true;
     private _pipeline: PipelineRuntime | null = null;
-    private _pipelineEvent: IPipelineEvent | null = new PipelineEventProcessor();
+    private _pipelineEvent: IPipelineEvent | null =        new PipelineEventProcessor();
     private _classicPipeline: (PipelineRuntime & IPipelineEvent) | null = null;
     private _customPipeline: BasicPipeline | null = null;
     private _batcher: Batcher2D | null = null;
-    private declare _dataPoolMgr: DataPoolManager;
+    declare private _dataPoolMgr: DataPoolManager;
     private _scenes: RenderScene[] = [];
     private _modelPools = new Map<Constructor<Model>, Pool<Model>>();
     private _cameraPool: Pool<Camera> | null = null;
@@ -268,7 +306,7 @@ export class Root {
     private _useDeferredPipeline = false;
     private _cumulativeTime = 0;
     private _frameTime = 0;
-    private declare _naitveObj: any;
+    declare private _naitveObj: any;
     private _cameraList: Camera[] = [];
 
     /**
@@ -278,12 +316,17 @@ export class Root {
      */
     constructor (device: Device) {
         this._device = device;
-        this._dataPoolMgr = cclegacy.internal.DataPoolManager && new cclegacy.internal.DataPoolManager(device) as DataPoolManager;
+        this._dataPoolMgr =            cclegacy.internal.DataPoolManager
+            && (new cclegacy.internal.DataPoolManager(device) as DataPoolManager);
 
         RenderScene.registerCreateFunc(this);
         RenderWindow.registerCreateFunc(this);
 
-        this._cameraPool = new Pool((): Camera => new Camera(this._device), 4, (cam): void => cam.destroy());
+        this._cameraPool = new Pool(
+            (): Camera => new Camera(this._device),
+            4,
+            (cam): void => cam.destroy(),
+        );
     }
 
     /**
@@ -299,7 +342,10 @@ export class Root {
         depthStencilAttachment.format = swapchain.depthStencilTexture.format;
         depthStencilAttachment.depthStoreOp = StoreOp.DISCARD;
         depthStencilAttachment.stencilStoreOp = StoreOp.DISCARD;
-        const renderPassInfo = new RenderPassInfo([colorAttachment], depthStencilAttachment);
+        const renderPassInfo = new RenderPassInfo(
+            [colorAttachment],
+            depthStencilAttachment,
+        );
 
         this._mainWindow = this.createWindow({
             title: 'rootMainWindow',
@@ -309,11 +355,13 @@ export class Root {
             swapchain,
         });
         this._curWindow = this._mainWindow;
-        const customJointTextureLayouts = settings.querySettings(
+        const customJointTextureLayouts =            (settings.querySettings(
             SettingsCategory.ANIMATION,
             'customJointTextureLayouts',
-        ) as ICustomJointTextureLayout[] || [];
-        this._dataPoolMgr?.jointTexturePool.registerCustomTextureLayouts(customJointTextureLayouts);
+        ) as ICustomJointTextureLayout[]) || [];
+        this._dataPoolMgr?.jointTexturePool.registerCustomTextureLayouts(
+            customJointTextureLayouts,
+        );
         this._resizeMaxJointForDS();
     }
 
@@ -382,7 +430,7 @@ export class Root {
             // Use default _pipelineEvent
             log(`Using custom pipeline: ${macro.CUSTOM_PIPELINE_NAME}`);
         } else {
-            const rppl: (PipelineRuntime & IPipelineEvent) = legacy_rendering.createDefaultPipeline();
+            const rppl: PipelineRuntime & IPipelineEvent =                legacy_rendering.createDefaultPipeline();
             isCreateDefaultPipeline = true;
             log(`Using legacy pipeline`);
 
@@ -392,7 +440,10 @@ export class Root {
             this._usesCustomPipeline = false;
         }
 
-        const renderMode = settings.querySettings(SettingsCategory.RENDERING, 'renderMode');
+        const renderMode = settings.querySettings(
+            SettingsCategory.RENDERING,
+            'renderMode',
+        );
         if (renderMode !== LegacyRenderMode.HEADLESS || this._classicPipeline) {
             if (!this._pipeline.activate(this._mainWindow!.swapchain)) {
                 if (isCreateDefaultPipeline) {
@@ -477,13 +528,9 @@ export class Root {
             this._fpsTime = 0.0;
         }
 
-        if (USE_XR && globalThis.__globalXR?.isWebXR) {
-            this._doWebXRFrameMove();
-        } else {
-            this._frameMoveBegin();
-            this._frameMoveProcess();
-            this._frameMoveEnd();
-        }
+        this._frameMoveBegin();
+        this._frameMoveProcess();
+        this._frameMoveEnd();
     }
 
     /**
@@ -571,7 +618,14 @@ export class Root {
     public createModel<T extends Model> (ModelCtor: typeof Model): T {
         let p = this._modelPools.get(ModelCtor);
         if (!p) {
-            this._modelPools.set(ModelCtor, new Pool((): Model => new ModelCtor(), 10, (obj): void => obj.destroy()));
+            this._modelPools.set(
+                ModelCtor,
+                new Pool(
+                    (): Model => new ModelCtor(),
+                    10,
+                    (obj): void => obj.destroy(),
+                ),
+            );
             p = this._modelPools.get(ModelCtor)!;
         }
         const model = p.alloc() as T;
@@ -615,7 +669,14 @@ export class Root {
     public createLight<T extends Light> (LightCtor: new () => T): T {
         let l = this._lightPools.get(LightCtor);
         if (!l) {
-            this._lightPools.set(LightCtor, new Pool<Light>((): T => new LightCtor(), 4, (obj): void => obj.destroy()));
+            this._lightPools.set(
+                LightCtor,
+                new Pool<Light>(
+                    (): T => new LightCtor(),
+                    4,
+                    (obj): void => obj.destroy(),
+                ),
+            );
             l = this._lightPools.get(LightCtor)!;
         }
         const light = l.alloc() as T;
@@ -677,79 +738,14 @@ export class Root {
                     l.scene.removePointLight(l as PointLight);
                     break;
                 case LightType.RANGED_DIRECTIONAL:
-                    l.scene.removeRangedDirLight(l as RangedDirectionalLight);
+                    l.scene.removeRangedDirLight(
+                            l as RangedDirectionalLight,
+                    );
                     break;
                 default:
                     break;
                 }
             }
-        }
-    }
-
-    private _doWebXRFrameMove (): void {
-        if (!USE_XR) return;
-        const xr = globalThis.__globalXR;
-        if (!xr) {
-            return;
-        }
-
-        const windows = this._windows;
-        const cameraList = this._cameraList;
-        const viewCount = xr.webXRMatProjs ? xr.webXRMatProjs.length : 1;
-        if (!xr.webXRWindowMap) {
-            xr.webXRWindowMap = new Map<RenderWindow, number>();
-        }
-
-        let allCameras: Camera[] = [];
-        const webxrHmdPoseInfos = xr.webxrHmdPoseInfos;
-        for (let xrEye: XREye = 0; xrEye < viewCount; xrEye++) {
-            for (const window of windows) {
-                allCameras = allCameras.concat(window.cameras);
-                if (window.swapchain) {
-                    xr.webXRWindowMap.set(window, xrEye);
-                }
-            }
-
-            if (webxrHmdPoseInfos) {
-                let cameraPosition: number[] = [0, 0, 0];
-                for (let i = 0; i < webxrHmdPoseInfos.length; i++) {
-                    const info = webxrHmdPoseInfos[i];
-                    if ((info.code === XRPoseType.VIEW_LEFT && xrEye === XREye.LEFT)
-                        || (info.code === XRPoseType.VIEW_RIGHT && xrEye === XREye.RIGHT)) {
-                        cameraPosition[0] = info.position.x;
-                        cameraPosition[1] = info.position.y;
-                        cameraPosition[2] = info.position.z;
-                        break;
-                    }
-                }
-
-                allCameras.forEach((cam) => {
-                    if (cam.trackingType !== TrackingType.NO_TRACKING && cam.node) {
-                        const isTrackingRotation = cam.trackingType === TrackingType.ROTATION;
-                        if (isTrackingRotation) {
-                            cameraPosition = [0, 0, 0];
-                        }
-                        cam.node.setPosition(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
-                    }
-                });
-            }
-            allCameras.length = 0;
-
-            this._frameMoveBegin();
-
-            this._frameMoveProcess();
-
-            for (let i = cameraList.length - 1; i >= 0; i--) {
-                const camera = cameraList[i];
-                const isMismatchedCam = (xrEye === XREye.LEFT && camera.cameraType === CameraType.RIGHT_EYE)
-                    || (xrEye === XREye.RIGHT && camera.cameraType === CameraType.LEFT_EYE);
-                if (isMismatchedCam) {
-                    // currently is left eye loop, so right camera do not need active
-                    cameraList.splice(i, 1);
-                }
-            }
-
-            this._frameMoveEnd();
         }
     }
 
@@ -792,7 +788,9 @@ export class Root {
         const cameraList = this._cameraList;
         if (this._pipeline && cameraList.length > 0) {
             director.emit(Director.EVENT_BEFORE_COMMIT);
-            cameraList.sort((a: Camera, b: Camera): number => a.priority - b.priority);
+            cameraList.sort(
+                (a: Camera, b: Camera): number => a.priority - b.priority,
+            );
 
             for (let i = 0; i < cameraList.length; ++i) {
                 cameraList[i].geometryRenderer?.update();
@@ -808,8 +806,20 @@ export class Root {
 
     private _resizeMaxJointForDS (): void {
         // TODO: usedUBOVectorCount should be estimated more carefully, the UBOs used could vary in different scenes.
-        const usedUBOVectorCount = Math.max((UBOGlobalEnum.COUNT + UBOCameraEnum.COUNT + UBOShadowEnum.COUNT + UBOLocalEnum.COUNT + UBOWorldBound.COUNT) / 4, 100);
-        let maxJoints = Math.floor((deviceManager.gfxDevice.capabilities.maxVertexUniformVectors - usedUBOVectorCount) / 3);
+        const usedUBOVectorCount = Math.max(
+            (UBOGlobalEnum.COUNT
+                + UBOCameraEnum.COUNT
+                + UBOShadowEnum.COUNT
+                + UBOLocalEnum.COUNT
+                + UBOWorldBound.COUNT)
+                / 4,
+            100,
+        );
+        let maxJoints = Math.floor(
+            (deviceManager.gfxDevice.capabilities.maxVertexUniformVectors
+                - usedUBOVectorCount)
+                / 3,
+        );
         maxJoints = maxJoints < 256 ? maxJoints : 256;
         localDescriptorSetLayout_ResizeMaxJoints(maxJoints);
     }

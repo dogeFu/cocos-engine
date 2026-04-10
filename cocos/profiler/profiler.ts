@@ -23,17 +23,36 @@
  THE SOFTWARE.
 */
 
-import { USE_XR } from 'internal:constants';
 import { MeshRenderer } from '../3d/framework/mesh-renderer';
 import { createMesh } from '../3d/misc';
 import { Material } from '../asset/assets/material';
-import { Format, TextureType, TextureUsageBit, Texture, TextureInfo, Device, BufferTextureCopy, Swapchain, deviceManager } from '../gfx';
+import {
+    Format,
+    TextureType,
+    TextureUsageBit,
+    Texture,
+    TextureInfo,
+    Device,
+    BufferTextureCopy,
+    Swapchain,
+    deviceManager,
+} from '../gfx';
 import { Layers } from '../scene-graph';
 import { Node } from '../scene-graph/node';
 import { ICounterOption } from './counter';
 import { PerfCounter } from './perf-counter';
 import { Pass } from '../render-scene';
-import { preTransforms, System, sys, cclegacy, settings, warnID, SettingsCategory, CCObjectFlags, Color } from '../core';
+import {
+    preTransforms,
+    System,
+    sys,
+    cclegacy,
+    settings,
+    warnID,
+    SettingsCategory,
+    CCObjectFlags,
+    Color,
+} from '../core';
 import { Root } from '../root';
 import { director, DirectorEvent, Game, game } from '../game';
 import { ccwindow } from '../core/global-exports';
@@ -71,15 +90,38 @@ interface IProfilerState {
 }
 
 const _profileInfo = {
-    fps: { desc: `Framerate (FPS)`, below: 30, average: _average, isInteger: true },
+    fps: {
+        desc: `Framerate (FPS)`,
+        below: 30,
+        average: _average,
+        isInteger: true,
+    },
     draws: { desc: 'Draw call', isInteger: true },
     frame: { desc: 'Frame time (ms)', min: 0, max: 50, average: _average },
     instances: { desc: 'Instance Count', isInteger: true },
     tricount: { desc: 'Triangle', isInteger: true },
-    logic: { desc: 'Game Logic (ms)', min: 0, max: 50, average: _average, color: '#080' },
+    logic: {
+        desc: 'Game Logic (ms)',
+        min: 0,
+        max: 50,
+        average: _average,
+        color: '#080',
+    },
     physics: { desc: 'Physics (ms)', min: 0, max: 50, average: _average },
-    render: { desc: 'Renderer (ms)', min: 0, max: 50, average: _average, color: '#f90' },
-    present: { desc: 'Present (ms)', min: 0, max: 50, average: _average, color: '#f90' },
+    render: {
+        desc: 'Renderer (ms)',
+        min: 0,
+        max: 50,
+        average: _average,
+        color: '#f90',
+    },
+    present: {
+        desc: 'Present (ms)',
+        min: 0,
+        max: 50,
+        average: _average,
+        color: '#f90',
+    },
     textureMemory: { desc: 'GFX Texture Mem(M)' },
     bufferMemory: { desc: 'GFX Buffer Mem(M)' },
 };
@@ -114,12 +156,12 @@ export class Profiler extends System {
     private _statsDone = false;
     private _inited = false;
 
-    private readonly _lineHeight = _constants.textureHeight / (Object.keys(_profileInfo).length + 1);
+    private readonly _lineHeight =        _constants.textureHeight / (Object.keys(_profileInfo).length + 1);
     private _wordHeight = 0;
     private _eachNumWidth = 0;
     private _totalLines = 0; // total lines to display
 
-    private lastTime = 0;   // update use time
+    private lastTime = 0; // update use time
     private _backgroundColor = new Color(150, 150, 150, 100);
     private _fontColor = Color.WHITE.clone();
 
@@ -128,7 +170,10 @@ export class Profiler extends System {
     }
 
     init (): void {
-        const showFPS = !!settings.querySettings(SettingsCategory.PROFILING, 'showFPS');
+        const showFPS = !!settings.querySettings(
+            SettingsCategory.PROFILING,
+            'showFPS',
+        );
         if (showFPS) {
             this.showStats();
         } else {
@@ -217,7 +262,11 @@ export class Profiler extends System {
 
             director.off(DirectorEvent.BEFORE_UPDATE, self.beforeUpdate, self);
             director.off(DirectorEvent.AFTER_UPDATE, self.afterUpdate, self);
-            director.off(DirectorEvent.BEFORE_PHYSICS, self.beforePhysics, self);
+            director.off(
+                DirectorEvent.BEFORE_PHYSICS,
+                self.beforePhysics,
+                self,
+            );
             director.off(DirectorEvent.AFTER_PHYSICS, self.afterPhysics, self);
             director.off(DirectorEvent.BEFORE_DRAW, self.beforeDraw, self);
             director.off(DirectorEvent.AFTER_RENDER, self.afterRender, self);
@@ -290,13 +339,15 @@ export class Profiler extends System {
         const fontColor = this._fontColor;
         ctx.fillStyle = `rgba(${fontColor.r}, ${fontColor.g}, ${fontColor.b}, ${fontColor.a / 255})`;
 
-        this._texture = this._device!.createTexture(new TextureInfo(
-            TextureType.TEX2D,
-            TextureUsageBit.SAMPLED | TextureUsageBit.TRANSFER_DST,
-            Format.RGBA8,
-            textureWidth,
-            textureHeight,
-        ));
+        this._texture = this._device!.createTexture(
+            new TextureInfo(
+                TextureType.TEX2D,
+                TextureUsageBit.SAMPLED | TextureUsageBit.TRANSFER_DST,
+                Format.RGBA8,
+                textureWidth,
+                textureHeight,
+            ),
+        );
 
         const texExtent = this._region.texExtent;
         texExtent.width = textureWidth;
@@ -323,14 +374,18 @@ export class Profiler extends System {
             i++;
         }
         this._totalLines = i;
-        this._wordHeight = this._totalLines * this._lineHeight / canvas.height;
+        this._wordHeight =            (this._totalLines * this._lineHeight) / canvas.height;
         let j = 0;
         for (j = 0; j < _characters.length; ++j) {
             const offset = ctx.measureText(_characters[j]).width;
             this._eachNumWidth = Math.max(this._eachNumWidth, offset);
         }
         for (j = 0; j < _characters.length; ++j) {
-            ctx.fillText(_characters[j], j * this._eachNumWidth, this._totalLines * this._lineHeight);
+            ctx.fillText(
+                _characters[j],
+                j * this._eachNumWidth,
+                this._totalLines * this._lineHeight,
+            );
         }
 
         const bgColor = this._backgroundColor;
@@ -341,7 +396,11 @@ export class Profiler extends System {
 
         this._profilerStats = _profileInfo as IProfilerState;
         this._canvasArr[0] = canvas;
-        this._device!.copyTexImagesToTexture(this._canvasArr, this._texture!, this._regionArr);
+        this._device!.copyTexImagesToTexture(
+            this._canvasArr,
+            this._texture!,
+            this._regionArr,
+        );
     }
 
     /** @mangle */
@@ -353,7 +412,7 @@ export class Profiler extends System {
         const canvas = this._canvas!;
 
         this._rootNode = new Node('PROFILER_NODE');
-        this._rootNode._objFlags = CCObjectFlags.DontSave | CCObjectFlags.HideInHierarchy;
+        this._rootNode._objFlags =            CCObjectFlags.DontSave | CCObjectFlags.HideInHierarchy;
         game.addPersistRootNode(this._rootNode);
 
         const managerNode = new Node('Profiler_Root');
@@ -369,15 +428,20 @@ export class Profiler extends System {
         const bgPadding = columnWidth;
 
         const vertexPos: number[] = [
-            -bgPadding, height + bgPadding, 0, // top-left
-            bgRight + bgPadding, height + bgPadding, 0, // top-right
-            bgRight + bgPadding, -bgPadding, 0, // bottom-right
-            -bgPadding, -bgPadding, 0, // bottom-left
+            -bgPadding,
+            height + bgPadding,
+            0, // top-left
+            bgRight + bgPadding,
+            height + bgPadding,
+            0, // top-right
+            bgRight + bgPadding,
+            -bgPadding,
+            0, // bottom-right
+            -bgPadding,
+            -bgPadding,
+            0, // bottom-left
         ];
-        const vertexindices: number[] = [
-            0, 2, 1,
-            0, 3, 2,
-        ];
+        const vertexindices: number[] = [0, 2, 1, 0, 3, 2];
 
         const bgUvOriginX = (canvas.width - 3) / canvas.width;
         const bgUvOriginY = (canvas.height - 3) / canvas.height;
@@ -385,10 +449,22 @@ export class Profiler extends System {
         const bgUvTop = (canvas.height - 1) / canvas.width;
 
         const vertexUV: number[] = [
-            bgUvOriginX, bgUvOriginY, -1, 0,
-            bgUvRight, bgUvOriginY, -1, 0,
-            bgUvRight, bgUvTop, -1, 0,
-            bgUvOriginX, bgUvTop, -1, 0,
+            bgUvOriginX,
+            bgUvOriginY,
+            -1,
+            0,
+            bgUvRight,
+            bgUvOriginY,
+            -1,
+            0,
+            bgUvRight,
+            bgUvTop,
+            -1,
+            0,
+            bgUvOriginX,
+            bgUvTop,
+            -1,
+            0,
         ];
 
         vertexPos.push(
@@ -406,14 +482,7 @@ export class Profiler extends System {
             0, // bl
         );
 
-        vertexindices.push(
-            4,
-            6,
-            5,
-            4,
-            7,
-            6,
-        );
+        vertexindices.push(4, 6, 5, 4, 7, 6);
         vertexUV.push(
             0,
             0,
@@ -436,12 +505,35 @@ export class Profiler extends System {
         let offset = 0;
         for (let i = 0; i < this._totalLines; i++) {
             for (let j = 0; j < _constants.segmentsPerLine; j++) {
-                vertexPos.push(lWidth + j * columnWidth, height - i * rowHeight, 0); // tl
-                vertexPos.push(lWidth + (j + 1) * columnWidth, height - i * rowHeight, 0); // tr
-                vertexPos.push(lWidth + (j + 1) * columnWidth, height - (i + 1) * rowHeight, 0); // br
-                vertexPos.push(lWidth + j * columnWidth, height - (i + 1) * rowHeight, 0); // bl
+                vertexPos.push(
+                    lWidth + j * columnWidth,
+                    height - i * rowHeight,
+                    0,
+                ); // tl
+                vertexPos.push(
+                    lWidth + (j + 1) * columnWidth,
+                    height - i * rowHeight,
+                    0,
+                ); // tr
+                vertexPos.push(
+                    lWidth + (j + 1) * columnWidth,
+                    height - (i + 1) * rowHeight,
+                    0,
+                ); // br
+                vertexPos.push(
+                    lWidth + j * columnWidth,
+                    height - (i + 1) * rowHeight,
+                    0,
+                ); // bl
                 offset = (i * _constants.segmentsPerLine + j + 2) * 4; // + 2 means there are 2 quads offset before
-                vertexindices.push(0 + offset, 2 + offset, 1 + offset, 0 + offset, 3 + offset, 2 + offset);
+                vertexindices.push(
+                    0 + offset,
+                    2 + offset,
+                    1 + offset,
+                    0 + offset,
+                    3 + offset,
+                    2 + offset,
+                );
                 const idx = i * _constants.segmentsPerLine + j;
                 const z = Math.floor(idx / 4);
                 const w = idx - z * 4;
@@ -462,7 +554,7 @@ export class Profiler extends System {
         const _material = new Material();
         _material.initialize({ effectName: 'util/profiler' });
 
-        const pass = this.pass = _material.passes[0];
+        const pass = (this.pass = _material.passes[0]);
         const hTexture = pass.getBinding('mainTexture');
         const bDigits = pass.getBinding('digits');
         const bOffset = pass.getBinding('offset');
@@ -534,10 +626,8 @@ export class Profiler extends System {
         const clipSpaceSignY = this._device!.capabilities.clipSpaceSignY;
         if (surfaceTransform !== this.offsetData[3]) {
             const preTransform = preTransforms[surfaceTransform];
-            let x = -0.9; let y = -0.9 * clipSpaceSignY;
-            if (USE_XR && sys.isXR) {
-                x = -0.5; y = -0.5 * clipSpaceSignY;
-            }
+            const x = -0.9;
+            const y = -0.9 * clipSpaceSignY;
             this.offsetData[0] = x * preTransform[0] + y * preTransform[2];
             this.offsetData[1] = x * preTransform[1] + y * preTransform[3];
             this.offsetData[2] = this._eachNumWidth;
@@ -585,10 +675,10 @@ export class Profiler extends System {
         this.lastTime = now;
 
         const device = this._device!;
-        (profilerStats.draws.counter as PerfCounter).value = device.numDrawCalls;
-        (profilerStats.instances.counter as PerfCounter).value = device.numInstances;
-        (profilerStats.bufferMemory.counter as PerfCounter).value = device.memoryStatus.bufferSize / (1024 * 1024);
-        (profilerStats.textureMemory.counter as PerfCounter).value = device.memoryStatus.textureSize / (1024 * 1024);
+        (profilerStats.draws.counter as PerfCounter).value =            device.numDrawCalls;
+        (profilerStats.instances.counter as PerfCounter).value =            device.numInstances;
+        (profilerStats.bufferMemory.counter as PerfCounter).value =            device.memoryStatus.bufferSize / (1024 * 1024);
+        (profilerStats.textureMemory.counter as PerfCounter).value =            device.memoryStatus.textureSize / (1024 * 1024);
         (profilerStats.tricount.counter as PerfCounter).value = device.numTris;
 
         let i = 0;
@@ -602,7 +692,9 @@ export class Profiler extends System {
                 const index = i * segmentsPerLine + j;
                 const character = result[result.length - (segmentsPerLine - j)];
                 let offset = _string2offset[character];
-                if (offset === undefined) { offset = 11; }
+                if (offset === undefined) {
+                    offset = 11;
+                }
                 view[index] = offset;
             }
             i++;

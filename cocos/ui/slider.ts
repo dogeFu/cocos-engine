@@ -24,7 +24,7 @@
 */
 
 import { ccclass, help, executionOrder, menu, requireComponent, tooltip, type, slide, range, serializable } from 'cc.decorator';
-import { EDITOR, USE_XR } from 'internal:constants';
+import { EDITOR } from 'internal:constants';
 import { Component, EventHandler } from '../scene-graph';
 import { UITransform } from '../2d/framework';
 import { EventTouch, Touch } from '../input/types';
@@ -34,7 +34,6 @@ import { clamp01 } from '../core/math/utils';
 import { Sprite } from '../2d/components/sprite';
 import { legacyCC } from '../core/global-exports';
 import { NodeEventType } from '../scene-graph/node-event';
-import { XrUIPressEvent, XrUIPressEventType } from '../xr/event/xr-event-handle';
 
 const _tempPos = new Vec3();
 /**
@@ -194,12 +193,6 @@ export class Slider extends Component {
         node.on(NodeEventType.TOUCH_END, self._onTouchEnded, self);
         node.on(NodeEventType.TOUCH_CANCEL, self._onTouchCancelled, self);
 
-        if (USE_XR) {
-            node.on(XrUIPressEventType.XRUI_HOVER_STAY, self._xrHoverStay, self);
-            node.on(XrUIPressEventType.XRUI_CLICK, self._xrClick, self);
-            node.on(XrUIPressEventType.XRUI_UNCLICK, self._xrUnClick, self);
-        }
-
         if (handle && handle.isValid) {
             const handleNode = handle.node;
             handleNode.on(NodeEventType.TOUCH_START, self._onHandleDragStart, self);
@@ -216,12 +209,6 @@ export class Slider extends Component {
         node.off(NodeEventType.TOUCH_MOVE, self._onTouchMoved, self);
         node.off(NodeEventType.TOUCH_END, self._onTouchEnded, self);
         node.off(NodeEventType.TOUCH_CANCEL, self._onTouchCancelled, self);
-
-        if (USE_XR) {
-            node.off(XrUIPressEventType.XRUI_HOVER_STAY, self._xrHoverStay, self);
-            node.off(XrUIPressEventType.XRUI_CLICK, self._xrClick, self);
-            node.off(XrUIPressEventType.XRUI_UNCLICK, self._xrUnClick, self);
-        }
 
         if (handle && handle.isValid) {
             const handleNode = handle.node;
@@ -341,44 +328,6 @@ export class Slider extends Component {
         }
     }
 
-    protected _xrHandleProgress (point: Vec3): void {
-        if (!USE_XR) return;
-        if (!this._touchHandle) {
-            const uiTrans = this.node._getUITransformComp()!;
-            uiTrans.convertToNodeSpaceAR(point, _tempPos);
-            if (this.direction === Direction.Horizontal as number) {
-                this.progress = clamp01(0.5 + (_tempPos.x - this.node.position.x) / uiTrans.width);
-            } else {
-                this.progress = clamp01(0.5 + (_tempPos.y - this.node.position.y) / uiTrans.height);
-            }
-        }
-    }
-
-    protected _xrClick (event: XrUIPressEvent): void {
-        if (!USE_XR) return;
-        if (!this._handle) {
-            return;
-        }
-        this._dragging = true;
-        this._xrHandleProgress(event.hitPoint);
-        this._emitSlideEvent();
-    }
-
-    protected _xrUnClick (): void {
-        if (!USE_XR) return;
-        this._dragging = false;
-        this._touchHandle = false;
-    }
-
-    protected _xrHoverStay (event: XrUIPressEvent): void {
-        if (!USE_XR) return;
-        if (!this._dragging) {
-            return;
-        }
-
-        this._xrHandleProgress(event.hitPoint);
-        this._emitSlideEvent();
-    }
 }
 
 /**

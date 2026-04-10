@@ -34,4 +34,4 @@ export * from './exports/ui';
 export * from './exports/vendor-google';
 export * from './exports/video';
 export * from './exports/webview';
-export * from './exports/xr';
+export * from './exports/custom-pipeline';
