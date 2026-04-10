@@ -27,7 +27,10 @@
     "test:dts": "npx tsc ./scripts/test-declarations/test.d.ts",
     "update:engine-version": "node ./scripts/checkout-engine-version.js",
     "update:native-external": "node ./native/utils/update-external.js",
-    "verify:engine-version": "node ./scripts/verify-engine-version.js"
+    "verify:engine-version": "node ./scripts/verify-engine-version.js",
+    "stats": "node ./scripts/stats.js",
+    "stats:save": "node ./scripts/stats.js --save",
+    "stats:diff": "node ./scripts/stats.js --diff --save"
   },
   "repository": {
     "type": "git",
