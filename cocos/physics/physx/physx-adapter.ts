@@ -327,29 +327,6 @@ export function createTriangleMesh (vertices: Float32Array | number[], indices: 
     return r;
 }
 
-export function createHeightField (terrain: any, heightScale: number, cooking: any, physics: any): any {
-    const sizeI = terrain.getVertexCountI();
-    const sizeJ = terrain.getVertexCountJ();
-    const samples = new PX.PxHeightFieldSampleVector();
-    for (let i = 0; i < sizeI; i++) {
-        for (let j = 0; j < sizeJ; j++) {
-            const s = new PX.PxHeightFieldSample();
-            s.height = terrain.getHeight(i, j) / heightScale;
-            samples.push_back(s);
-        }
-    }
-    return cooking.createHeightFieldExt(sizeI, sizeJ, samples, physics);
-}
-
-export function createHeightFieldGeometry (hf: any, flags: number, hs: number, xs: number, zs: number): any {
-    return new PX.PxHeightFieldGeometry(
-        hf,
-        new PX.PxMeshGeometryFlags(flags),
-        hs,
-        xs,
-        zs,
-    );
-}
 
 export function simulateScene (scene: any, deltaTime: number): void {
     scene.simulate(deltaTime, true);

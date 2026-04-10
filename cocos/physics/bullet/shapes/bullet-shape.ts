@@ -222,7 +222,6 @@ export abstract class BulletShape implements IBaseShape {
     }
 
     needCompound (): boolean {
-        if (this._collider.type === EColliderType.TERRAIN) { return true; }
         if (this._collider.center.equals(Vec3.ZERO)) { return false; }
         return true;
     }

@@ -239,13 +239,6 @@ export enum EColliderType {
      * 单形体碰撞体。
      */
     SIMPLEX,
-    /**
-     * @en
-     * Terrain collider.
-     * @zh
-     * 地形碰撞体。
-     */
-    TERRAIN,
 }
 Enum(EColliderType);
 

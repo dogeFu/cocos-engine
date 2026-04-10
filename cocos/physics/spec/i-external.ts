@@ -21,11 +21,3 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
 */
-
-export interface ITerrainAsset {
-    _uuid: string;
-    tileSize: number;
-    getVertexCountI: () => number;
-    getVertexCountJ: () => number;
-    getHeight: (i: number, j: number) => number;
-}

@@ -57,7 +57,6 @@ module.exports = {
         RenderStageTS: 'Render Stage Script',
         newPac: '自动图集配置',
         newLabelAtlas: '艺术字配置',
-        newTerrain: '地形',
         autoGenerateMaterial: '自动生成材质',
         'label-atlas': {
             SpriteFrameTip: 'Sprite Frame',

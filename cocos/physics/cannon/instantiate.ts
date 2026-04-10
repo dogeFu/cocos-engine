@@ -32,7 +32,6 @@ import { CannonSphereShape } from './shapes/cannon-sphere-shape';
 import { CannonTrimeshShape } from './shapes/cannon-trimesh-shape';
 import { CannonCylinderShape } from './shapes/cannon-cylinder-shape';
 import { CannonConeShape } from './shapes/cannon-cone-shape';
-import { CannonTerrainShape } from './shapes/cannon-terrain-shape';
 import { CannonSimplexShape } from './shapes/cannon-simplex-shape';
 import { CannonPlaneShape } from './shapes/cannon-plane-shape';
 
@@ -51,7 +50,6 @@ game.once(Game.EVENT_PRE_SUBSYSTEM_INIT, () => {
         TrimeshShape: CannonTrimeshShape,
         CylinderShape: CannonCylinderShape,
         ConeShape: CannonConeShape,
-        TerrainShape: CannonTerrainShape,
         SimplexShape: CannonSimplexShape,
         PlaneShape: CannonPlaneShape,
 

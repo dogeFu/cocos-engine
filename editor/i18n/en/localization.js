@@ -133,7 +133,6 @@ module.exports = link(mixin({
             PlaneCollider: `${url}/${version}/manual/en/physics/physics-collider.html`,
             SphereCollider: `${url}/${version}/manual/en/physics/physics-collider.html`,
             SimplexCollider: `${url}/${version}/manual/en/physics/physics-collider.html`,
-            TerrainCollider: `${url}/${version}/manual/en/physics/physics-collider.html`,
             ConfigurableConstraint: `${url}/${version}/manual/en/physics/physics-constraint.html`,
             FixedConstraint: `${url}/${version}/manual/en/physics/physics-constraint.html`,
             HingeConstraint: `${url}/${version}/manual/en/physics/physics-constraint.html`,
@@ -146,7 +145,6 @@ module.exports = link(mixin({
             VideoPlayer: `${url}/${version}/manual/en/ui-system/components/editor/videoplayer.html`,
             WebView: `${url}/${version}/manual/en/ui-system/components/editor/webview.html`,
             SafeArea: `${url}/${version}/manual/en/ui-system/components/editor/safearea.html`,
-            Terrain: `${url}/${version}/manual/en/editor/terrain/`,
             TiledMap: `${url}/${version}/manual/en/editor/components/tiledmap.html`,
             TiledTile: `${url}/${version}/manual/en/editor/components/tiledtile.html`,
             Spine: `${url}/${version}/manual/en/editor/components/spine.html`,
@@ -196,7 +194,6 @@ module.exports = link(mixin({
             'spine-data': `${url}/${version}/manual/en/asset/spine.html`,
             'sprite-atlas': `${url}/${version}/manual/en/asset/atlas.html`,
             'sprite-frame': `${url}/${version}/manual/en/asset/sprite-frame.html`,
-            terrain: `${url}/${version}/manual/en/editor/terrain/#creating-terrain-objects-and-assets`,
             text: `${url}/${version}/manual/en/asset/text.html`,
             'tiled-map': `${url}/${version}/manual/en/asset/tiledmap.html`,
             'ttf-font': `${url}/${version}/manual/en/asset/font.html#dynamic-fonts`,
@@ -1028,10 +1025,6 @@ module.exports = link(mixin({
             label: "2D Particle System",
             description: "Particle system that applied to 2D application.",
         },
-        terrain: {
-            label: "Terrain",
-            description: "Terrain support.",
-        },
         light_probe: {
             label: "Light Probe",
             description: "Light Probe support.",
@@ -1209,7 +1202,6 @@ module.exports = link(mixin({
             plane_constant: 'The distance of the plane moving along the normal from the origin in the local coordinate system',
             mesh_mesh: 'Mesh resources used by collider',
             mesh_convex: 'Whether to use convex hull approximation instead, <br>the number of vertices should be less than 255, <br>and the dynamics can be supported after turning on',
-            terrain_terrain: 'Terrain resources used by collider',
             simplex_shapeType: 'Simplex type, point, line, triangle, tetrahedron',
             simplex_vertex0: 'Vertex 0 of the shape',
             simplex_vertex1: 'Vertex 1 of the shape',
@@ -1361,7 +1353,6 @@ module.exports = link(mixin({
 require('./modules/physics'),
 require('./modules/rendering'),
 require('./modules/ui.js'),
-require('./modules/terrain.js'),
 require('./animation'),
 
 ));

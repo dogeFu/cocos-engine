@@ -133,7 +133,6 @@ module.exports = link(mixin({
             PlaneCollider: `${url}/${version}/manual/zh/physics/physics-collider.html`,
             SphereCollider: `${url}/${version}/manual/zh/physics/physics-collider.html`,
             SimplexCollider: `${url}/${version}/manual/zh/physics/physics-collider.html`,
-            TerrainCollider: `${url}/${version}/manual/zh/physics/physics-collider.html`,
             ConfigurableConstraint: `${url}/${version}/manual/zh/physics/physics-constraint.html`,
             FixedConstraint: `${url}/${version}/manual/zh/physics/physics-constraint.html`,
             HingeConstraint: `${url}/${version}/manual/zh/physics/physics-constraint.html`,
@@ -146,7 +145,6 @@ module.exports = link(mixin({
             VideoPlayer: `${url}/${version}/manual/zh/ui-system/components/editor/videoplayer.html`,
             WebView: `${url}/${version}/manual/zh/ui-system/components/editor/webview.html`,
             SafeArea: `${url}/${version}/manual/zh/ui-system/components/editor/safearea.html`,
-            Terrain: `${url}/${version}/manual/zh/editor/terrain/`,
             TiledMap: `${url}/${version}/manual/zh/editor/components/tiledmap.html`,
             TiledTile: `${url}/${version}/manual/zh/editor/components/tiledtile.html`,
             Spine: `${url}/${version}/manual/zh/editor/components/spine.html`,
@@ -196,7 +194,6 @@ module.exports = link(mixin({
             'spine-data': `${url}/${version}/manual/zh/asset/spine.html`,
             'sprite-atlas': `${url}/${version}/manual/zh/asset/atlas.html`,
             'sprite-frame': `${url}/${version}/manual/zh/asset/sprite-frame.html`,
-            terrain: `${url}/${version}/manual/zh/editor/terrain/#创建地形`,
             text: `${url}/${version}/manual/zh/asset/text.html`,
             'tiled-map': `${url}/${version}/manual/zh/asset/tiledmap.html`,
             'ttf-font': `${url}/${version}/manual/zh/asset/font.html#动态字体`,
@@ -1006,10 +1003,6 @@ module.exports = link(mixin({
             label: "2D 粒子系统",
             description: "应用于 2D 的粒子系统支持。",
         },
-        terrain: {
-            label: "地形",
-            description: "地形功能支持。",
-        },
         light_probe: {
             label: "光照探针",
             description: "光照探针功能支持。",
@@ -1187,7 +1180,6 @@ module.exports = link(mixin({
             plane_constant: '在本地坐标系中，平面从原点开始沿着法线运动的距离',
             mesh_mesh: '所使用的网格资源',
             mesh_convex: '是否使用凸包近似代替，顶点数应小于255，开启后可以支持动力学',
-            terrain_terrain: '所使用的地形资源',
             simplex_shapeType: '单纯形类型，点、线、三角形、四面体',
             simplex_vertex0: '形状的顶点 0',
             simplex_vertex1: '形状的顶点 1',
@@ -1339,7 +1331,6 @@ module.exports = link(mixin({
 require('./modules/physics'),
 require('./modules/rendering'),
 require('./modules/ui.js'),
-require('./modules/terrain.js'),
 require('./animation'),
 
 ));

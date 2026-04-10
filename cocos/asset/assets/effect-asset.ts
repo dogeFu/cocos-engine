@@ -199,7 +199,6 @@ const legacyBuiltinEffectNames = [
     'particle-gpu',
     'particle-trail',
     'billboard',
-    'terrain',
     'graphics',
     'clear-stencil',
     'spine',

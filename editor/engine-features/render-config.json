@@ -346,16 +346,6 @@
             "enginePlugin": false,
             "category": "network"
         },
-        "terrain": {
-            "default": true,
-            "label": "i18n:ENGINE.features.terrain.label",
-            "description": "i18n:ENGINE.features.terrain.description",
-            "enginePlugin": true,
-            "category": "3d",
-            "dependencies": [
-                "3d"
-            ]
-        },
         "light-probe": {
             "default": true,
             "label": "i18n:ENGINE.features.light_probe.label",

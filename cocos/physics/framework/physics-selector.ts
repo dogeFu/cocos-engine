@@ -30,7 +30,7 @@ import { IBaseConstraint, IPointToPointConstraint, IHingeConstraint, IFixedConst
     IConfigurableConstraint } from '../spec/i-physics-constraint';
 import {
     IBoxShape, ISphereShape, ICapsuleShape, ITrimeshShape, ICylinderShape,
-    IConeShape, ITerrainShape, ISimplexShape, IPlaneShape, IBaseShape,
+    IConeShape, ISimplexShape, IPlaneShape, IBaseShape,
 } from '../spec/i-physics-shape';
 import { IPhysicsWorld } from '../spec/i-physics-world';
 import { IRigidBody } from '../spec/i-rigid-body';
@@ -53,7 +53,6 @@ interface IPhysicsWrapperObject {
     TrimeshShape?: Constructor<ITrimeshShape>,
     CylinderShape?: Constructor<ICylinderShape>,
     ConeShape?: Constructor<IConeShape>,
-    TerrainShape?: Constructor<ITerrainShape>,
     SimplexShape?: Constructor<ISimplexShape>,
     PlaneShape?: Constructor<IPlaneShape>,
     PointToPointConstraint?: Constructor<IPointToPointConstraint>,
@@ -228,7 +227,6 @@ enum ECheckType {
     MeshCollider,
     CylinderCollider,
     ConeCollider,
-    TerrainCollider,
     SimplexCollider,
     PlaneCollider,
     // JOINT //
@@ -319,7 +317,7 @@ export function createRigidBody (): IRigidBody {
 const CREATE_COLLIDER_PROXY = { INITED: false };
 
 interface IEntireShape extends IBoxShape, ISphereShape, ICapsuleShape,
-    ITrimeshShape, ICylinderShape, IConeShape, ITerrainShape, ISimplexShape, IPlaneShape { }
+    ITrimeshShape, ICylinderShape, IConeShape, ISimplexShape, IPlaneShape { }
 const ENTIRE_SHAPE: IEntireShape = {
     impl: null,
     collider: null as unknown as any,
@@ -351,7 +349,6 @@ const ENTIRE_SHAPE: IEntireShape = {
     setShapeType: FUNC,
     setVertices: FUNC,
     setMesh: FUNC,
-    setTerrain: FUNC,
     setNormal: FUNC,
     setConstant: FUNC,
     updateEventListener: FUNC,
@@ -394,11 +391,6 @@ function initColliderProxy (): void {
     CREATE_COLLIDER_PROXY[EColliderType.MESH] = function createTrimeshShape (): ITrimeshShape {
         if (check(selector.wrapper.TrimeshShape, ECheckType.MeshCollider)) { return ENTIRE_SHAPE; }
         return new selector.wrapper.TrimeshShape!();
-    };
-
-    CREATE_COLLIDER_PROXY[EColliderType.TERRAIN] = function createTerrainShape (): ITerrainShape {
-        if (check(selector.wrapper.TerrainShape, ECheckType.TerrainCollider)) { return ENTIRE_SHAPE; }
-        return new selector.wrapper.TerrainShape!();
     };
 
     CREATE_COLLIDER_PROXY[EColliderType.SIMPLEX] = function createSimplexShape (): ISimplexShape {

@@ -33,7 +33,6 @@ import { BulletCapsuleShape } from './shapes/bullet-capsule-shape';
 import { BulletTrimeshShape } from './shapes/bullet-trimesh-shape';
 import { BulletCylinderShape } from './shapes/bullet-cylinder-shape';
 import { BulletConeShape } from './shapes/bullet-cone-shape';
-import { BulletTerrainShape } from './shapes/bullet-terrain-shape';
 import { BulletSimplexShape } from './shapes/bullet-simplex-shape';
 import { BulletPlaneShape } from './shapes/bullet-plane-shape';
 import { BulletP2PConstraint } from './constraints/bullet-p2p-constraint';
@@ -57,7 +56,6 @@ game.once(Game.EVENT_PRE_SUBSYSTEM_INIT, () => {
         TrimeshShape: BulletTrimeshShape,
         CylinderShape: BulletCylinderShape,
         ConeShape: BulletConeShape,
-        TerrainShape: BulletTerrainShape,
         SimplexShape: BulletSimplexShape,
         PlaneShape: BulletPlaneShape,
 

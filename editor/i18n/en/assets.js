@@ -57,7 +57,6 @@ module.exports = {
         RenderStageTS: 'Render Stage Script',
         newPac: 'Auto Atlas',
         newLabelAtlas: 'Label Atlas',
-        newTerrain: 'Terrain',
         autoGenerateMaterial: 'Auto Generate Material',
         'label-atlas': {
             SpriteFrameTip: 'Sprite Frame',

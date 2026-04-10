@@ -27,7 +27,6 @@ import { IGroupMask } from './i-group-mask';
 import { IVec3Like, geometry } from '../../core';
 import { Collider, RigidBody, PhysicsMaterial, SimplexCollider } from '../../../exports/physics-framework';
 import { Mesh } from '../../3d/assets';
-import { ITerrainAsset } from './i-external';
 
 export interface IBaseShape extends ILifecycle, IGroupMask {
     readonly impl: any;
@@ -76,10 +75,6 @@ export interface IConeShape extends IBaseShape {
 
 export interface ITrimeshShape extends IBaseShape {
     setMesh: (v: Mesh | null) => void;
-}
-
-export interface ITerrainShape extends IBaseShape {
-    setTerrain: (v: ITerrainAsset | null) => void;
 }
 
 export interface IConeShape extends IBaseShape {

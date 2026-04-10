@@ -180,12 +180,8 @@
                 "USE_XR": true
             }
         },
-        "light-probe": { 
-            "modules": [ "light-probe" ] 
-        },
-        "terrain": {
-            "modules": ["terrain"],
-            "dependentAssets": ["1d08ef62-a503-4ce2-8b9a-46c90873f7d3"]
+        "light-probe": {
+            "modules": [ "light-probe" ]
         },
         "webview": {
             "modules": ["webview"]
