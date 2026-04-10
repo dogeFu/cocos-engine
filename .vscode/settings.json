@@ -34,4 +34,6 @@
         "istream": "c"
     },
     "cmake.configureOnOpen": false,
+    "javascript.format.enable": false,
+    "typescript.format.enable": false,
 }

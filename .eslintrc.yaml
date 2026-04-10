@@ -1,9 +1,9 @@
 root: true
 
-parser: '@typescript-eslint/parser'
+parser: "@typescript-eslint/parser"
 
 parserOptions:
-    project: 
+    project:
         - ./tsconfig.json
 
 extends:
@@ -38,7 +38,6 @@ globals:
     _ccsg: false
 
 rules:
-
     # https://eslint.org/docs/rules/
     # https://github.com/typescript-eslint/typescript-eslint/tree/master/packages/eslint-plugin
 
@@ -72,14 +71,20 @@ rules:
     import/extensions: off # typescript doesn't support this
     import/no-unresolved: off # TODO: fix internal modules
     import/prefer-default-export: off # prefer named exports
-    indent: [error, 4, {
-      SwitchCase: 0,
-      ignoredNodes: [ # https://stackoverflow.com/a/72897089
-          "FunctionExpression > .params[decorators.length > 0]",
-          "FunctionExpression > .params > :matches(Decorator, :not(:first-child))",
-          "ClassBody.body > PropertyDefinition[decorators.length > 0] > .key",
-      ]
-    }]
+    indent:
+        [
+            warn,
+            4,
+            {
+                SwitchCase: 0,
+                ? ignoredNodes # https://stackoverflow.com/a/72897089
+                : [
+                      "FunctionExpression > .params[decorators.length > 0]",
+                      "FunctionExpression > .params > :matches(Decorator, :not(:first-child))",
+                      "ClassBody.body > PropertyDefinition[decorators.length > 0] > .key",
+                  ],
+            },
+        ]
 
     lines-between-class-members: off # be more lenient on member declarations
     max-classes-per-file: off # helper classes are common
@@ -107,57 +112,63 @@ rules:
 
     ##### TYPESCRIPT-SPECIFIC RULE OVERRIDES #####
 
-    '@typescript-eslint/ban-ts-comment': [error, {
-        'ts-expect-error': true,
-        'ts-ignore': true,
-        'ts-nocheck': true,
-        'ts-check': false,
-    }]
-    '@typescript-eslint/no-unused-expressions': warn
+    "@typescript-eslint/ban-ts-comment":
+        [
+            error,
+            {
+                "ts-expect-error": true,
+                "ts-ignore": true,
+                "ts-nocheck": true,
+                "ts-check": false,
+            },
+        ]
+    "@typescript-eslint/no-unused-expressions": warn
 
     # TODO: this is just too much work
-    '@typescript-eslint/explicit-module-boundary-types': off
+    "@typescript-eslint/explicit-module-boundary-types": off
 
     # NOTE: We don't want to rely on TS automatic type inference
-    '@typescript-eslint/no-inferrable-types': off
+    "@typescript-eslint/no-inferrable-types": off
 
     # TODO: sadly we still rely heavily on legacyCC
-    '@typescript-eslint/no-unsafe-assignment': off
-    '@typescript-eslint/no-unsafe-call': off
-    '@typescript-eslint/no-unsafe-member-access': off
+    "@typescript-eslint/no-unsafe-assignment": off
+    "@typescript-eslint/no-unsafe-call": off
+    "@typescript-eslint/no-unsafe-member-access": off
 
-    '@typescript-eslint/no-unsafe-enum-comparison': off
+    "@typescript-eslint/no-unsafe-enum-comparison": off
 
-    '@typescript-eslint/unbound-method': off # we exploit prototype methods sometimes to acheive better performace
-    '@typescript-eslint/no-explicit-any': off # still relevant for some heavily templated usages
+    "@typescript-eslint/unbound-method": off # we exploit prototype methods sometimes to acheive better performace
+    "@typescript-eslint/no-explicit-any": off # still relevant for some heavily templated usages
 
-    '@typescript-eslint/no-empty-function': off # may become useful in some parent classes
+    "@typescript-eslint/no-empty-function": off # may become useful in some parent classes
 
-    '@typescript-eslint/no-unused-vars': off # may become useful in some parent classes
-    '@typescript-eslint/no-non-null-assertion': off # sometimes we just know better than the compiler
-    '@typescript-eslint/no-namespace': [warn, { # we need to declare static properties
-        allowDeclarations: true,
-        allowDefinitionFiles: true
-    }]
-    '@typescript-eslint/restrict-template-expressions': [warn, { # concatenations of different types are common, e.g. hash calculations
-        allowNumber: true,
-        allowBoolean: true
-    }]
+    "@typescript-eslint/no-unused-vars": off # may become useful in some parent classes
+    "@typescript-eslint/no-non-null-assertion": off # sometimes we just know better than the compiler
+    "@typescript-eslint/no-namespace": [
+            warn, # we need to declare static properties
+            { allowDeclarations: true, allowDefinitionFiles: true },
+        ]
+    "@typescript-eslint/restrict-template-expressions": [
+            warn, # concatenations of different types are common, e.g. hash calculations
+            { allowNumber: true, allowBoolean: true },
+        ]
 
-    '@typescript-eslint/type-annotation-spacing': warn
+    "@typescript-eslint/type-annotation-spacing": warn
 
     # We choose to use style `... as foo` since it's more common.
     # In the other hand, angle bracket style can be ambiguous with j/tsx syntax.
     # For example, https://babeljs.io/docs/en/babel-plugin-transform-typescript#istsx
     # forbids angle bracket style if `isTSX` is enabled.
-    '@typescript-eslint/consistent-type-assertions': [error, {
-        assertionStyle: 'as'
-    }]
+    "@typescript-eslint/consistent-type-assertions":
+        [error, { assertionStyle: "as" }]
 
     # Prefer the interface style.
-    '@typescript-eslint/consistent-type-definitions': [error, interface]
-    '@typescript-eslint/explicit-function-return-type': [error, {
-      allowIIFEs: true, # IIFEs are widely used, writing their signature twice is painful
-    }]
+    "@typescript-eslint/consistent-type-definitions": [error, interface]
+    "@typescript-eslint/explicit-function-return-type": [
+            error,
+            {
+                allowIIFEs: true, # IIFEs are widely used, writing their signature twice is painful
+            },
+        ]
 
-    '@typescript-eslint/no-this-alias': off
+    "@typescript-eslint/no-this-alias": off
