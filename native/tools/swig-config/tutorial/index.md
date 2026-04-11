@@ -89,9 +89,6 @@ Open `jsb_module_register.cpp` and do the following modifications
 
 ```c++
 ......
-#if CC_USE_PHYSICS_PHYSX
-    #include "cocos/bindings/auto/jsb_physics_auto.h"
-#endif
 #include "cocos/bindings/auto/jsb_new_engine_module_auto.h" // Add this line
 
 bool jsb_register_all_modules() {

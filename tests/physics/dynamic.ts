@@ -114,7 +114,7 @@ export default function (env: PhysicsTestEnv) {
             nodeStatic.worldPosition = new Vec3(10, 0, 0);
             nodeStatic.worldRotation = Quat.fromEuler(new Quat(), 10, 20, 30);
     
-            // PhysX/Cannon/Bullet Not enough support currently
+            // Not enough support currently
             // const nodeTrigger = new Node('Static');
             // parent.addChild(nodeTrigger);
             // const sphereTrigger = nodeTrigger.addComponent(physics.SphereCollider) as physics.SphereCollider;

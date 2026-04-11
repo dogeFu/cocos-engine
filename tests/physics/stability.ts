@@ -9,12 +9,6 @@ export default function(env: PhysicsTestEnv) {
         test.each([1, 0.5])(`Stable %s`, (v) => {
             doTest(env, 500, v);
         });
-
-        if (env.backendId === 'physx') {
-            test.each([0.25, 0.15])(`Stable for small scale in PhysX %s`, (v) => {
-                doTest(env, 500, v);
-            });
-        }
     });
 }
 

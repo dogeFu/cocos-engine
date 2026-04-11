@@ -1,12 +1,7 @@
 import { director, game, Game } from "../../cocos/game";
 import { physics, PhysicsMaterial, PhysicsSystem } from "../../exports/physics-framework";
 
-import "../../exports/physics-physx";
 import "../../exports/physics-builtin";
-import "../../exports/physics-ammo";
-import "../../exports/physics-cannon";
-import { initPhysXLibs } from '../../cocos/physics/physx/physx-adapter';
-import { waitForAmmoInstantiation } from "../../cocos/physics/bullet/instantiated";
 import EventTest from "./event";
 import RaycastTest from "./raycast";
 import SweepTest from "./sweep";
@@ -21,8 +16,6 @@ import { Node, Scene } from "../../cocos/scene-graph";
 import { builtinResMgr } from "../../exports/base";
 
 beforeAll(async () => {
-    await waitForAmmoInstantiation();
-    await initPhysXLibs();
 });
 
 game.emit(Game.EVENT_PRE_SUBSYSTEM_INIT);
@@ -40,7 +33,7 @@ test(`physics test | selector`, done => {
 
 export interface PhysicsTestEnv {
     rootNode: Node;
-    backendId: 'builtin' | 'physx' | 'bullet' | 'cannon.js';
+    backendId: 'builtin';
 }
 
 describe.each(Object.keys(physics.selector.backend))(

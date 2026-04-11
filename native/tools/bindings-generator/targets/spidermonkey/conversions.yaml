@@ -31,7 +31,6 @@ conversions:
     "cc::scene::": "jsb."
     "cc::geometry::": "jsb."
     "cc::event::": "jsb."
-    "cc::physics::": "jsb."
     "boost::variant2::": "boost."
     "boost::": "boost."
     "se::": "jsb."

@@ -8,7 +8,7 @@ import { PhysicsTestEnv } from "./physics.test";
  * This function is used to test the raycast
  */
 export default function (env: PhysicsTestEnv) {
-    if (env.backendId === 'builtin' || env.backendId === 'cannon.js') {
+    if (env.backendId === 'builtin') {
         return;
     }
 

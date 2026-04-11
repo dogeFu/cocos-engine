@@ -60,12 +60,12 @@ export default function (env: PhysicsTestEnv) {
         // query trigger true
         isHit = physics.PhysicsSystem.instance.raycast(ray_t, -1, 100, true);
         expect(isHit).toBe(true);
-        expect(hits.length).toBe(physics.PhysicsSystem.PHYSICS_CANNON ? 2 : 3);
+        expect(hits.length).toBe(3);
 
         // default distance & query trigger
         isHit = physics.PhysicsSystem.instance.raycast(ray_t, -1);
         expect(isHit).toBe(true);
-        expect(hits.length).toBe(physics.PhysicsSystem.PHYSICS_CANNON ? 2 : 3);
+        expect(hits.length).toBe(3);
 
         // only detect 1
         isHit = physics.PhysicsSystem.instance.raycast(ray_t, 1);

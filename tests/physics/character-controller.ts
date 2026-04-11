@@ -50,8 +50,7 @@ function testCharacterControllerAPIs(cct: physics.CharacterController){
 }
 
 export default function (env: PhysicsTestEnv, _steps = 0) {
-    //skip builtin and cannon.js for now
-     if (env.backendId === 'builtin' || env.backendId === 'cannon.js') 
+    if (env.backendId === 'builtin')
         return;
 
     describe(`Character controller`, () => {

@@ -39,8 +39,7 @@ import { errorID, IVec3Like, warn, cclegacy, log } from '../../core';
 import { EColliderType, EConstraintType, ECharacterControllerType } from './physics-enum';
 import { PhysicsMaterial } from '.';
 
-// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-export type IPhysicsEngineId = 'builtin' | 'cannon.js' | 'bullet' | 'physx' | string;
+export type IPhysicsEngineId = 'builtin' | string;
 
 interface IPhysicsWrapperObject {
     PhysicsWorld?: Constructor<IPhysicsWorld>,
@@ -119,8 +118,6 @@ export interface IPhysicsSelector {
 
 function updateLegacyMacro (id: string): void {
     cclegacy._global.CC_PHYSICS_BUILTIN = id === 'builtin';
-    cclegacy._global.CC_PHYSICS_CANNON = id === 'cannon.js';
-    cclegacy._global.CC_PHYSICS_AMMO = id === 'bullet';
 }
 
 function register (id: IPhysicsEngineId, wrapper: IPhysicsWrapperObject): void {

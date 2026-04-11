@@ -22,7 +22,7 @@
  THE SOFTWARE.
 */
 
-import { BUILD, EDITOR_NOT_IN_PREVIEW, LOAD_BULLET_MANUALLY, LOAD_PHYSX_MANUALLY } from 'internal:constants';
+import { BUILD, EDITOR_NOT_IN_PREVIEW } from 'internal:constants';
 import { Vec3, RecyclePool, Enum, System, cclegacy, settings, geometry, warn, IQuatLike, IVec3Like, SettingsCategory, errorID, warnID } from '../../core';
 import { IPhysicsWorld, IRaycastOptions } from '../spec/i-physics-world';
 import { director, DirectorEvent, game } from '../../game';
@@ -51,18 +51,6 @@ export class PhysicsSystem extends System implements IWorldInitData {
 
     public static get PHYSICS_BUILTIN (): boolean {
         return selector.id === 'builtin';
-    }
-
-    public static get PHYSICS_CANNON (): boolean {
-        return selector.id === 'cannon.js';
-    }
-
-    public static get PHYSICS_BULLET (): boolean {
-        return selector.id === 'bullet';
-    }
-
-    public static get PHYSICS_PHYSX (): boolean {
-        return selector.id === 'physx';
     }
 
     /**
@@ -873,7 +861,6 @@ export class PhysicsSystem extends System implements IWorldInitData {
      * 预先加载模块的情况下，会自动执行。
      */
     static constructAndRegister (): void {
-        if (BUILD && (LOAD_BULLET_MANUALLY || LOAD_PHYSX_MANUALLY)) return;
         if (!PhysicsSystem._instance) {
             const sys = this.doConstructAndRegister();
             if (sys) game.onPostProjectInitDelegate.add(sys.initDefaultMaterial.bind(sys));
@@ -881,12 +868,6 @@ export class PhysicsSystem extends System implements IWorldInitData {
     }
 
     static constructAndRegisterManually (): Promise<void> {
-        if (BUILD && (LOAD_BULLET_MANUALLY || LOAD_PHYSX_MANUALLY)) {
-            if (!PhysicsSystem._instance) {
-                const sys = this.doConstructAndRegister();
-                if (sys) return sys.initDefaultMaterial();
-            }
-        }
         return Promise.resolve();
     }
 

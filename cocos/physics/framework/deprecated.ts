@@ -40,10 +40,6 @@ replaceProperty(PhysicsSystem, 'PhysicsSystem', [
         name: 'ins',
         newName: 'instance',
     },
-    {
-        name: 'PHYSICS_AMMO',
-        newName: 'PHYSICS_BULLET',
-    },
 ]);
 
 replaceProperty(PhysicsSystem.prototype, 'PhysicsSystem.prototype', [

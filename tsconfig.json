@@ -29,13 +29,10 @@
       "./@types/webGL.extras",
       "./@types/webGL2.extras",
       "./@types/webGPU",
-      "./node_modules/@cocos/cannon/CANNON",
       "./node_modules/@types/jest/index",
 
       // external types
       "./native/external/emscripten/external-wasm",
-      "./native/external/emscripten/bullet/bullet",
-      "./native/external/emscripten/physx/physx",
       "./native/external/emscripten/webgpu/webgpu",
       "./native/external/emscripten/spine/spine",
       "./native/external/emscripten/meshopt/meshopt_decoder",

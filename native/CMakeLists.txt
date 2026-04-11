@@ -36,7 +36,6 @@ endif()
 cc_set_if_undefined(USE_WEBSOCKET_SERVER     OFF)
 cc_set_if_undefined(USE_JOB_SYSTEM_TASKFLOW  OFF)
 cc_set_if_undefined(USE_JOB_SYSTEM_TBB       OFF)
-cc_set_if_undefined(USE_PHYSICS_PHYSX        OFF)
 cc_set_if_undefined(USE_BOX2D_JSB            OFF)
 cc_set_if_undefined(USE_MODULES              OFF)
 cc_set_if_undefined(USE_XR                   OFF)
@@ -178,7 +177,6 @@ if(CI_FORCE_MINIMAL_FEATURES)
     set(USE_SPINE OFF)
     set(USE_SOCKET OFF)
     set(USE_WEBSOCKET_SERVER OFF)
-    set(USE_PHYSICS_PHYSX OFF)
     set(USE_JOB_SYSTEM_TBB OFF)
     set(USE_JOB_SYSTEM_TASKFLOW OFF)
     set(USE_PLUGINS OFF)
@@ -231,7 +229,6 @@ cc_inspect_values(
     USE_SPINE_3_8
     USE_SPINE_4_2
     USE_WEBSOCKET_SERVER
-    USE_PHYSICS_PHYSX
     USE_JOB_SYSTEM_TBB
     USE_JOB_SYSTEM_TASKFLOW
     USE_XR
@@ -2002,83 +1999,6 @@ cocos_source_files(
                  cocos/renderer/frame-graph/ImmutableState.cpp
 )
 
-##### physics
-
-if(USE_PHYSICS_PHYSX)
-    cocos_source_files(
-        cocos/physics/PhysicsSDK.h
-        cocos/physics/PhysicsSelector.h
-        cocos/physics/sdk/World.h
-        cocos/physics/sdk/World.cpp
-        cocos/physics/sdk/Shape.h
-        cocos/physics/sdk/Shape.cpp
-        cocos/physics/sdk/RigidBody.h
-        cocos/physics/sdk/RigidBody.cpp
-        cocos/physics/sdk/Joint.h
-        cocos/physics/sdk/Joint.cpp
-        cocos/physics/sdk/CharacterController.h
-        cocos/physics/sdk/CharacterController.cpp
-        cocos/physics/spec/IBody.h
-        cocos/physics/spec/IJoint.h
-        cocos/physics/spec/ILifecycle.h
-        cocos/physics/spec/IShape.h
-        cocos/physics/spec/IWorld.h
-        cocos/physics/spec/ICharacterController.h
-        cocos/physics/physx/PhysX.h
-        cocos/physics/physx/PhysXInc.h
-        cocos/physics/physx/PhysXUtils.h
-        cocos/physics/physx/PhysXUtils.cpp
-        cocos/physics/physx/PhysXWorld.h
-        cocos/physics/physx/PhysXWorld.cpp
-        cocos/physics/physx/PhysXFilterShader.h
-        cocos/physics/physx/PhysXFilterShader.cpp
-        cocos/physics/physx/PhysXEventManager.h
-        cocos/physics/physx/PhysXEventManager.cpp
-        cocos/physics/physx/PhysXSharedBody.h
-        cocos/physics/physx/PhysXSharedBody.cpp
-        cocos/physics/physx/PhysXRigidBody.h
-        cocos/physics/physx/PhysXRigidBody.cpp
-        cocos/physics/physx/shapes/PhysXShape.h
-        cocos/physics/physx/shapes/PhysXShape.cpp
-        cocos/physics/physx/shapes/PhysXSphere.h
-        cocos/physics/physx/shapes/PhysXSphere.cpp
-        cocos/physics/physx/shapes/PhysXBox.h
-        cocos/physics/physx/shapes/PhysXBox.cpp
-        cocos/physics/physx/shapes/PhysXPlane.h
-        cocos/physics/physx/shapes/PhysXPlane.cpp
-        cocos/physics/physx/shapes/PhysXCapsule.h
-        cocos/physics/physx/shapes/PhysXCapsule.cpp
-        cocos/physics/physx/shapes/PhysXCone.h
-        cocos/physics/physx/shapes/PhysXCone.cpp
-        cocos/physics/physx/shapes/PhysXCylinder.h
-        cocos/physics/physx/shapes/PhysXCylinder.cpp
-        cocos/physics/physx/shapes/PhysXTerrain.h
-        cocos/physics/physx/shapes/PhysXTerrain.cpp
-        cocos/physics/physx/shapes/PhysXTrimesh.h
-        cocos/physics/physx/shapes/PhysXTrimesh.cpp
-        cocos/physics/physx/joints/PhysXJoint.h
-        cocos/physics/physx/joints/PhysXJoint.cpp
-        cocos/physics/physx/joints/PhysXRevolute.h
-        cocos/physics/physx/joints/PhysXRevolute.cpp
-        cocos/physics/physx/joints/PhysXFixedJoint.h
-        cocos/physics/physx/joints/PhysXFixedJoint.cpp
-        cocos/physics/physx/joints/PhysXSpherical.h
-        cocos/physics/physx/joints/PhysXSpherical.cpp
-        cocos/physics/physx/joints/PhysXGenericJoint.h
-        cocos/physics/physx/joints/PhysXGenericJoint.cpp
-        cocos/physics/physx/character-controllers/PhysXCharacterController.h
-        cocos/physics/physx/character-controllers/PhysXCharacterController.cpp
-        cocos/physics/physx/character-controllers/PhysXCapsuleCharacterController.h
-        cocos/physics/physx/character-controllers/PhysXCapsuleCharacterController.cpp
-        cocos/physics/physx/character-controllers/PhysXBoxCharacterController.h
-        cocos/physics/physx/character-controllers/PhysXBoxCharacterController.cpp
-    )
-    cocos_source_files(
-        NO_WERROR NO_UBUILD ${SWIG_OUTPUT}/jsb_physics_auto.cpp
-                            ${SWIG_OUTPUT}/jsb_physics_auto.h
-    )
-endif()
-
 ##### 2d
 cocos_source_files(
     cocos/2d/renderer/Batcher2d.h
@@ -3428,7 +3348,6 @@ function(cc_apply_definations target)
         $<IF:$<BOOL:${USE_DRAGONBONES}>,CC_USE_DRAGONBONES=1,CC_USE_DRAGONBONES=0>
         $<IF:$<BOOL:${USE_JOB_SYSTEM_TBB}>,CC_USE_JOB_SYSTEM_TBB=1,CC_USE_JOB_SYSTEM_TBB=0>
         $<IF:$<BOOL:${USE_JOB_SYSTEM_TASKFLOW}>,CC_USE_JOB_SYSTEM_TASKFLOW=1,CC_USE_JOB_SYSTEM_TASKFLOW=0>
-        $<IF:$<BOOL:${USE_PHYSICS_PHYSX}>,CC_USE_PHYSICS_PHYSX=1,CC_USE_PHYSICS_PHYSX=0>
         $<IF:$<BOOL:${USE_AR_MODULE}>,CC_USE_AR_MODULE=1,CC_USE_AR_MODULE=0>
         $<IF:$<BOOL:${USE_AR_AUTO}>,CC_USE_AR_AUTO=1,CC_USE_AR_AUTO=0>
         $<IF:$<BOOL:${USE_AR_CORE}>,CC_USE_AR_CORE=1,CC_USE_AR_CORE=0>

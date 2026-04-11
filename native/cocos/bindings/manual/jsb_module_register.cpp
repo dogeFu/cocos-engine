@@ -130,10 +130,6 @@
 
 #endif // CC_USE_MIDDLEWARE
 
-#if CC_USE_PHYSICS_PHYSX
-    #include "cocos/bindings/auto/jsb_physics_auto.h"
-#endif
-
 #if CC_USE_GOOGLE_BILLING
     #include "cocos/bindings/auto/jsb_google_billing_auto.h"
 #endif
@@ -233,10 +229,6 @@ bool jsb_register_all_modules() {
     #endif
 
 #endif // CC_USE_MIDDLEWARE
-
-#if CC_USE_PHYSICS_PHYSX
-    se->addRegisterCallback(register_all_physics);
-#endif
 
 #if CC_USE_AR_MODULE
     se->addRegisterCallback(register_all_ar);

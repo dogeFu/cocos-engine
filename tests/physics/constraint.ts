@@ -124,7 +124,7 @@ function testConfigurableConstraintAPIs(child: Node) {
 }
 
 export default function (env: PhysicsTestEnv) {
-    if (env.backendId === 'builtin' || env.backendId === 'cannon.js') {
+    if (env.backendId === 'builtin') {
         return;
     }
 
