@@ -1,4 +1,3 @@
-
 # Modules
 
 ## Public modules
@@ -19,9 +18,9 @@ for (const <module> in <selected-modules>) {
 
 The `<selected-modules>` are public modules decided to be included in `'cc'`, by users.
 
-## Modules public only to Editor
+## Editor-only modules
 
-Modules under `/editor/exports` are considered as modules public only to Cocos Creator Editor.
+The editor module has been removed from this repository. Do not add new public APIs under `/editor/exports`; expose shared APIs from `/exports` instead.
 
 ## Add module export
 
@@ -35,7 +34,7 @@ You can directly export it at `/exports/base` module:
 
 ```ts
 // At /exports/base.ts
-export { Mesh } from '../cocos/core/assets/mesh';
+export { Mesh } from "../cocos/core/assets/mesh";
 ```
 
 Since `/exports/base` exports all from `/cocos/core` which exports all from `/cocos/core/assets`,
@@ -43,7 +42,7 @@ you can also export it at `/cocos/core/assets`.
 
 ```ts
 // At /cocos/core/assets/index.ts
-export { Mesh } from './mesh';
+export { Mesh } from "./mesh";
 ```
 
 If your API need to be in a brand new public module, you need to create the new public module.
@@ -55,4 +54,4 @@ Then, you need some extra steps to bring your public module to users:
 
 - Add a new element into `features` array in [cc.config.json](../../cc.config.json), **feature** means a feature set which might be selected by user. `modules` field indicates which public modules(see above) should be considered included while this feature is enabled. Each element of `modules` should be the extension-less file name of a public module. That JSON configuration file should have been associated with a schema file. For more fields or controls over that file, see the schema file.
 
-- Navigate to [render-config.json](../../editor/engine-features/render-config.json) to configure the feature's exterior in Editor. Also there's an associated schema file.
+- Add any feature metadata directly in [cc.config.json](../../cc.config.json). The old editor-side feature config path has been removed.

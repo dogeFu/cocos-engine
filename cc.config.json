@@ -411,7 +411,6 @@
     ],
     "includes": [
         "./exports/**/*.{ts,js,json}",
-        "./editor/exports/**/*.{ts,js,json}",
         "./cocos/**/*.{ts,js,json}",
         "./pal/**/*.{ts,js,json}"
     ],

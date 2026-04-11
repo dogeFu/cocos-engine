@@ -1,11 +1,19 @@
 import { Node } from "../../../cocos/scene-graph";
-import { addEmbeddedPlayerTag, AnimationClip } from "../../../cocos/animation/animation-clip";
+import {
+    addEmbeddedPlayerTag,
+    AnimationClip,
+} from "../../../cocos/animation/animation-clip";
 import { EmbeddedPlayableState } from "../../../cocos/animation/embedded-player/embedded-player";
-import { EmbeddedPlayer } from "../../../editor/exports/embedded-player";
+import { EmbeddedPlayer } from "../../../exports/embedded-player";
 
 export class EmbeddedPlayerHostMock {
-    constructor(root: Node, private _embeddedPlayer: EmbeddedPlayer, _hostDuration: number) {
-        const instantiatedPlayer = this._embeddedPlayer.playable?.instantiate(root) ?? null;
+    constructor(
+        root: Node,
+        private _embeddedPlayer: EmbeddedPlayer,
+        _hostDuration: number,
+    ) {
+        const instantiatedPlayer =
+            this._embeddedPlayer.playable?.instantiate(root) ?? null;
         this._instantiatedPlayer = instantiatedPlayer;
     }
 
@@ -33,7 +41,11 @@ export class EmbeddedPlayerHostMock {
 }
 
 export class AnimationClipHostEmbeddedPlayerMock {
-    constructor(_root: Node, embeddedPlayer: EmbeddedPlayer, hostDuration: number) {
+    constructor(
+        _root: Node,
+        embeddedPlayer: EmbeddedPlayer,
+        hostDuration: number,
+    ) {
         const animationClip = new AnimationClip();
         animationClip.duration = hostDuration;
         animationClip[addEmbeddedPlayerTag](embeddedPlayer);
@@ -61,5 +73,7 @@ export class AnimationClipHostEmbeddedPlayerMock {
         this._animationEvaluator.evaluate(time, iterations);
     }
 
-    private _animationEvaluator: ReturnType<AnimationClip['createEmbeddedPlayerEvaluator']>;
+    private _animationEvaluator: ReturnType<
+        AnimationClip["createEmbeddedPlayerEvaluator"]
+    >;
 }
