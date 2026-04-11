@@ -41,9 +41,7 @@
             "label": "i18n:ENGINE.features.skeletal_animation.label",
             "description": "i18n:ENGINE.features.skeletal_animation.description",
             "default": true,
-            "dependencies": [
-                "animation"
-            ],
+            "dependencies": ["animation"],
             "category": "animation"
         },
         "3d": {
@@ -53,9 +51,7 @@
             "enginePlugin": true,
             "isNativeModule": true,
             "readonly": false,
-            "dependencies": [
-                "meshopt"
-            ],
+            "dependencies": ["meshopt"],
             "category": "3d"
         },
         "meshopt": {
@@ -76,9 +72,7 @@
             "label": "i18n:ENGINE.features.sorting_2d.label",
             "description": "i18n:ENGINE.features.sorting_2d.description",
             "category": "2d",
-            "dependencies": [
-                "2d"
-            ],
+            "dependencies": ["2d"],
             "enginePlugin": true
         },
         "rich-text": {
@@ -86,9 +80,7 @@
             "label": "i18n:ENGINE.features.rich_text.label",
             "description": "i18n:ENGINE.features.rich_text.description",
             "category": "2d",
-            "dependencies": [
-                "2d"
-            ],
+            "dependencies": ["2d"],
             "enginePlugin": true
         },
         "mask": {
@@ -96,10 +88,7 @@
             "label": "i18n:ENGINE.features.mask.label",
             "description": "i18n:ENGINE.features.mask.description",
             "category": "2d",
-            "dependencies": [
-                "2d",
-                "graphics"
-            ],
+            "dependencies": ["2d", "graphics"],
             "enginePlugin": true
         },
         "graphics": {
@@ -107,9 +96,7 @@
             "label": "i18n:ENGINE.features.graphics_2d.label",
             "description": "i18n:ENGINE.features.graphics_2d.description",
             "category": "2d",
-            "dependencies": [
-                "2d"
-            ],
+            "dependencies": ["2d"],
             "enginePlugin": true
         },
         "ui-skew": {
@@ -117,9 +104,7 @@
             "label": "i18n:ENGINE.features.ui_skew.label",
             "description": "i18n:ENGINE.features.ui_skew.description",
             "category": "2d",
-            "dependencies": [
-                "2d"
-            ],
+            "dependencies": ["2d"],
             "enginePlugin": true
         },
         "affine-transform": {
@@ -133,9 +118,7 @@
             "label": "i18n:ENGINE.features.ui.label",
             "description": "i18n:ENGINE.features.ui.description",
             "category": "2d",
-            "dependencies": [
-                "2d"
-            ],
+            "dependencies": ["2d"],
             "enginePlugin": true
         },
         "particle": {
@@ -143,18 +126,14 @@
             "label": "i18n:ENGINE.features.particle.label",
             "description": "i18n:ENGINE.features.particle.description",
             "category": "3d",
-            "dependencies": [
-                "3d"
-            ],
+            "dependencies": ["3d"],
             "enginePlugin": true
         },
         "physics": {
             "label": "i18n:ENGINE.features.physics.label",
             "description": "i18n:ENGINE.features.physics.description",
             "category": "3d",
-            "dependencies": [
-                "3d"
-            ],
+            "dependencies": ["3d"],
             "options": {
                 "physics-builtin": {
                     "label": "i18n:ENGINE.features.physics_builtin.label",
@@ -166,9 +145,7 @@
             "label": "i18n:ENGINE.features.physics_2d.label",
             "description": "i18n:ENGINE.features.physics_2d.description",
             "category": "2d",
-            "dependencies": [
-                "2d"
-            ],
+            "dependencies": ["2d"],
             "options": {
                 "physics-2d-box2d": {
                     "label": "i18n:ENGINE.features.physics_2d_box2d.label",
@@ -208,9 +185,7 @@
             "description": "i18n:ENGINE.features.intersection_2d.description",
             "enginePlugin": true,
             "category": "2d",
-            "dependencies": [
-                "2d"
-            ]
+            "dependencies": ["2d"]
         },
         "primitive": {
             "default": true,
@@ -218,9 +193,7 @@
             "description": "i18n:ENGINE.features.primitives.description",
             "enginePlugin": true,
             "category": "3d",
-            "dependencies": [
-                "3d"
-            ]
+            "dependencies": ["3d"]
         },
         "profiler": {
             "default": true,
@@ -235,9 +208,7 @@
             "cmakeConfig": "USE_OCCLUSION_QUERY",
             "enginePlugin": false,
             "category": "3d",
-            "dependencies": [
-                "3d"
-            ]
+            "dependencies": ["3d"]
         },
         "geometry-renderer": {
             "default": false,
@@ -246,9 +217,7 @@
             "cmakeConfig": "USE_GEOMETRY_RENDERER",
             "enginePlugin": true,
             "category": "3d",
-            "dependencies": [
-                "3d"
-            ]
+            "dependencies": ["3d"]
         },
         "debug-renderer": {
             "default": false,
@@ -257,9 +226,7 @@
             "cmakeConfig": "USE_DEBUG_RENDERER",
             "enginePlugin": false,
             "category": "3d",
-            "dependencies": [
-                "3d"
-            ]
+            "dependencies": ["3d"]
         },
         "particle-2d": {
             "default": true,
@@ -267,9 +234,7 @@
             "description": "i18n:ENGINE.features.particle_2d.description",
             "enginePlugin": true,
             "category": "2d",
-            "dependencies": [
-                "2d"
-            ]
+            "dependencies": ["2d"]
         },
         "audio": {
             "default": true,
@@ -320,9 +285,7 @@
             "description": "i18n:ENGINE.features.light_probe.description",
             "enginePlugin": true,
             "category": "3d",
-            "dependencies": [
-                "3d"
-            ]
+            "dependencies": ["3d"]
         },
         "tiled-map": {
             "default": true,
@@ -330,9 +293,7 @@
             "description": "i18n:ENGINE.features.tiled_map.description",
             "enginePlugin": true,
             "category": "2d",
-            "dependencies": [
-                "2d"
-            ]
+            "dependencies": ["2d"]
         },
         "vendor-google": {
             "default": false,
@@ -348,9 +309,7 @@
             "label": "i18n:ENGINE.features.spine.label",
             "description": "i18n:ENGINE.features.spine.description",
             "category": "2d",
-            "dependencies": [
-                "2d"
-            ],
+            "dependencies": ["2d"],
             "options": {
                 "spine-3.8": {
                     "enginePlugin": true,
@@ -393,28 +352,14 @@
             "cmakeConfig": "USE_DRAGONBONES",
             "enginePlugin": true,
             "category": "2d",
-            "dependencies": [
-                "2d"
-            ]
-        },
-        "marionette": {
-            "default": true,
-            "label": "i18n:ENGINE.features.marionette.label",
-            "description": "i18n:ENGINE.features.marionette.description",
-            "enginePlugin": false,
-            "dependencies": [
-                "animation"
-            ],
-            "category": "animation"
+            "dependencies": ["2d"]
         },
         "procedural-animation": {
             "default": false,
             "label": "i18n:ENGINE.features.procedural_animation.label",
             "description": "i18n:ENGINE.features.procedural_animation.description",
             "enginePlugin": false,
-            "dependencies": [
-                "animation"
-            ],
+            "dependencies": ["animation"],
             "category": "animation"
         },
         "custom-pipeline-post-process": {

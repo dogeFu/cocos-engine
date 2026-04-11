@@ -26,8 +26,21 @@ import { ccclass, serializable } from 'cc.decorator';
 import { DEBUG } from 'internal:constants';
 import { Asset } from '../asset/assets/asset';
 import { SpriteFrame } from '../2d/assets/sprite-frame';
-import { errorID, warnID, cclegacy, js, geometry, approx, clamp, Mat4, Quat,
-    Vec3, murmurhash2_32_gc, binarySearchEpsilon, assertIsTrue, RealCurve,
+import {
+    errorID,
+    warnID,
+    cclegacy,
+    js,
+    geometry,
+    approx,
+    clamp,
+    Mat4,
+    Quat,
+    Vec3,
+    murmurhash2_32_gc,
+    binarySearchEpsilon,
+    assertIsTrue,
+    RealCurve,
 } from '../core';
 import { SkelAnimDataHub } from '../3d/skeletal-animation/skeletal-animation-data-hub';
 import { WrapMode as AnimationWrapMode, WrapMode } from './types';
@@ -35,16 +48,28 @@ import { Node } from '../scene-graph/node';
 import type { PoseOutput } from './pose-output';
 import * as legacy from './legacy-clip-data';
 import { BAKE_SKELETON_CURVE_SYMBOL } from './internal-symbols';
-import { Binder, RuntimeBinding, Track, TrackBinding, trackBindingTag, TrackEval, TrackPath, TrsTrackPath } from './tracks/track';
+import {
+    Binder,
+    RuntimeBinding,
+    Track,
+    TrackBinding,
+    trackBindingTag,
+    TrackEval,
+    TrackPath,
+    TrsTrackPath,
+} from './tracks/track';
 import { createEvalSymbol } from './define';
 import { UntypedTrack, UntypedTrackRefine } from './tracks/untyped-track';
 import { Range } from './tracks/utils';
 import { ObjectTrack } from './tracks/object-track';
 import type { ExoticAnimation } from './exotic-animation/exotic-animation';
 import './exotic-animation/exotic-animation';
-import type { AnimationMask } from './marionette/animation-mask';
+import type { AnimationMask } from './animation-mask';
 import { getGlobalAnimationManager } from './global-animation-manager';
-import { EmbeddedPlayableState, EmbeddedPlayer } from './embedded-player/embedded-player';
+import {
+    EmbeddedPlayableState,
+    EmbeddedPlayer,
+} from './embedded-player/embedded-player';
 import { AuxiliaryCurveEntry } from './auxiliary-curve-entry';
 import { removeIf } from '../core/utils/array';
 import { invokeComponentMethodsEngagedInAnimationEvent } from './event/event-emitter';
@@ -75,9 +100,12 @@ interface SkeletonAnimationBakeInfo {
 
     frames: number;
 
-    joints: Record<string, {
-        transforms?: Mat4[];
-    }>;
+    joints: Record<
+        string,
+        {
+            transforms?: Mat4[];
+        }
+    >;
 }
 
 export const exoticAnimationTag = Symbol('ExoticAnimation');
@@ -112,15 +140,25 @@ export class AnimationClip extends Asset {
      * const clip = AnimationClip.createWithSpriteFrames(spriteFrames, 10);
      * ```
      */
-    public static createWithSpriteFrames (spriteFrames: SpriteFrame[], sample: number): AnimationClip {
+    public static createWithSpriteFrames (
+        spriteFrames: SpriteFrame[],
+        sample: number,
+    ): AnimationClip {
         const clip = new AnimationClip();
         clip.sample = sample || clip.sample;
         clip.duration = spriteFrames.length / clip.sample;
         const step = 1 / clip.sample;
         const track = new ObjectTrack<SpriteFrame>();
-        track.path =  new TrackPath().toComponent('cc.Sprite').toProperty('spriteFrame');
+        track.path = new TrackPath()
+            .toComponent('cc.Sprite')
+            .toProperty('spriteFrame');
         const curve = track.channels()[0].curve;
-        curve.assignSorted(spriteFrames.map((spriteFrame, index) => [step * index, spriteFrame]));
+        curve.assignSorted(
+            spriteFrames.map((spriteFrame, index) => [
+                step * index,
+                spriteFrame,
+            ]),
+        );
         clip.addTrack(track);
         return clip;
     }
@@ -193,11 +231,13 @@ export class AnimationClip extends Asset {
 
     get hash (): number {
         // hashes should already be computed offline, but if not, make one
-        if (this._hash) { return this._hash; }
+        if (this._hash) {
+            return this._hash;
+        }
         // Only hash exotic animations(including skeletal animations imported from model file).
         // The behavior is consistent with how `.hash` implemented prior to 3.3.
         const hashString = `Exotic:${this._exoticAnimation?.toHashString() ?? ''}`;
-        return this._hash = murmurhash2_32_gc(hashString, 666);
+        return (this._hash = murmurhash2_32_gc(hashString, 666));
     }
 
     /**
@@ -369,11 +409,10 @@ export class AnimationClip extends Asset {
      * @param targetNode Target node.
      * @internal Do not use this in your code.
      */
-    public createEmbeddedPlayerEvaluator (targetNode: Node): EmbeddedPlayerEvaluation {
-        return new EmbeddedPlayerEvaluation(
-            this._embeddedPlayers,
-            targetNode,
-        );
+    public createEmbeddedPlayerEvaluator (
+        targetNode: Node,
+    ): EmbeddedPlayerEvaluation {
+        return new EmbeddedPlayerEvaluation(this._embeddedPlayers, targetNode);
     }
 
     /**
@@ -382,10 +421,10 @@ export class AnimationClip extends Asset {
      * @returns The evaluator.
      * @internal Do not use this in your code.
      */
-    public createEvaluator (context: AnimationClipEvalContext): AnimationClipEvaluation {
-        const {
-            target,
-        } = context;
+    public createEvaluator (
+        context: AnimationClipEvalContext,
+    ): AnimationClipEvaluation {
+        const { target } = context;
 
         const binder: Binder = (binding: TrackBinding) => {
             if (context.mask && binding.isMaskedOff(context.mask)) {
@@ -405,7 +444,9 @@ export class AnimationClip extends Asset {
                 warnID(
                     3937,
                     this.name,
-                    ((context.target instanceof Node) ? context.target.name : context.target) as string,
+                    (context.target instanceof Node
+                        ? context.target.name
+                        : context.target) as string,
                 );
             }
             return trackTarget ?? undefined;
@@ -415,7 +456,8 @@ export class AnimationClip extends Asset {
     }
 
     public destroy (): boolean {
-        const dataPoolManager = cclegacy.director.root?.dataPoolManager as (DataPoolManager | null);
+        const dataPoolManager = cclegacy.director.root
+            ?.dataPoolManager as DataPoolManager | null;
         if (dataPoolManager) {
             dataPoolManager.releaseAnimationClip(this);
         }
@@ -423,26 +465,40 @@ export class AnimationClip extends Asset {
         return super.destroy();
     }
 
-    public [BAKE_SKELETON_CURVE_SYMBOL] (start: number, samples: number, frames: number): SkeletonAnimationBakeInfo {
+    public [BAKE_SKELETON_CURVE_SYMBOL] (
+        start: number,
+        samples: number,
+        frames: number,
+    ): SkeletonAnimationBakeInfo {
         const step = 1.0 / samples;
 
         const animatedJoints = this._collectAnimatedJoints();
         const nAnimatedJoints = animatedJoints.length;
 
-        const jointsBakeInfo: Record<string, {
-            transforms: Mat4[];
-        }> = {};
-        for (let iAnimatedJoint = 0; iAnimatedJoint < nAnimatedJoints; ++iAnimatedJoint) {
+        const jointsBakeInfo: Record<
+            string,
+            {
+                transforms: Mat4[];
+            }
+        > = {};
+        for (
+            let iAnimatedJoint = 0;
+            iAnimatedJoint < nAnimatedJoints;
+            ++iAnimatedJoint
+        ) {
             const joint = animatedJoints[iAnimatedJoint];
             jointsBakeInfo[joint] = {
                 transforms: Array.from({ length: frames }, () => new Mat4()),
             };
         }
 
-        const skeletonFrames = animatedJoints.reduce((result, joint) => {
-            result[joint] = new BoneGlobalTransform();
-            return result;
-        }, {} as Record<string, BoneGlobalTransform>);
+        const skeletonFrames = animatedJoints.reduce(
+            (result, joint) => {
+                result[joint] = new BoneGlobalTransform();
+                return result;
+            },
+            {} as Record<string, BoneGlobalTransform>,
+        );
         for (const joint in skeletonFrames) {
             const skeletonFrame = skeletonFrames[joint];
             const parentJoint = joint.lastIndexOf('/');
@@ -471,19 +527,31 @@ export class AnimationClip extends Asset {
             return createBoneTransformBinding(jointFrame, trsPath.property);
         };
 
-        const evaluator = this._createEvalWithBinder(undefined, binder, undefined);
+        const evaluator = this._createEvalWithBinder(
+            undefined,
+            binder,
+            undefined,
+        );
 
         for (let iFrame = 0; iFrame < frames; ++iFrame) {
             const time = start + step * iFrame;
             evaluator.evaluate(time);
-            for (let iAnimatedJoint = 0; iAnimatedJoint < nAnimatedJoints; ++iAnimatedJoint) {
+            for (
+                let iAnimatedJoint = 0;
+                iAnimatedJoint < nAnimatedJoints;
+                ++iAnimatedJoint
+            ) {
                 const joint = animatedJoints[iAnimatedJoint];
                 Mat4.copy(
                     jointsBakeInfo[joint].transforms[iFrame],
                     skeletonFrames[joint].globalTransform,
                 );
             }
-            for (let iAnimatedJoint = 0; iAnimatedJoint < nAnimatedJoints; ++iAnimatedJoint) {
+            for (
+                let iAnimatedJoint = 0;
+                iAnimatedJoint < nAnimatedJoints;
+                ++iAnimatedJoint
+            ) {
                 const joint = animatedJoints[iAnimatedJoint];
                 skeletonFrames[joint].invalidate();
             }
@@ -520,7 +588,11 @@ export class AnimationClip extends Asset {
             }
         }
         const nRemovalTracks = removals.length;
-        for (let iRemovalTrack = 0; iRemovalTrack < nRemovalTracks; ++iRemovalTrack) {
+        for (
+            let iRemovalTrack = 0;
+            iRemovalTrack < nRemovalTracks;
+            ++iRemovalTrack
+        ) {
             js.array.remove(tracks, removals[iRemovalTrack]);
         }
         tracks.push(...newTracks);
@@ -737,7 +809,10 @@ export class AnimationClip extends Asset {
      * @param name @zh 要重命名的辅助曲线的名称。@en Name of the auxiliary curve to rename.
      * @param newName @zh 新名称。@en New name.
      */
-    public renameAuxiliaryCurve_experimental (name: string, newName: string): void {
+    public renameAuxiliaryCurve_experimental (
+        name: string,
+        newName: string,
+    ): void {
         const entry = this._findAuxiliaryCurveEntry(name);
         if (entry) {
             entry.name = newName;
@@ -802,7 +877,11 @@ export class AnimationClip extends Asset {
             eventGroups: [],
         };
 
-    private _createEvalWithBinder (target: unknown, binder: Binder, rootMotionOptions: RootMotionOptions | undefined): AnimationClipEvaluation {
+    private _createEvalWithBinder (
+        target: unknown,
+        binder: Binder,
+        rootMotionOptions: RootMotionOptions | undefined,
+    ): AnimationClipEvaluation {
         if (this._legacyDataDirty) {
             this._legacyDataDirty = false;
             this.syncLegacyData();
@@ -828,7 +907,11 @@ export class AnimationClip extends Asset {
             if (rootMotionTrackExcludes.includes(track)) {
                 continue;
             }
-            if (Array.from(track.channels()).every(({ curve }) => curve.keyFramesCount === 0)) {
+            if (
+                Array.from(track.channels()).every(
+                    ({ curve }) => curve.keyFramesCount === 0,
+                )
+            ) {
                 continue;
             }
             const runtimeBinding = binder(track[trackBindingTag]);
@@ -853,11 +936,13 @@ export class AnimationClip extends Asset {
                 trackEval = track.createLegacyEval(hintValue);
             }
 
-            trackEvalStatues.push(new TrackEvalStatus(runtimeBinding, trackEval));
+            trackEvalStatues.push(
+                new TrackEvalStatus(runtimeBinding, trackEval),
+            );
         }
 
         if (this._exoticAnimation) {
-            exoticAnimationEvaluator = this._exoticAnimation.createEvaluator(binder);
+            exoticAnimationEvaluator =                this._exoticAnimation.createEvaluator(binder);
         }
 
         const evaluation = new AnimationClipEvaluation(
@@ -910,12 +995,17 @@ export class AnimationClip extends Asset {
             }
             rootMotionTrackExcludes.push(track);
             const property = trsPath.property;
-            const runtimeBinding = createBoneTransformBinding(boneTransform, property);
+            const runtimeBinding = createBoneTransformBinding(
+                boneTransform,
+                property,
+            );
             if (!runtimeBinding) {
                 continue;
             }
             const trackEval = track[createEvalSymbol]();
-            rootMotionsTrackEvaluations.push(new TrackEvalStatus(runtimeBinding, trackEval));
+            rootMotionsTrackEvaluations.push(
+                new TrackEvalStatus(runtimeBinding, trackEval),
+            );
         }
         const rootMotionEvaluation = new RootMotionEvaluation(
             rootBone,
@@ -980,7 +1070,9 @@ export class AnimationClip extends Asset {
         const legacyCurves: legacy.LegacyClipCurve[] = [];
         const commonTargets: legacy.LegacyCommonTarget[] = [];
 
-        const legacyClipData = new legacy.AnimationClipLegacyData(this._duration);
+        const legacyClipData = new legacy.AnimationClipLegacyData(
+            this._duration,
+        );
         legacyClipData.keys = keys;
         legacyClipData.curves = legacyCurves;
         legacyClipData.commonTargets = commonTargets;
@@ -1009,9 +1101,13 @@ export class AnimationClip extends Asset {
         }
 
         if (this._exoticAnimation) {
-            const animatedJoints = this._exoticAnimation.collectAnimatedJoints();
+            const animatedJoints =                this._exoticAnimation.collectAnimatedJoints();
             const nAnimatedJoints = animatedJoints.length;
-            for (let iAnimatedJoint = 0; iAnimatedJoint < nAnimatedJoints; ++iAnimatedJoint) {
+            for (
+                let iAnimatedJoint = 0;
+                iAnimatedJoint < nAnimatedJoints;
+                ++iAnimatedJoint
+            ) {
                 joints.add(animatedJoints[iAnimatedJoint]);
             }
         }
@@ -1019,7 +1115,9 @@ export class AnimationClip extends Asset {
         return Array.from(joints);
     }
 
-    private _findAuxiliaryCurveEntry (name: string): AuxiliaryCurveEntry | undefined {
+    private _findAuxiliaryCurveEntry (
+        name: string,
+    ): AuxiliaryCurveEntry | undefined {
         return this._auxiliaryCurveEntries.find((entry) => entry.name === name);
     }
 }
@@ -1047,14 +1145,16 @@ class TrackEvalStatus<TValue> {
     constructor (binding: RuntimeBinding<TValue>, trackEval: TrackEval<TValue>) {
         this._binding = binding;
         this._trackEval = trackEval;
-        this._shouldEvaluateDefault = !!binding.getValue && trackEval.requiresDefault;
+        this._shouldEvaluateDefault =            !!binding.getValue && trackEval.requiresDefault;
     }
 
     public evaluate (time: number): void {
         const { _binding: binding, _trackEval: trackEval } = this;
+        // See `this._shouldEvaluateDefault` for the assertion.
         const defaultValue = this._shouldEvaluateDefault
-            // See `this._shouldEvaluateDefault` for the assertion.
-            ? (binding.getValue!)() as TValue extends unknown ? unknown : Readonly<TValue>
+            ? (binding.getValue!() as TValue extends unknown
+                ? unknown
+                : Readonly<TValue>)
             : undefined;
         const value = trackEval.evaluate(time, defaultValue);
         binding.setValue(value);
@@ -1088,16 +1188,20 @@ interface AnimationClipEvalContext {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface RootMotionOptions {
-}
+interface RootMotionOptions {}
 
 type ExoticAnimationEvaluator = ReturnType<ExoticAnimation['createEvaluator']>;
 
 class EmbeddedPlayerEvaluation {
-    constructor (embeddedPlayers: ReadonlyArray<EmbeddedPlayer>, rootNode: Node) {
+    constructor (
+        embeddedPlayers: ReadonlyArray<EmbeddedPlayer>,
+        rootNode: Node,
+    ) {
         this._embeddedPlayers = embeddedPlayers;
         this._embeddedPlayerEvaluationInfos = embeddedPlayers.map(
-            (embeddedPlayer): EmbeddedPlayerEvaluation['_embeddedPlayerEvaluationInfos'][0] => {
+            (
+                embeddedPlayer,
+            ): EmbeddedPlayerEvaluation['_embeddedPlayerEvaluationInfos'][0] => {
                 const { playable: player } = embeddedPlayer;
                 if (!player) {
                     return null;
@@ -1121,8 +1225,14 @@ class EmbeddedPlayerEvaluation {
             _embeddedPlayerEvaluationInfos: embeddedPlayerEvaluationInfos,
         } = this;
         const nEmbeddedPlayers = embeddedPlayerEvaluationInfos.length;
-        for (let iEmbeddedPlayer = 0; iEmbeddedPlayer < nEmbeddedPlayers; ++iEmbeddedPlayer) {
-            embeddedPlayerEvaluationInfos[iEmbeddedPlayer]?.instantiatedPlayer.destroy();
+        for (
+            let iEmbeddedPlayer = 0;
+            iEmbeddedPlayer < nEmbeddedPlayers;
+            ++iEmbeddedPlayer
+        ) {
+            embeddedPlayerEvaluationInfos[
+                iEmbeddedPlayer
+            ]?.instantiatedPlayer.destroy();
         }
         this._embeddedPlayerEvaluationInfos.length = 0;
     }
@@ -1139,12 +1249,16 @@ class EmbeddedPlayerEvaluation {
             _embeddedPlayerEvaluationInfos: embeddedPlayerEvaluationInfos,
         } = this;
         const nEmbeddedPlayers = embeddedPlayers.length;
-        for (let iEmbeddedPlayer = 0; iEmbeddedPlayer < nEmbeddedPlayers; ++iEmbeddedPlayer) {
-            const embeddedPlayerEvaluationInfo = embeddedPlayerEvaluationInfos[iEmbeddedPlayer];
+        for (
+            let iEmbeddedPlayer = 0;
+            iEmbeddedPlayer < nEmbeddedPlayers;
+            ++iEmbeddedPlayer
+        ) {
+            const embeddedPlayerEvaluationInfo =                embeddedPlayerEvaluationInfos[iEmbeddedPlayer];
             if (!embeddedPlayerEvaluationInfo) {
                 continue;
             }
-            const { entered, instantiatedPlayer, lastIterations } = embeddedPlayerEvaluationInfo;
+            const { entered, instantiatedPlayer, lastIterations } =                embeddedPlayerEvaluationInfo;
             const { begin, end } = embeddedPlayers[iEmbeddedPlayer];
             const withinEmbeddedPlayer = time >= begin && time <= end;
             if (withinEmbeddedPlayer) {
@@ -1163,7 +1277,9 @@ class EmbeddedPlayerEvaluation {
             embeddedPlayerEvaluationInfo.lastIterations = iterations;
             if (embeddedPlayerEvaluationInfo.entered) {
                 const playerTime = time - begin;
-                embeddedPlayerEvaluationInfo.instantiatedPlayer.setTime(playerTime);
+                embeddedPlayerEvaluationInfo.instantiatedPlayer.setTime(
+                    playerTime,
+                );
             }
         }
     }
@@ -1175,8 +1291,12 @@ class EmbeddedPlayerEvaluation {
             _embeddedPlayerEvaluationInfos: embeddedPlayerEvaluationInfos,
         } = this;
         const nEmbeddedPlayers = embeddedPlayers.length;
-        for (let iEmbeddedPlayer = 0; iEmbeddedPlayer < nEmbeddedPlayers; ++iEmbeddedPlayer) {
-            const embeddedPlayerEvaluationInfo = embeddedPlayerEvaluationInfos[iEmbeddedPlayer];
+        for (
+            let iEmbeddedPlayer = 0;
+            iEmbeddedPlayer < nEmbeddedPlayers;
+            ++iEmbeddedPlayer
+        ) {
+            const embeddedPlayerEvaluationInfo =                embeddedPlayerEvaluationInfos[iEmbeddedPlayer];
             if (!embeddedPlayerEvaluationInfo) {
                 continue;
             }
@@ -1201,20 +1321,27 @@ class EmbeddedPlayerEvaluation {
             _embeddedPlayerEvaluationInfos: embeddedPlayerEvaluationInfos,
         } = this;
         const nEmbeddedPlayers = embeddedPlayers.length;
-        for (let iEmbeddedPlayer = 0; iEmbeddedPlayer < nEmbeddedPlayers; ++iEmbeddedPlayer) {
-            const embeddedPlayerEvaluationInfo = embeddedPlayerEvaluationInfos[iEmbeddedPlayer];
+        for (
+            let iEmbeddedPlayer = 0;
+            iEmbeddedPlayer < nEmbeddedPlayers;
+            ++iEmbeddedPlayer
+        ) {
+            const embeddedPlayerEvaluationInfo =                embeddedPlayerEvaluationInfos[iEmbeddedPlayer];
             if (!embeddedPlayerEvaluationInfo) {
                 continue;
             }
             const { begin, end } = embeddedPlayers[iEmbeddedPlayer];
-            const { instantiatedPlayer, entered } = embeddedPlayerEvaluationInfo;
+            const { instantiatedPlayer, entered } =                embeddedPlayerEvaluationInfo;
             if (entered) {
                 const { hostPauseTime } = embeddedPlayerEvaluationInfo;
                 // We can resume the embedded player
                 // only if the pause/play happened at the same time
                 // or the embedded player supports random access.
                 // Otherwise we have to say goodbye to that embedded player.
-                if (instantiatedPlayer.randomAccess || approx(hostPauseTime, time, 1e-5)) {
+                if (
+                    instantiatedPlayer.randomAccess
+                    || approx(hostPauseTime, time, 1e-5)
+                ) {
                     const startTime = clamp(time, begin, end);
                     instantiatedPlayer.play();
                     instantiatedPlayer.setTime(startTime - begin);
@@ -1235,12 +1362,16 @@ class EmbeddedPlayerEvaluation {
             _embeddedPlayerEvaluationInfos: embeddedPlayerEvaluationInfos,
         } = this;
         const nEmbeddedPlayers = embeddedPlayers.length;
-        for (let iEmbeddedPlayer = 0; iEmbeddedPlayer < nEmbeddedPlayers; ++iEmbeddedPlayer) {
-            const embeddedPlayerEvaluationInfo = embeddedPlayerEvaluationInfos[iEmbeddedPlayer];
+        for (
+            let iEmbeddedPlayer = 0;
+            iEmbeddedPlayer < nEmbeddedPlayers;
+            ++iEmbeddedPlayer
+        ) {
+            const embeddedPlayerEvaluationInfo =                embeddedPlayerEvaluationInfos[iEmbeddedPlayer];
             if (!embeddedPlayerEvaluationInfo) {
                 continue;
             }
-            const { instantiatedPlayer, entered } = embeddedPlayerEvaluationInfo;
+            const { instantiatedPlayer, entered } =                embeddedPlayerEvaluationInfo;
             if (entered) {
                 instantiatedPlayer.pause();
                 embeddedPlayerEvaluationInfo.hostPauseTime = time;
@@ -1259,12 +1390,16 @@ class EmbeddedPlayerEvaluation {
             _embeddedPlayerEvaluationInfos: embeddedPlayerEvaluationInfos,
         } = this;
         const nEmbeddedPlayers = embeddedPlayers.length;
-        for (let iEmbeddedPlayer = 0; iEmbeddedPlayer < nEmbeddedPlayers; ++iEmbeddedPlayer) {
-            const embeddedPlayerEvaluationInfo = embeddedPlayerEvaluationInfos[iEmbeddedPlayer];
+        for (
+            let iEmbeddedPlayer = 0;
+            iEmbeddedPlayer < nEmbeddedPlayers;
+            ++iEmbeddedPlayer
+        ) {
+            const embeddedPlayerEvaluationInfo =                embeddedPlayerEvaluationInfos[iEmbeddedPlayer];
             if (!embeddedPlayerEvaluationInfo) {
                 continue;
             }
-            const { instantiatedPlayer, entered } = embeddedPlayerEvaluationInfo;
+            const { instantiatedPlayer, entered } =                embeddedPlayerEvaluationInfo;
             if (entered) {
                 embeddedPlayerEvaluationInfo.entered = false;
                 instantiatedPlayer.stop();
@@ -1272,9 +1407,9 @@ class EmbeddedPlayerEvaluation {
         }
     }
 
-    private declare _embeddedPlayers: ReadonlyArray<EmbeddedPlayer>;
+    declare private _embeddedPlayers: ReadonlyArray<EmbeddedPlayer>;
 
-    private declare _embeddedPlayerEvaluationInfos: Array<null | {
+    declare private _embeddedPlayerEvaluationInfos: Array<null | {
         instantiatedPlayer: EmbeddedPlayableState;
         entered: boolean;
         hostPauseTime: number;
@@ -1304,7 +1439,11 @@ class AnimationClipEvaluation {
         } = this;
 
         const nTrackEvalStatuses = trackEvalStatuses.length;
-        for (let iTrackEvalStatus = 0; iTrackEvalStatus < nTrackEvalStatuses; ++iTrackEvalStatus) {
+        for (
+            let iTrackEvalStatus = 0;
+            iTrackEvalStatus < nTrackEvalStatuses;
+            ++iTrackEvalStatus
+        ) {
             trackEvalStatuses[iTrackEvalStatus].evaluate(time);
         }
 
@@ -1350,7 +1489,11 @@ class BoneGlobalTransform extends BoneTransform {
             this._dirty = false;
             Mat4.fromRTS(transform, this.rotation, this.position, this.scale);
             if (this.parent) {
-                Mat4.multiply(transform, this.parent.globalTransform, transform);
+                Mat4.multiply(
+                    transform,
+                    this.parent.globalTransform,
+                    transform,
+                );
             }
         }
         return this._transform;
@@ -1372,12 +1515,14 @@ class RootMotionEvaluation {
         private _duration: number,
         private _boneTransform: BoneTransform,
         private _trackEvalStatuses: TrackEvalStatus<unknown>[],
-    ) {
-
-    }
+    ) {}
 
     public evaluate (time: number, motionLength: number): void {
-        const motionTransform = this._calcMotionTransform(time, motionLength, this._motionTransformCache);
+        const motionTransform = this._calcMotionTransform(
+            time,
+            motionLength,
+            this._motionTransformCache,
+        );
 
         const {
             _translationMotionCache: translationMotion,
@@ -1386,7 +1531,12 @@ class RootMotionEvaluation {
             _rootBone: rootBone,
         } = this;
 
-        Mat4.toSRT(motionTransform, rotationMotion, translationMotion, scaleMotion);
+        Mat4.toSRT(
+            motionTransform,
+            rotationMotion,
+            translationMotion,
+            scaleMotion,
+        );
 
         Vec3.add(translationMotion, translationMotion, rootBone.position);
         rootBone.setPosition(translationMotion);
@@ -1398,13 +1548,23 @@ class RootMotionEvaluation {
         rootBone.setScale(scaleMotion);
     }
 
-    private _calcMotionTransform (time: number, motionLength: number, outTransform: Mat4): Mat4 {
+    private _calcMotionTransform (
+        time: number,
+        motionLength: number,
+        outTransform: Mat4,
+    ): Mat4 {
         const { _duration: duration } = this;
         const remainLength = duration - time;
         assertIsTrue(remainLength >= 0);
-        const startTransform = this._evaluateAt(time, this._startTransformCache);
+        const startTransform = this._evaluateAt(
+            time,
+            this._startTransformCache,
+        );
         if (motionLength < remainLength) {
-            const endTransform = this._evaluateAt(time + motionLength, this._endTransformCache);
+            const endTransform = this._evaluateAt(
+                time + motionLength,
+                this._endTransformCache,
+            );
             relativeTransform(outTransform, startTransform, endTransform);
         } else {
             Mat4.identity(outTransform);
@@ -1417,15 +1577,28 @@ class RootMotionEvaluation {
             const diff = motionLength - remainLength;
             const repeatCount = Math.floor(diff / duration);
             const lastRemainTime = diff - repeatCount * duration;
-            const clipStartTransform = this._evaluateAt(0, this._initialTransformCache);
-            const clipEndTransform = this._evaluateAt(duration, this._clipEndTransformCache);
-            const endTransform = this._evaluateAt(lastRemainTime, this._endTransformCache);
+            const clipStartTransform = this._evaluateAt(
+                0,
+                this._initialTransformCache,
+            );
+            const clipEndTransform = this._evaluateAt(
+                duration,
+                this._clipEndTransformCache,
+            );
+            const endTransform = this._evaluateAt(
+                lastRemainTime,
+                this._endTransformCache,
+            );
 
             // Start -> Clip End
             accumulateMotionTransform(startTransform, clipEndTransform);
 
             // Whole clip x Repeat Count
-            relativeTransform(motionTransformCache, clipStartTransform, clipEndTransform);
+            relativeTransform(
+                motionTransformCache,
+                clipStartTransform,
+                clipEndTransform,
+            );
             for (let i = 0; i < repeatCount; ++i) {
                 Mat4.multiply(outTransform, outTransform, motionTransformCache);
             }
@@ -1437,12 +1610,14 @@ class RootMotionEvaluation {
     }
 
     private _evaluateAt (time: number, outTransform: Mat4): Mat4 {
-        const {
-            _trackEvalStatuses: trackEvalStatuses,
-        } = this;
+        const { _trackEvalStatuses: trackEvalStatuses } = this;
 
         const nTrackEvalStatuses = trackEvalStatuses.length;
-        for (let iTrackEvalStatus = 0; iTrackEvalStatus < nTrackEvalStatuses; ++iTrackEvalStatus) {
+        for (
+            let iTrackEvalStatus = 0;
+            iTrackEvalStatus < nTrackEvalStatuses;
+            ++iTrackEvalStatus
+        ) {
             trackEvalStatuses[iTrackEvalStatus].evaluate(time);
         }
 
@@ -1465,11 +1640,17 @@ function relativeTransform (out: Mat4, from: Mat4, to: Mat4): void {
     Mat4.multiply(out, to, out);
 }
 
-function createBoneTransformBinding (boneTransform: BoneTransform, property: TrsTrackPath[1]):  {
-    setValue(value: Vec3): void;
-} | {
-    setValue(value: Quat): void;
-} | undefined {
+function createBoneTransformBinding (
+    boneTransform: BoneTransform,
+    property: TrsTrackPath[1],
+):
+    | {
+          setValue(value: Vec3): void;
+      }
+    | {
+          setValue(value: Quat): void;
+      }
+    | undefined {
     switch (property) {
     default:
         return undefined;
@@ -1519,9 +1700,7 @@ class EventEvaluator {
         private _ratios: readonly number[],
         private _eventGroups: readonly IAnimationEventGroup[],
         private _wrapMode: WrapMode,
-    ) {
-
-    }
+    ) {}
 
     public setWrapMode (wrapMode: WrapMode): void {
         this._wrapMode = wrapMode;
@@ -1538,7 +1717,9 @@ class EventEvaluator {
             frameIndex = ~frameIndex - 1;
 
             // if direction is inverse, then increase index
-            if (direction < 0) { frameIndex += 1; }
+            if (direction < 0) {
+                frameIndex += 1;
+            }
 
             this._ignoreIndex = frameIndex;
         }
@@ -1587,7 +1768,7 @@ class EventEvaluator {
         let lastIndex = this._lastFrameIndex;
         const lastDirection = this._lastDirection;
 
-        const iterationsChanged = lastIterations !== -1 && currentIterations !== lastIterations;
+        const iterationsChanged =            lastIterations !== -1 && currentIterations !== lastIterations;
 
         if (lastIndex === eventIndex && iterationsChanged && length === 1) {
             this._doFire(0, false);
@@ -1597,14 +1778,24 @@ class EventEvaluator {
             do {
                 if (lastIndex !== eventIndex) {
                     if (direction === -1 && lastIndex === 0 && eventIndex > 0) {
-                        if ((wrapMode & geometry.WrapModeMask.PingPong) === geometry.WrapModeMask.PingPong) {
+                        if (
+                            (wrapMode & geometry.WrapModeMask.PingPong)
+                            === geometry.WrapModeMask.PingPong
+                        ) {
                             direction *= -1;
                         } else {
                             lastIndex = length;
                         }
                         lastIterations++;
-                    } else if (direction === 1 && lastIndex === length - 1 && eventIndex < length - 1) {
-                        if ((wrapMode & geometry.WrapModeMask.PingPong) === geometry.WrapModeMask.PingPong) {
+                    } else if (
+                        direction === 1
+                        && lastIndex === length - 1
+                        && eventIndex < length - 1
+                    ) {
+                        if (
+                            (wrapMode & geometry.WrapModeMask.PingPong)
+                            === geometry.WrapModeMask.PingPong
+                        ) {
                             direction *= -1;
                         } else {
                             lastIndex = -1;
@@ -1622,7 +1813,11 @@ class EventEvaluator {
 
                 lastIndex += direction;
                 this._doFire(lastIndex, true);
-            } while (lastIndex !== eventIndex && lastIndex > -1 && lastIndex < length);
+            } while (
+                lastIndex !== eventIndex
+                && lastIndex > -1
+                && lastIndex < length
+            );
         }
 
         this._lastFrameIndex = eventIndex;
@@ -1638,7 +1833,11 @@ class EventEvaluator {
 
     private _doFire (eventIndex: number, delay: boolean): void {
         if (delay) {
-            getGlobalAnimationManager().pushDelayEvent(this._checkAndFire, this, [eventIndex]);
+            getGlobalAnimationManager().pushDelayEvent(
+                this._checkAndFire,
+                this,
+                [eventIndex],
+            );
         } else {
             this._checkAndFire(eventIndex);
         }
@@ -1650,7 +1849,11 @@ class EventEvaluator {
         }
 
         const { _eventGroups: eventGroups } = this;
-        if (eventIndex < 0 || eventIndex >= eventGroups.length || this._ignoreIndex === eventIndex) {
+        if (
+            eventIndex < 0
+            || eventIndex >= eventGroups.length
+            || this._ignoreIndex === eventIndex
+        ) {
             return;
         }
 
@@ -1658,7 +1861,11 @@ class EventEvaluator {
         const nEvents = eventGroup.events.length;
         for (let iEvent = 0; iEvent < nEvents; ++iEvent) {
             const event = eventGroup.events[iEvent];
-            invokeComponentMethodsEngagedInAnimationEvent(this._targetNode, event.functionName, event.parameters);
+            invokeComponentMethodsEngagedInAnimationEvent(
+                this._targetNode,
+                event.functionName,
+                event.parameters,
+            );
         }
     }
 }
@@ -1670,7 +1877,10 @@ function wrapIterations (iterations: number): number {
     return iterations | 0;
 }
 
-function getEventGroupIndexAtRatio (ratio: number, ratios: readonly number[]): number {
+function getEventGroupIndexAtRatio (
+    ratio: number,
+    ratios: readonly number[],
+): number {
     const result = binarySearchEpsilon(ratios, ratio);
     return result;
 }

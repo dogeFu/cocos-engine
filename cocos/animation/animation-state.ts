@@ -28,7 +28,7 @@ import { AnimationClip } from './animation-clip';
 import { Playable } from './playable';
 import { WrapMode, WrappedInfo } from './types';
 import { cclegacy, debug, geometry, ccenum, assertIsTrue } from '../core';
-import { AnimationMask } from './marionette/animation-mask';
+import { AnimationMask } from './animation-mask';
 import { PoseOutput } from './pose-output';
 import { BlendStateBuffer } from '../3d/skeletal-animation/skeletal-animation-blending';
 import { getGlobalAnimationManager } from './global-animation-manager';
@@ -152,7 +152,8 @@ export class AnimationState extends Playable {
         this._repeatCount = value;
 
         const shouldWrap = this._wrapMode & geometry.WrapModeMask.ShouldWrap;
-        const reverse = (this.wrapMode & geometry.WrapModeMask.Reverse) === geometry.WrapModeMask.Reverse;
+        const reverse =            (this.wrapMode & geometry.WrapModeMask.Reverse)
+            === geometry.WrapModeMask.Reverse;
         if (value === Infinity && !shouldWrap && !reverse) {
             this._useSimpleProcess = true;
         } else {
@@ -198,7 +199,7 @@ export class AnimationState extends Playable {
      * 设置播放范围时将重置累计播放时间。
      * 如果 `min === max`，该动画将一直在 `min` 处播放。
      */
-    get playbackRange (): Readonly<{ min: number; max: number; }> {
+    get playbackRange (): Readonly<{ min: number; max: number }> {
         return this._playbackRange;
     }
 
@@ -206,7 +207,7 @@ export class AnimationState extends Playable {
         assertIsTrue(value.max >= value.min);
         this._playbackRange.min = Math.max(value.min, 0);
         this._playbackRange.max = Math.min(value.max, this.duration);
-        this._playbackDuration = this._playbackRange.max - this._playbackRange.min;
+        this._playbackDuration =            this._playbackRange.max - this._playbackRange.min;
         this.setTime(0.0);
     }
 
@@ -297,14 +298,18 @@ export class AnimationState extends Playable {
     private _blendStateWriterHost = {
         weight: 0.0,
     };
-    private declare _playbackRange: { min: number; max: number; };
+    declare private _playbackRange: { min: number; max: number };
     private _playbackDuration = 0.0;
     private _invDuration = 1.0;
     private _poseOutput: PoseOutput | null = null;
     private _weight = 1.0;
     private _clipEval: ReturnType<AnimationClip['createEvaluator']> | undefined;
-    private _clipEventEval: ReturnType<AnimationClip['createEventEvaluator']> | undefined;
-    private _clipEmbeddedPlayerEval: ReturnType<AnimationClip['createEmbeddedPlayerEvaluator']> | undefined;
+    private _clipEventEval:
+        | ReturnType<AnimationClip['createEventEvaluator']>
+        | undefined;
+    private _clipEmbeddedPlayerEval:
+        | ReturnType<AnimationClip['createEmbeddedPlayerEvaluator']>
+        | undefined;
     /**
      * @internal For internal usage. Really hack...
      */
@@ -331,8 +336,14 @@ export class AnimationState extends Playable {
         return this._curveLoaded;
     }
 
-    public initialize (root: Node, blendStateBuffer?: BlendStateBuffer, mask?: AnimationMask): void {
-        if (this._curveLoaded) { return; }
+    public initialize (
+        root: Node,
+        blendStateBuffer?: BlendStateBuffer,
+        mask?: AnimationMask,
+    ): void {
+        if (this._curveLoaded) {
+            return;
+        }
         this._curveLoaded = true;
         if (this._poseOutput) {
             this._poseOutput.destroy();
@@ -361,14 +372,19 @@ export class AnimationState extends Playable {
         this._playbackRange.max = clip.duration;
         this._playbackDuration = clip.duration;
 
-        if ((this.wrapMode & geometry.WrapModeMask.Loop) === geometry.WrapModeMask.Loop) {
+        if (
+            (this.wrapMode & geometry.WrapModeMask.Loop)
+            === geometry.WrapModeMask.Loop
+        ) {
             this.repeatCount = Infinity;
         } else {
             this.repeatCount = 1;
         }
 
         if (!this._doNotCreateEval) {
-            const pose = blendStateBuffer ?? getGlobalAnimationManager()?.blendState ?? null;
+            const pose =                blendStateBuffer
+                ?? getGlobalAnimationManager()?.blendState
+                ?? null;
             if (pose) {
                 this._poseOutput = new PoseOutput(pose);
             }
@@ -381,12 +397,16 @@ export class AnimationState extends Playable {
 
         if (!EDITOR_NOT_IN_PREVIEW) {
             if (clip.containsAnyEvent()) {
-                this._clipEventEval = clip.createEventEvaluator(this._targetNode);
+                this._clipEventEval = clip.createEventEvaluator(
+                    this._targetNode,
+                );
             }
         }
 
         if (clip.containsAnyEmbeddedPlayer()) {
-            this._clipEmbeddedPlayerEval = clip.createEmbeddedPlayerEvaluator(this._targetNode);
+            this._clipEmbeddedPlayerEval = clip.createEmbeddedPlayerEvaluator(
+                this._targetNode,
+            );
             this._clipEmbeddedPlayerEval.notifyHostSpeedChanged(this._speed);
         }
     }
@@ -494,7 +514,7 @@ export class AnimationState extends Playable {
 
         // var playPerfectFirstFrame = (this.time === 0);
         if (this._currentFramePlayed) {
-            this.time += (delta * this._speed);
+            this.time += delta * this._speed;
         } else {
             this._currentFramePlayed = true;
         }
@@ -573,7 +593,10 @@ export class AnimationState extends Playable {
                 lastInfo = this._lastWrapInfo;
             }
 
-            if (this.repeatCount > 1 && ((info.iterations | 0) > (lastInfo.iterations | 0))) {
+            if (
+                this.repeatCount > 1
+                && (info.iterations | 0) > (lastInfo.iterations | 0)
+            ) {
                 this.emit(AnimationStateEventType.LASTFRAME, this);
             }
 
@@ -616,7 +639,10 @@ export class AnimationState extends Playable {
                 this._lastIterations = ratio;
             }
 
-            if ((this.time > 0 && this._lastIterations > ratio) || (this.time < 0 && this._lastIterations < ratio)) {
+            if (
+                (this.time > 0 && this._lastIterations > ratio)
+                || (this.time < 0 && this._lastIterations < ratio)
+            ) {
                 this.emit(AnimationStateEventType.LASTFRAME, this);
             }
 
@@ -628,9 +654,12 @@ export class AnimationState extends Playable {
         const wrapMode = this.wrapMode;
         let needReverse = false;
 
-        if ((wrapMode & geometry.WrapModeMask.PingPong) === geometry.WrapModeMask.PingPong) {
+        if (
+            (wrapMode & geometry.WrapModeMask.PingPong)
+            === geometry.WrapModeMask.PingPong
+        ) {
             const isEnd = currentIterations - (currentIterations | 0) === 0;
-            if (isEnd && (currentIterations > 0)) {
+            if (isEnd && currentIterations > 0) {
                 currentIterations -= 1;
             }
 
@@ -639,7 +668,10 @@ export class AnimationState extends Playable {
                 needReverse = !needReverse;
             }
         }
-        if ((wrapMode & geometry.WrapModeMask.Reverse) === geometry.WrapModeMask.Reverse) {
+        if (
+            (wrapMode & geometry.WrapModeMask.Reverse)
+            === geometry.WrapModeMask.Reverse
+        ) {
             needReverse = !needReverse;
         }
         return needReverse;
@@ -649,9 +681,7 @@ export class AnimationState extends Playable {
         info = info || new WrappedInfo();
 
         const {
-            _playbackRange: {
-                min: playbackStart,
-            },
+            _playbackRange: { min: playbackStart },
             _playbackDuration: playbackDuration,
         } = this;
 
@@ -670,14 +700,14 @@ export class AnimationState extends Playable {
 
         time -= playbackStart;
 
-        let currentIterations = time > 0 ? (time / playbackDuration) : -(time / playbackDuration);
+        let currentIterations =            time > 0 ? time / playbackDuration : -(time / playbackDuration);
         if (currentIterations >= repeatCount) {
             currentIterations = repeatCount;
 
             stopped = true;
             let tempRatio = repeatCount - (repeatCount | 0);
             if (tempRatio === 0) {
-                tempRatio = 1;  // 如果播放过，动画不复位
+                tempRatio = 1; // 如果播放过，动画不复位
             }
             time = tempRatio * playbackDuration * (time > 0 ? 1 : -1);
         }
@@ -687,7 +717,9 @@ export class AnimationState extends Playable {
             time = tempTime === 0 ? playbackDuration : tempTime;
         } else if (time < 0) {
             time %= playbackDuration;
-            if (time !== 0) { time += playbackDuration; }
+            if (time !== 0) {
+                time += playbackDuration;
+            }
         }
 
         let needReverse = false;
@@ -734,7 +766,7 @@ export class AnimationState extends Playable {
         );
     }
 
-    private _emit (type, state): void {
+    private _emit (type: string, state: AnimationState): void {
         if (this._target && this._target.isValid) {
             this._target.emit(type, type, state);
         }

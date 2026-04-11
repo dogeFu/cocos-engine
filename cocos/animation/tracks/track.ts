@@ -26,14 +26,26 @@
 import { ccclass, serializable, uniquelyReferenced } from 'cc.decorator';
 import { SUPPORT_JIT } from 'internal:constants';
 import type { Component } from '../../scene-graph/component';
-import { ObjectCurve, QuatCurve, RealCurve, errorID, warnID, js } from '../../core';
+import {
+    ObjectCurve,
+    QuatCurve,
+    RealCurve,
+    errorID,
+    warnID,
+    js,
+} from '../../core';
 import { assertIsTrue } from '../../core/data/utils/asserts';
 
 import { Node } from '../../scene-graph';
 import { CLASS_NAME_PREFIX_ANIM, createEvalSymbol } from '../define';
-import type { AnimationMask } from '../marionette/animation-mask';
+import type { AnimationMask } from '../animation-mask';
 import { PoseOutput } from '../pose-output';
-import { ComponentPath, HierarchyPath, isPropertyPath, TargetPath } from '../target-path';
+import {
+    ComponentPath,
+    HierarchyPath,
+    isPropertyPath,
+    TargetPath,
+} from '../target-path';
 import { IValueProxyFactory } from '../value-proxy';
 import { Range } from './utils';
 
@@ -51,7 +63,10 @@ export interface RuntimeBinding<T = unknown> {
 
 export type Binder = (binding: TrackBinding) => undefined | RuntimeBinding;
 
-export type TrsTrackPath = [HierarchyPath, 'position' | 'rotation' | 'scale' | 'eulerAngles'];
+export type TrsTrackPath = [
+    HierarchyPath,
+    'position' | 'rotation' | 'scale' | 'eulerAngles',
+];
 
 /**
  * @en Describes how to find the animation target.
@@ -106,8 +121,14 @@ class TrackPath {
      * @param constructor @en The constructor of the component. @zh 组件的构造函数。
      * @returns `this`
      */
-    public toComponent<T extends Component> (constructor: Constructor<T> | string): TrackPath {
-        const path = new ComponentPath(typeof constructor === 'string' ? constructor : js.getClassName(constructor));
+    public toComponent<T extends Component> (
+        constructor: Constructor<T> | string,
+    ): TrackPath {
+        const path = new ComponentPath(
+            typeof constructor === 'string'
+                ? constructor
+                : js.getClassName(constructor),
+        );
         this._paths.push(path);
         return this;
     }
@@ -127,7 +148,9 @@ class TrackPath {
      * @returns `this`.
      */
     public append (...trackPaths: TrackPath[]): TrackPath {
-        const paths = this._paths.concat(...trackPaths.map((trackPath): TargetPath[] => trackPath._paths));
+        const paths = this._paths.concat(
+            ...trackPaths.map((trackPath): TargetPath[] => trackPath._paths),
+        );
         this._paths = paths;
         return this;
     }
@@ -139,7 +162,7 @@ class TrackPath {
      * @returns The judgement result.
      */
     public isPropertyAt (index: number): boolean {
-        return typeof (this._paths[index]) === 'string';
+        return typeof this._paths[index] === 'string';
     }
 
     /**
@@ -230,7 +253,11 @@ class TrackPath {
     /**
      * @internal
      */
-    public trace (object: unknown, beginIndex?: number, endIndex?: number): unknown {
+    public trace (
+        object: unknown,
+        beginIndex?: number,
+        endIndex?: number,
+    ): unknown {
         beginIndex ??= 0;
         endIndex ??= this._paths.length;
         return this[normalizedFollowTag](object, beginIndex, endIndex);
@@ -239,7 +266,10 @@ class TrackPath {
     /**
      * @internal
      */
-    public [parseTrsPathTag] (): { node: string; property: 'position' | 'scale' | 'rotation' | 'eulerAngles'; } | null {
+    public [parseTrsPathTag] (): {
+        node: string;
+        property: 'position' | 'scale' | 'rotation' | 'eulerAngles';
+    } | null {
         const { _paths: paths } = this;
         const nPaths = paths.length;
 
@@ -252,7 +282,7 @@ class TrackPath {
                 break;
             } else if (!path.path) {
                 continue;
-            }  else if (nodePath) {
+            } else if (nodePath) {
                 nodePath += `/${path.path}`;
             } else {
                 nodePath = path.path;
@@ -285,7 +315,11 @@ class TrackPath {
     /**
      * @internal
      */
-    public [normalizedFollowTag] (root: unknown, beginIndex: number, endIndex: number): unknown {
+    public [normalizedFollowTag] (
+        root: unknown,
+        beginIndex: number,
+        endIndex: number,
+    ): unknown {
         const { _paths: paths } = this;
         let result = root;
         for (let iPath = beginIndex; iPath < endIndex; ++iPath) {
@@ -313,7 +347,7 @@ class TrackPath {
 
 interface AnimationFunction {
     getValue: () => any;
-    setValue: (val: any) => void
+    setValue: (val: any) => void;
 }
 
 /**
@@ -330,9 +364,15 @@ export class TrackBinding {
     @serializable
     public proxy: IValueProxyFactory | undefined;
 
-    private static _animationFunctions = new WeakMap<Constructor, Map<string | number, AnimationFunction>>();
+    private static _animationFunctions = new WeakMap<
+        Constructor,
+        Map<string | number, AnimationFunction>
+    >();
 
-    public parseTrsPath (): { node: string; property: 'position' | 'scale' | 'rotation' | 'eulerAngles'; } | null {
+    public parseTrsPath (): {
+        node: string;
+        property: 'position' | 'scale' | 'rotation' | 'eulerAngles';
+    } | null {
         if (this.proxy) {
             return null;
         } else {
@@ -341,37 +381,71 @@ export class TrackBinding {
     }
 
     // eslint-disable-next-line max-len
-    public createRuntimeBinding (target: unknown, poseOutput: PoseOutput | undefined, isConstant: boolean): RuntimeBinding<unknown> | { target: any; setValue: any; getValue: any; } | null {
+    public createRuntimeBinding (
+        target: unknown,
+        poseOutput: PoseOutput | undefined,
+        isConstant: boolean,
+    ):
+        | RuntimeBinding<unknown>
+        | { target: any; setValue: any; getValue: any }
+        | null {
         const { path, proxy } = this;
         const nPaths = path.length;
         const iLastPath = nPaths - 1;
-        if (nPaths !== 0 && (path.isPropertyAt(iLastPath) || path.isElementAt(iLastPath)) && !proxy) {
+        if (
+            nPaths !== 0
+            && (path.isPropertyAt(iLastPath) || path.isElementAt(iLastPath))
+            && !proxy
+        ) {
             const lastPropertyKey = path.isPropertyAt(iLastPath)
                 ? path.parsePropertyAt(iLastPath)
                 : path.parseElementAt(iLastPath);
-            const resultTarget = path[normalizedFollowTag](target, 0, nPaths - 1) as any;
+            const resultTarget = path[normalizedFollowTag](
+                target,
+                0,
+                nPaths - 1,
+            ) as any;
             if (resultTarget === null) {
                 return null;
             }
-            if (poseOutput && resultTarget instanceof Node && isTrsPropertyName(lastPropertyKey)) {
-                const blendStateWriter = poseOutput.createPoseWriter(resultTarget, lastPropertyKey, isConstant);
+            if (
+                poseOutput
+                && resultTarget instanceof Node
+                && isTrsPropertyName(lastPropertyKey)
+            ) {
+                const blendStateWriter = poseOutput.createPoseWriter(
+                    resultTarget,
+                    lastPropertyKey,
+                    isConstant,
+                );
                 return blendStateWriter;
             }
-            let setValue; let getValue;
+            let setValue;
+            let getValue;
             if (SUPPORT_JIT) {
-                let animationFunction = TrackBinding._animationFunctions.get(resultTarget.constructor);
+                let animationFunction = TrackBinding._animationFunctions.get(
+                    resultTarget.constructor,
+                );
                 if (!animationFunction) {
                     animationFunction = new Map();
-                    TrackBinding._animationFunctions.set(resultTarget.constructor, animationFunction);
+                    TrackBinding._animationFunctions.set(
+                        resultTarget.constructor,
+                        animationFunction,
+                    );
                 }
 
                 let accessor = animationFunction.get(lastPropertyKey);
                 if (!accessor) {
                     accessor = {
                         // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
-                        setValue: Function('value', `this.target["${lastPropertyKey}"] = value;`) as (val: any) => void,
+                        setValue: Function(
+                            'value',
+                            `this.target["${lastPropertyKey}"] = value;`,
+                        ) as (val: any) => void,
                         // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
-                        getValue: Function(`return this.target["${lastPropertyKey}"];`) as () => any,
+                        getValue: Function(
+                            `return this.target["${lastPropertyKey}"];`,
+                        ) as () => any,
                     };
                     animationFunction.set(lastPropertyKey, accessor);
                 }
@@ -420,9 +494,11 @@ export class TrackBinding {
             return false;
         }
         const joints = mask.joints[Symbol.iterator]();
-        for (let jointMaskInfoIter = joints.next();
+        for (
+            let jointMaskInfoIter = joints.next();
             !jointMaskInfoIter.done;
-            jointMaskInfoIter = joints.next()) {
+            jointMaskInfoIter = joints.next()
+        ) {
             const { value: jointMaskInfo } = jointMaskInfoIter;
             if (jointMaskInfo.path !== trsPath.node) {
                 continue;
@@ -433,12 +509,19 @@ export class TrackBinding {
     }
 }
 
-export function isTrsPropertyName (name: string | number): name is 'position' | 'rotation' | 'scale' | 'eulerAngles' {
-    return name === 'position' || name === 'rotation' || name === 'scale' || name === 'eulerAngles';
+export function isTrsPropertyName (
+    name: string | number,
+): name is 'position' | 'rotation' | 'scale' | 'eulerAngles' {
+    return (
+        name === 'position'
+        || name === 'rotation'
+        || name === 'scale'
+        || name === 'eulerAngles'
+    );
 }
 
 interface CustomizedTrackPathResolver {
-    get (target: unknown): unknown;
+    get(target: unknown): unknown;
 }
 
 export { TrackPath };
@@ -509,7 +592,7 @@ export abstract class Track {
     /**
      * @internal
      */
-    public abstract [createEvalSymbol] (): TrackEval<any>;
+    public abstract [createEvalSymbol](): TrackEval<any>;
 
     @serializable
     private _binding = new TrackBinding();
@@ -528,7 +611,10 @@ export interface TrackEval<TValue> {
      * This param will be passed if `this.requiresDefault === true` and
      * the caller is able to provide such a default value.
      */
-    evaluate(time: number, defaultValue?: TValue extends unknown ? unknown : Readonly<TValue>): TValue;
+    evaluate(
+        time: number,
+        defaultValue?: TValue extends unknown ? unknown : Readonly<TValue>,
+    ): TValue;
 }
 
 export type Curve = RealCurve | QuatCurve | ObjectCurve<unknown>;
@@ -608,9 +694,10 @@ export abstract class SingleChannelTrack<TCurve extends Curve> extends Track {
     private _channel: Channel<TCurve>;
 }
 
-class SingleChannelTrackEval<TCurve extends Curve> implements TrackEval<unknown> {
-    constructor (private _curve: TCurve) {
-    }
+class SingleChannelTrackEval<
+    TCurve extends Curve,
+> implements TrackEval<unknown> {
+    constructor (private _curve: TCurve) {}
 
     public get requiresDefault (): boolean {
         return false;

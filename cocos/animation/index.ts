@@ -27,13 +27,9 @@ import * as animation from './animation';
 export * from './animation-curve';
 export { AnimationClip } from './animation-clip';
 export * from './animation-manager';
-export {
-    AnimationState,
-} from './animation-state';
-export {
-    Animation,
-    AnimationComponent,
-} from './animation-component';
+export { AnimationState } from './animation-state';
+export { Animation, AnimationComponent } from './animation-component';
+export { AnimationMask } from './animation-mask';
 export * from './transform-utils';
 export { animation };
 export type { ILerpable } from './types';

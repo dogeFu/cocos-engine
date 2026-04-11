@@ -22,11 +22,11 @@
  THE SOFTWARE.
 */
 
-import { ccclass, serializable, editable, type } from 'cc.decorator';
-import type { Node } from '../../scene-graph/node';
-import { Asset } from '../../asset/assets/asset';
-import { js } from '../../core';
-import { CLASS_NAME_PREFIX_ANIM } from '../define';
+import { ccclass, serializable, editable, type } from "cc.decorator";
+import type { Node } from "../scene-graph/node";
+import { Asset } from "../asset/assets/asset";
+import { js } from "../core";
+import { CLASS_NAME_PREFIX_ANIM } from "./define";
 
 interface JointMaskInfo {
     readonly path: string;
@@ -34,10 +34,10 @@ interface JointMaskInfo {
     enabled: boolean;
 }
 
-@ccclass('cc.JointMask')
+@ccclass("cc.JointMask")
 class JointMask {
     @serializable
-    public path = '';
+    public path = "";
 
     @serializable
     public enabled = true;
@@ -50,14 +50,14 @@ export class AnimationMask extends Asset {
 
     @editable
     @type(JointMask)
-    get joints (): Iterable<JointMaskInfo> {
+    get joints(): Iterable<JointMaskInfo> {
         // TODO: editor currently treats this property as (and expects it to be) an array.
         // If later refactoring is needed, changes should also be made to editor.
 
         return this._jointMasks;
     }
 
-    set joints (value) {
+    set joints(value) {
         this.clear();
         for (const joint of value) {
             this.addJoint(joint.path, joint.enabled);
@@ -72,7 +72,7 @@ export class AnimationMask extends Asset {
      * @param path @zh 关节的路径。 @en The joint's path.
      * @param enabled @zh 是否启用该关节。 @en Whether to enable the joint.
      */
-    public addJoint (path: string, enabled: boolean): void {
+    public addJoint(path: string, enabled: boolean): void {
         this.removeJoint(path);
         const info = new JointMask();
         info.path = path;
@@ -80,15 +80,15 @@ export class AnimationMask extends Asset {
         this._jointMasks.push(info);
     }
 
-    public removeJoint (removal: string): void {
+    public removeJoint(removal: string): void {
         js.array.removeIf(this._jointMasks, ({ path }) => path === removal);
     }
 
-    public clear (): void {
+    public clear(): void {
         this._jointMasks.length = 0;
     }
 
-    public filterDisabledNodes (root: Node): Set<Node> {
+    public filterDisabledNodes(root: Node): Set<Node> {
         const { _jointMasks: jointMasks } = this;
         const nJointMasks = jointMasks.length;
         const disabledNodes = new Set<Node>();
@@ -105,8 +105,10 @@ export class AnimationMask extends Asset {
         return disabledNodes;
     }
 
-    public isExcluded (path: string): boolean {
-        return !(this._jointMasks.find(({ path: p }) => p === path)?.enabled ?? true);
+    public isExcluded(path: string): boolean {
+        return !(
+            this._jointMasks.find(({ path: p }) => p === path)?.enabled ?? true
+        );
     }
 }
 
@@ -115,3 +117,4 @@ type JointMaskInfo_ = JointMaskInfo;
 export declare namespace AnimationMask {
     export type JointMaskInfo = JointMaskInfo_;
 }
+

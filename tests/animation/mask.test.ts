@@ -1,41 +1,39 @@
-import { AnimationState } from '../../cocos/animation/animation-state';
-import { AnimationClip } from '../../cocos/animation/animation-clip';
-import { AnimationMask } from '../../cocos/animation/marionette/animation-mask';
-import { Node } from '../../cocos/scene-graph/node';
-import { HierarchyPath } from '../../cocos/animation/target-path';
+import { AnimationState } from "../../cocos/animation/animation-state";
+import { AnimationClip } from "../../cocos/animation/animation-clip";
+import { AnimationMask } from "../../cocos/animation/animation-mask";
+import { Node } from "../../cocos/scene-graph/node";
+import { HierarchyPath } from "../../cocos/animation/target-path";
 
-describe('Skeleton Mask', () => {
-    test('Apply mask', () => {
+describe("Skeleton Mask", () => {
+    test("Apply mask", () => {
         const mask = createMaskFromJson({
-            name: 'root',
+            name: "root",
             enabled: true,
             children: [
                 {
-                    name: 'spine',
+                    name: "spine",
                     enabled: true,
                     children: [
                         {
-                            name: 'LeftShoulder',
+                            name: "LeftShoulder",
                             enabled: true,
-                            children: [
-                                { name: 'LeftHand', enabled: true },
-                            ],
+                            children: [{ name: "LeftHand", enabled: true }],
                         },
-                        { name: 'RightShoulder', enabled: true },
+                        { name: "RightShoulder", enabled: true },
                     ],
                 },
                 {
-                    name: 'LeftLeg',
+                    name: "LeftLeg",
                     enabled: false,
                     children: [
                         {
-                            name: 'LeftKnee',
+                            name: "LeftKnee",
                             enabled: false,
                         },
                     ],
                 },
                 {
-                    name: 'RightLeg',
+                    name: "RightLeg",
                     enabled: false,
                 },
             ],
@@ -45,9 +43,7 @@ describe('Skeleton Mask', () => {
         clip.curves = [
             {
                 // Filter out the root
-                modifiers: [
-                    new HierarchyPath('LeftLeg'),
-                ],
+                modifiers: [new HierarchyPath("LeftLeg")],
                 data: {
                     keys: 0,
                     values: [],
@@ -55,9 +51,7 @@ describe('Skeleton Mask', () => {
             },
             {
                 // Filter out the subpath
-                modifiers: [
-                    new HierarchyPath('LeftLeg/LeftKnee'),
-                ],
+                modifiers: [new HierarchyPath("LeftLeg/LeftKnee")],
                 data: {
                     keys: 0,
                     values: [],
@@ -65,9 +59,7 @@ describe('Skeleton Mask', () => {
             },
             {
                 // Disabled
-                modifiers: [
-                    new HierarchyPath('spine/LeftShoulder/LeftHand'),
-                ],
+                modifiers: [new HierarchyPath("spine/LeftShoulder/LeftHand")],
                 data: {
                     keys: 0,
                     values: [],
@@ -75,9 +67,7 @@ describe('Skeleton Mask', () => {
             },
             {
                 // Incomplete path
-                modifiers: [
-                    new HierarchyPath('LeftShoulder/LeftHand'),
-                ],
+                modifiers: [new HierarchyPath("LeftShoulder/LeftHand")],
                 data: {
                     keys: 0,
                     values: [],
@@ -91,22 +81,24 @@ describe('Skeleton Mask', () => {
 });
 
 interface MaskJson {
-    name: string,
+    name: string;
     enabled: boolean;
     children?: MaskJson[];
 }
 
-function createMaskFromJson (maskJson: MaskJson) {
+function createMaskFromJson(maskJson: MaskJson) {
     const jointMaskInfos: AnimationMask.JointMaskInfo[] = [];
-    visit(maskJson, '');
+    visit(maskJson, "");
     const mask = new AnimationMask();
     for (const info of jointMaskInfos) {
         mask.addJoint(info.path, info.enabled);
     }
     return mask;
 
-    function visit (maskJson: MaskJson, parentPath: string) {
-        const path = parentPath ? `${parentPath}/${maskJson.name}` : maskJson.name;
+    function visit(maskJson: MaskJson, parentPath: string) {
+        const path = parentPath
+            ? `${parentPath}/${maskJson.name}`
+            : maskJson.name;
         jointMaskInfos.push({ path, enabled: maskJson.enabled });
         if (maskJson.children) {
             for (const child of maskJson.children) {

@@ -212,7 +212,10 @@ const applyDeltaTransformArrayAt = ((): ApplyDeltaTransformArrayAtFunc => {
 })();
 
 export function applyDeltaTransforms (
-    target: TransformArray, delta: TransformArray, alpha: number, transformFilter: TransformFilter | undefined = undefined,
+    target: TransformArray,
+    delta: TransformArray,
+    alpha: number,
+    transformFilter: TransformFilter | undefined = undefined,
 ): void {
     const nTransforms = target.length;
     assertIsTrue(nTransforms === delta.length);

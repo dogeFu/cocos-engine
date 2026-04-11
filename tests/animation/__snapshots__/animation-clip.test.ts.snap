@@ -1,22 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Component-wise animation Animation graph 1`] = `
-Array [
-  Object {
-    "defaultProperties": Object {
-      "x": 0.1,
-      "y": 0.23333333333333334,
-      "z": 0.3666666666666667,
-    },
-    "expectedAnimatedProperties": Object {
-      "x": 0.5,
-      "z": 0.75,
-    },
-    "specName": "Vec3",
-  },
-]
-`;
-
 exports[`Component-wise animation Traditional 1`] = `
 Array [
   Object {

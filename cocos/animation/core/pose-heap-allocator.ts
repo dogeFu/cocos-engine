@@ -189,9 +189,9 @@ class PosePage {
             + Float64Array.BYTES_PER_ELEMENT * this._metaValueCount) * index;
         const transforms = new TransformArray(this._buffer, baseOffset, this._transformCount);
         const metaValues = new Float64Array(this._buffer, baseOffset + transformsByteLength, this._metaValueCount);
-        const pose = Pose._create(transforms, metaValues);
+        const pose = Pose._create(transforms, metaValues) as PagedPose;
         pose[allocationInfoTag] = new AllocationInfo();
-        return pose as PagedPose;
+        return pose;
     }
 }
 
