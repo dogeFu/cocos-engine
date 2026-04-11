@@ -22,41 +22,55 @@
  THE SOFTWARE.
 */
 
-import { SubModel } from '../render-scene/scene/submodel';
-import { isEnableEffect, SetIndex } from './define';
-import { Device, RenderPass, Shader, CommandBuffer } from '../gfx';
-import { getPhaseID } from './pass-phase';
-import { PipelineStateManager } from './pipeline-state-manager';
-import { Pass, BatchingSchemes, IMacroPatch } from '../render-scene/core/pass';
-import { Model } from '../render-scene/scene/model';
-import { ProbeType, ReflectionProbe } from '../render-scene/scene/reflection-probe';
-import { Camera, SkyBoxFlagValue } from '../render-scene/scene/camera';
-import { PipelineRuntime } from './custom/pipeline';
-import { RenderInstancedQueue } from './render-instanced-queue';
-import { cclegacy, geometry } from '../core';
+import { SubModel } from "../render-scene/scene/submodel";
+import { isEnableEffect, SetIndex } from "./define";
+import { Device, RenderPass, Shader, CommandBuffer } from "../gfx";
+import { getPhaseID } from "./pass-phase";
+import { PipelineStateManager } from "./pipeline-state-manager";
+import { Pass, BatchingSchemes, IMacroPatch } from "../render-scene/core/pass";
+import { Model } from "../render-scene/scene/model";
+import {
+    ProbeType,
+    ReflectionProbe,
+} from "../render-scene/scene/reflection-probe";
+import { Camera, SkyBoxFlagValue } from "../render-scene/scene/camera";
+import { PipelineRuntime } from "./pipeline-types";
+import { RenderInstancedQueue } from "./render-instanced-queue";
+import { cclegacy, geometry } from "../core";
 
-const CC_USE_RGBE_OUTPUT = 'CC_USE_RGBE_OUTPUT';
-let _phaseID = getPhaseID('default');
-let _phaseReflectMapID = getPhaseID('reflect-map');
-function getPassIndex (subModel: SubModel): number {
+const CC_USE_RGBE_OUTPUT = "CC_USE_RGBE_OUTPUT";
+let _phaseID = getPhaseID("default");
+let _phaseReflectMapID = getPhaseID("reflect-map");
+function getPassIndex(subModel: SubModel): number {
     const passes = subModel.passes;
     const r = cclegacy.rendering;
-    if (isEnableEffect()) _phaseID = r.getPhaseID(r.getPassID('default'), 'default');
+    if (isEnableEffect())
+        _phaseID = r.getPhaseID(r.getPassID("default"), "default");
     for (let k = 0; k < passes.length; k++) {
-        if (((!r || !r.enableEffectImport) && passes[k].phase === _phaseID) || (isEnableEffect() && passes[k].phaseID === _phaseID)) {
+        if (
+            ((!r || !r.enableEffectImport) && passes[k].phase === _phaseID) ||
+            (isEnableEffect() && passes[k].phaseID === _phaseID)
+        ) {
             return k;
         }
     }
     return -1;
 }
 
-function getReflectMapPassIndex (subModel: SubModel): number {
+function getReflectMapPassIndex(subModel: SubModel): number {
     const passes = subModel.passes;
     const r = cclegacy.rendering;
-    if (isEnableEffect()) _phaseReflectMapID = r.getPhaseID(r.getPassID('default'), 'reflect-map');
+    if (isEnableEffect())
+        _phaseReflectMapID = r.getPhaseID(
+            r.getPassID("default"),
+            "reflect-map",
+        );
     for (let k = 0; k < passes.length; k++) {
-        if (((!r || !r.enableEffectImport) && passes[k].phase === _phaseReflectMapID)
-        || (isEnableEffect() && passes[k].phaseID === _phaseReflectMapID)) {
+        if (
+            ((!r || !r.enableEffectImport) &&
+                passes[k].phase === _phaseReflectMapID) ||
+            (isEnableEffect() && passes[k].phaseID === _phaseReflectMapID)
+        ) {
             return k;
         }
     }
@@ -68,7 +82,7 @@ function getReflectMapPassIndex (subModel: SubModel): number {
  * 反射探针渲染队列
  */
 export class RenderReflectionProbeQueue {
-    private declare _pipeline: PipelineRuntime;
+    declare private _pipeline: PipelineRuntime;
     private _subModelsArray: SubModel[] = [];
     private _passArray: Pass[] = [];
     private _shaderArray: Shader[] = [];
@@ -76,16 +90,24 @@ export class RenderReflectionProbeQueue {
     private _instancedQueue: RenderInstancedQueue = new RenderInstancedQueue();
     private _patches: IMacroPatch[] = [];
 
-    public constructor (pipeline: PipelineRuntime) {
+    public constructor(pipeline: PipelineRuntime) {
         this._pipeline = pipeline;
     }
-    public gatherRenderObjects (probe: ReflectionProbe, camera: Camera, cmdBuff: CommandBuffer): void {
+    public gatherRenderObjects(
+        probe: ReflectionProbe,
+        camera: Camera,
+        cmdBuff: CommandBuffer,
+    ): void {
         this.clear();
         const scene = camera.scene!;
         const sceneData = this._pipeline.pipelineSceneData;
         const skybox = sceneData.skybox;
 
-        if (skybox.enabled && skybox.model && (probe.camera.clearFlag & SkyBoxFlagValue.VALUE)) {
+        if (
+            skybox.enabled &&
+            skybox.model &&
+            probe.camera.clearFlag & SkyBoxFlagValue.VALUE
+        ) {
             this.add(skybox.model);
         }
 
@@ -97,15 +119,32 @@ export class RenderReflectionProbeQueue {
             if (!model.node || scene.isCulledByLod(camera, model)) {
                 continue;
             }
-            if (((visibility & model.node.layer) !== model.node.layer) && (!(visibility & model.visFlags))) {
+            if (
+                (visibility & model.node.layer) !== model.node.layer &&
+                !(visibility & model.visFlags)
+            ) {
                 continue;
             }
-            if (model.enabled && model.worldBounds && model.bakeToReflectionProbe) {
+            if (
+                model.enabled &&
+                model.worldBounds &&
+                model.bakeToReflectionProbe
+            ) {
                 if (probe.probeType === ProbeType.CUBE) {
-                    if (geometry.intersect.aabbWithAABB(model.worldBounds, probe.boundingBox!)) {
+                    if (
+                        geometry.intersect.aabbWithAABB(
+                            model.worldBounds,
+                            probe.boundingBox!,
+                        )
+                    ) {
                         this.add(model);
                     }
-                } else if (geometry.intersect.aabbFrustum(model.worldBounds, probe.camera.frustum)) {
+                } else if (
+                    geometry.intersect.aabbFrustum(
+                        model.worldBounds,
+                        probe.camera.frustum,
+                    )
+                ) {
                     this.add(model);
                 }
             }
@@ -113,7 +152,7 @@ export class RenderReflectionProbeQueue {
         this._instancedQueue.uploadBuffers(cmdBuff);
     }
 
-    public clear (): void {
+    public clear(): void {
         this._subModelsArray.length = 0;
         this._shaderArray.length = 0;
         this._passArray.length = 0;
@@ -121,13 +160,14 @@ export class RenderReflectionProbeQueue {
         this._rgbeSubModelsArray.length = 0;
     }
 
-    public add (model: Model): void {
+    public add(model: Model): void {
         const subModels = model.subModels;
         for (let j = 0; j < subModels.length; j++) {
             const subModel = subModels[j];
 
             //Filter transparent objects
-            const isTransparent = subModel.passes[0].blendState.targets[0].blend;
+            const isTransparent =
+                subModel.passes[0].blendState.targets[0].blend;
             if (isTransparent) {
                 continue;
             }
@@ -138,7 +178,9 @@ export class RenderReflectionProbeQueue {
                 passIdx = getPassIndex(subModel);
                 bUseReflectPass = false;
             }
-            if (passIdx < 0) { continue; }
+            if (passIdx < 0) {
+                continue;
+            }
 
             const pass = subModel.passes[passIdx];
             const batchingScheme = pass.batchingScheme;
@@ -154,7 +196,8 @@ export class RenderReflectionProbeQueue {
                 this._rgbeSubModelsArray.push(subModel);
             }
 
-            if (batchingScheme === BatchingSchemes.INSTANCING) {            // instancing
+            if (batchingScheme === BatchingSchemes.INSTANCING) {
+                // instancing
                 const buffer = pass.getInstancedBuffer();
                 buffer.merge(subModel, passIdx);
                 this._instancedQueue.queue.add(buffer);
@@ -171,7 +214,11 @@ export class RenderReflectionProbeQueue {
      * @zh
      * record CommandBuffer
      */
-    public recordCommandBuffer (device: Device, renderPass: RenderPass, cmdBuff: CommandBuffer): void {
+    public recordCommandBuffer(
+        device: Device,
+        renderPass: RenderPass,
+        cmdBuff: CommandBuffer,
+    ): void {
         this._instancedQueue.recordCommandBuffer(device, renderPass, cmdBuff);
 
         for (let i = 0; i < this._subModelsArray.length; ++i) {
@@ -179,7 +226,13 @@ export class RenderReflectionProbeQueue {
             const shader = this._shaderArray[i];
             const pass = this._passArray[i];
             const ia = subModel.inputAssembler;
-            const pso = PipelineStateManager.getOrCreatePipelineState(device, pass, shader, renderPass, ia);
+            const pso = PipelineStateManager.getOrCreatePipelineState(
+                device,
+                pass,
+                shader,
+                renderPass,
+                ia,
+            );
             const descriptorSet = pass.descriptorSet;
 
             cmdBuff.bindPipelineState(pso);
@@ -191,7 +244,7 @@ export class RenderReflectionProbeQueue {
         this.resetRGBEMacro();
         this._instancedQueue.clear();
     }
-    public resetRGBEMacro (): void {
+    public resetRGBEMacro(): void {
         for (let i = 0; i < this._rgbeSubModelsArray.length; i++) {
             this._patches = [];
             const subModel = this._rgbeSubModelsArray[i];

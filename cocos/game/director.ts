@@ -27,9 +27,28 @@
 
 /* spell-checker:words COORD, Quesada, INITED, Renerer */
 
-import { DEBUG, EDITOR, BUILD, TEST, EDITOR_NOT_IN_PREVIEW } from 'internal:constants';
+import {
+    DEBUG,
+    EDITOR,
+    BUILD,
+    TEST,
+    EDITOR_NOT_IN_PREVIEW,
+} from 'internal:constants';
 import { SceneAsset } from '../asset/assets/scene-asset';
-import { System, EventTarget, Scheduler, js, errorID, error, assertID, warnID, macro, CCObject, CCObjectFlags, cclegacy, isValid } from '../core';
+import {
+    System,
+    EventTarget,
+    Scheduler,
+    js,
+    errorID,
+    error,
+    assertID,
+    warnID,
+    CCObject,
+    CCObjectFlags,
+    cclegacy,
+    isValid,
+} from '../core';
 import { input } from '../input';
 import { Root } from '../root';
 import { Node, NodeEventType, Scene } from '../scene-graph';
@@ -195,21 +214,21 @@ export class Director extends EventTarget {
      * @zh 加载新场景之前所触发的事件。
      * @event Director.EVENT_BEFORE_SCENE_LOADING
      */
-    public static readonly EVENT_BEFORE_SCENE_LOADING = DirectorEvent.BEFORE_SCENE_LOADING;
+    public static readonly EVENT_BEFORE_SCENE_LOADING =        DirectorEvent.BEFORE_SCENE_LOADING;
 
     /**
      * @en The event which will be triggered before launching a new scene.
      * @zh 运行新场景之前所触发的事件。
      * @event Director.EVENT_BEFORE_SCENE_LAUNCH
      */
-    public static readonly EVENT_BEFORE_SCENE_LAUNCH = DirectorEvent.BEFORE_SCENE_LAUNCH;
+    public static readonly EVENT_BEFORE_SCENE_LAUNCH =        DirectorEvent.BEFORE_SCENE_LAUNCH;
 
     /**
      * @en The event which will be triggered after launching a new scene.
      * @zh 运行新场景之后所触发的事件。
      * @event Director.EVENT_AFTER_SCENE_LAUNCH
      */
-    public static readonly EVENT_AFTER_SCENE_LAUNCH = DirectorEvent.AFTER_SCENE_LAUNCH;
+    public static readonly EVENT_AFTER_SCENE_LAUNCH =        DirectorEvent.AFTER_SCENE_LAUNCH;
 
     /**
      * @en The event which will be triggered at the beginning of every frame.
@@ -349,7 +368,7 @@ export class Director extends EventTarget {
 
         if (!EDITOR) {
             if (isValid(this._scene)) {
-                this._scene!.destroy();
+                this._scene.destroy();
             }
             this._scene = null;
         }
@@ -403,7 +422,7 @@ export class Director extends EventTarget {
             // eslint-disable-next-line no-console
             console.time('InitScene');
         }
-        scene._load();  // ensure scene initialized
+        scene._load(); // ensure scene initialized
         if (BUILD && DEBUG) {
             // eslint-disable-next-line no-console
             console.timeEnd('InitScene');
@@ -413,11 +432,17 @@ export class Director extends EventTarget {
             // eslint-disable-next-line no-console
             console.time('AttachPersist');
         }
-        const persistNodeList = Object.keys(this._persistRootNodes).map((x): Node => this._persistRootNodes[x]);
+        const persistNodeList = Object.keys(this._persistRootNodes).map(
+            (x): Node => this._persistRootNodes[x],
+        );
         for (let i = 0; i < persistNodeList.length; i++) {
             const node = persistNodeList[i];
-            node.emit(NodeEventType.SCENE_CHANGED_FOR_PERSISTS, scene.renderScene);
-            const existNode = scene.uuid === node._originalSceneId && scene.getChildByUuid(node.uuid);
+            node.emit(
+                NodeEventType.SCENE_CHANGED_FOR_PERSISTS,
+                scene.renderScene,
+            );
+            const existNode =                scene.uuid === node._originalSceneId
+                && scene.getChildByUuid(node.uuid);
             if (existNode) {
                 // scene also contains the persist node, select the old one
                 const index = existNode.siblingIndex;
@@ -443,7 +468,7 @@ export class Director extends EventTarget {
             console.time('Destroy');
         }
         if (isValid(oldScene)) {
-            oldScene!.destroy();
+            oldScene.destroy();
         }
         if (!EDITOR) {
             // auto release assets
@@ -451,7 +476,11 @@ export class Director extends EventTarget {
                 // eslint-disable-next-line no-console
                 console.time('AutoRelease');
             }
-            releaseManager._autoRelease(oldScene!, scene, this._persistRootNodes);
+            releaseManager._autoRelease(
+                oldScene!,
+                scene,
+                this._persistRootNodes,
+            );
             if (BUILD && DEBUG) {
                 // eslint-disable-next-line no-console
                 console.timeEnd('AutoRelease');
@@ -463,7 +492,9 @@ export class Director extends EventTarget {
         // purge destroyed nodes belongs to old scene
         CCObject._deferredDestroy();
         // eslint-disable-next-line no-console
-        if (BUILD && DEBUG) { console.timeEnd('Destroy'); }
+        if (BUILD && DEBUG) {
+            console.timeEnd('Destroy');
+        }
 
         if (onBeforeLoadScene) {
             onBeforeLoadScene();
@@ -503,7 +534,11 @@ export class Director extends EventTarget {
      * @param onLaunched - The function invoked at the scene after launch.
      * @private
      */
-    public runScene (scene: Scene | SceneAsset, onBeforeLoadScene?: Director.OnBeforeLoadScene, onLaunched?: Director.OnSceneLaunched): void {
+    public runScene (
+        scene: Scene | SceneAsset,
+        onBeforeLoadScene?: Director.OnBeforeLoadScene,
+        onLaunched?: Director.OnSceneLaunched,
+    ): void {
         if (scene instanceof SceneAsset) scene = scene.scene!;
         assertID(Boolean(scene), 1205);
         assertID(scene instanceof Scene, 1216);
@@ -522,12 +557,18 @@ export class Director extends EventTarget {
      * @param onLaunched - callback, will be called after scene launched.
      * @return if error, return false
      */
-    public loadScene (sceneName: string, onLaunched?: Director.OnSceneLaunched, onUnloaded?: Director.OnUnload): boolean {
+    public loadScene (
+        sceneName: string,
+        onLaunched?: Director.OnSceneLaunched,
+        onUnloaded?: Director.OnUnload,
+    ): boolean {
         if (this._loadingScene) {
             warnID(1208, sceneName, this._loadingScene);
             return false;
         }
-        const bundle = assetManager.bundles.find((bundle): boolean => !!bundle.getSceneInfo(sceneName));
+        const bundle = assetManager.bundles.find(
+            (bundle): boolean => !!bundle.getSceneInfo(sceneName),
+        );
         if (bundle) {
             this.emit(DirectorEvent.BEFORE_SCENE_LOADING, sceneName);
             this._loadingScene = sceneName;
@@ -565,7 +606,10 @@ export class Director extends EventTarget {
      * @param sceneName @en The name of the scene to load @zh 场景名称。
      * @param onLoaded @en Callback to execute once the scene is loaded @zh 加载回调。
      */
-    public preloadScene (sceneName: string, onLoaded?: Director.OnSceneLoaded): void;
+    public preloadScene(
+        sceneName: string,
+        onLoaded?: Director.OnSceneLoaded,
+    ): void;
 
     /**
      * @en
@@ -580,20 +624,30 @@ export class Director extends EventTarget {
      * @param onProgress @en Callback to execute when the load progression change.  @zh 加载进度回调。
      * @param onLoaded @en Callback to execute once the scene is loaded @zh 加载回调。
      */
-    public preloadScene (sceneName: string, onProgress: Director.OnLoadSceneProgress, onLoaded: Director.OnSceneLoaded): void;
+    public preloadScene(
+        sceneName: string,
+        onProgress: Director.OnLoadSceneProgress,
+        onLoaded: Director.OnSceneLoaded,
+    ): void;
 
     public preloadScene (
         sceneName: string,
         onProgress?: Director.OnLoadSceneProgress | Director.OnSceneLoaded,
         onLoaded?: Director.OnSceneLoaded,
     ): void {
-        const bundle = assetManager.bundles.find((bundle): boolean => !!bundle.getSceneInfo(sceneName));
+        const bundle = assetManager.bundles.find(
+            (bundle): boolean => !!bundle.getSceneInfo(sceneName),
+        );
         if (bundle) {
             // NOTE: the similar function signatures but defined as deferent function types.
             bundle.preloadScene(
                 sceneName,
                 null,
-                onProgress as (finished: number, total: number, item: any) => void,
+                onProgress as (
+                    finished: number,
+                    total: number,
+                    item: any,
+                ) => void,
                 onLoaded as ((err?: Error | null) => void) | null,
             );
         } else {
@@ -813,35 +867,7 @@ export class Director extends EventTarget {
      * @en Build custom render pipeline
      * @zh 构建自定义渲染管线
      */
-    public buildRenderPipeline (): void {
-        if (!this._root) {
-            return;
-        }
-        // Here we should build the render pipeline.
-        const ppl = this._root.customPipeline;
-        const cameras = this._root.cameraList;
-
-        ppl.beginSetup();
-        const builder = cclegacy.rendering.getCustomPipeline(macro.CUSTOM_PIPELINE_NAME);
-        cclegacy.rendering.dispatchResizeEvents(cameras, builder, ppl);
-        builder.setup(cameras, ppl);
-        ppl.endSetup();
-    }
-
-    private setupRenderPipelineBuilder (): void {
-        // Custom pipeline will only be used, when
-        // 1. CUSTOM_PIPELINE_NAME is not empty
-        //    (in CocosCreator/Project/Project Settings/Engine Manager/Macro Configuration/CUSTOM_PIPELINE_NAME)
-        // 2. cclegacy.rendering is available
-        // 3. The root node is created and uses custom pipeline
-        if (macro.CUSTOM_PIPELINE_NAME !== '' && cclegacy.rendering && this._root && this._root.usesCustomPipeline) {
-            this.on(
-                DirectorEvent.BEFORE_SCENE_LAUNCH,
-                cclegacy.rendering.forceResizeAllWindows,
-                cclegacy.rendering,
-            );
-        }
-    }
+    public buildRenderPipeline (): void {}
 
     /**
      * @internal
@@ -855,8 +881,6 @@ export class Director extends EventTarget {
         this._root = new Root(deviceManager.gfxDevice);
         const rootInfo = {};
         this._root.initialize(rootInfo);
-
-        this.setupRenderPipelineBuilder();
 
         for (let i = 0; i < this._systems.length; i++) {
             this._systems[i].init();
@@ -933,7 +957,10 @@ export declare namespace Director {
 
     export type OnUnload = () => void;
 
-    export type OnSceneLoaded = (error: null | Error, sceneAsset?: SceneAsset) => void;
+    export type OnSceneLoaded = (
+        error: null | Error,
+        sceneAsset?: SceneAsset,
+    ) => void;
 
     export type OnSceneLaunched = (error: null | Error, scene?: Scene) => void;
 
@@ -942,7 +969,11 @@ export declare namespace Director {
      * @param totalCount - The total number of the items.
      * @param item - The latest item which flow out the pipeline.
      */
-    export type OnLoadSceneProgress = (completedCount: number, totalCount: number, item: any) => void;
+    export type OnLoadSceneProgress = (
+        completedCount: number,
+        totalCount: number,
+        item: any,
+    ) => void;
 }
 
 cclegacy.Director = Director;
@@ -952,4 +983,4 @@ cclegacy.DirectorEvent = DirectorEvent;
  * @en Director of the game, used to control game update loop and scene management
  * @zh 游戏的导演，用于控制游戏更新循环与场景管理。
  */
-export const director: Director = Director.instance = cclegacy.director = new Director();
+export const director: Director =    (Director.instance =    cclegacy.director =        new Director());

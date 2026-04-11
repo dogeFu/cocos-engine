@@ -22,12 +22,12 @@
  THE SOFTWARE.
 */
 
-import { cclegacy } from './core/global-exports';
-import { DataPoolManager } from './3d/skeletal-animation/data-pool-manager';
-import { Device, deviceManager } from './gfx';
-import { settings, Settings, warnID, Pool, macro, log } from './core';
-import { PipelineEventProcessor } from './rendering/pipeline-event';
-import type { Root as JsbRoot } from './root';
+import { cclegacy } from "./core/global-exports";
+import { DataPoolManager } from "./3d/skeletal-animation/data-pool-manager";
+import { Device, deviceManager } from "./gfx";
+import { settings, Settings, warnID, Pool, log } from "./core";
+import { PipelineEventProcessor } from "./rendering/pipeline-event";
+import type { Root as JsbRoot } from "./root";
 
 declare const nr: any;
 declare const jsb: any;
@@ -64,9 +64,9 @@ rootProto._createBatcher2D = function () {
         }
         this._batcher._nativeObj = this.getBatcher2D();
     }
-}
+};
 
-Object.defineProperty(rootProto, 'batcher2D', {
+Object.defineProperty(rootProto, "batcher2D", {
     configurable: true,
     enumerable: true,
     get() {
@@ -74,7 +74,7 @@ Object.defineProperty(rootProto, 'batcher2D', {
     },
 });
 
-Object.defineProperty(rootProto, 'dataPoolManager', {
+Object.defineProperty(rootProto, "dataPoolManager", {
     configurable: true,
     enumerable: true,
     get(): DataPoolManager {
@@ -82,17 +82,19 @@ Object.defineProperty(rootProto, 'dataPoolManager', {
     },
 });
 
-Object.defineProperty(rootProto, 'pipelineEvent', {
+Object.defineProperty(rootProto, "pipelineEvent", {
     configurable: true,
     enumerable: true,
     get() {
         return this._pipelineEvent;
-    }
+    },
 });
 
 rootProto._ctor = function (device: Device) {
     this._device = device;
-    this._dataPoolMgr = cclegacy.internal.DataPoolManager && new cclegacy.internal.DataPoolManager(device) as DataPoolManager;
+    this._dataPoolMgr =
+        cclegacy.internal.DataPoolManager &&
+        (new cclegacy.internal.DataPoolManager(device) as DataPoolManager);
     this._modelPools = new Map();
     this._lightPools = new Map();
     this._batcher = null;
@@ -103,14 +105,27 @@ rootProto._ctor = function (device: Device) {
 rootProto.initialize = function (info: IRootInfo) {
     // TODO:
     this._initialize(deviceManager.swapchain);
-    const customJointTextureLayouts = settings.querySettings(Settings.Category.ANIMATION, 'customJointTextureLayouts') || [];
-    this._dataPoolMgr?.jointTexturePool.registerCustomTextureLayouts(customJointTextureLayouts);
+    const customJointTextureLayouts =
+        settings.querySettings(
+            Settings.Category.ANIMATION,
+            "customJointTextureLayouts",
+        ) || [];
+    this._dataPoolMgr?.jointTexturePool.registerCustomTextureLayouts(
+        customJointTextureLayouts,
+    );
 };
 
 rootProto.createModel = function (ModelCtor) {
     let p = this._modelPools.get(ModelCtor);
     if (!p) {
-        this._modelPools.set(ModelCtor, new Pool(() => new ModelCtor(), 10, (obj) => obj.destroy()));
+        this._modelPools.set(
+            ModelCtor,
+            new Pool(
+                () => new ModelCtor(),
+                10,
+                (obj) => obj.destroy(),
+            ),
+        );
         p = this._modelPools.get(ModelCtor)!;
     }
     const model = p.alloc();
@@ -121,7 +136,7 @@ rootProto.createModel = function (ModelCtor) {
 jsb.buildRenderPipeline = function () {
     const director = cclegacy.director;
     director.buildRenderPipeline();
-}
+};
 
 rootProto.destroyModel = function (m) {
     const p = this._modelPools.get(m.constructor);
@@ -139,7 +154,14 @@ rootProto.destroyModel = function (m) {
 rootProto.createLight = function (LightCtor) {
     let l = this._lightPools.get(LightCtor);
     if (!l) {
-        this._lightPools.set(LightCtor, new Pool(() => new LightCtor(), 4, (obj) => obj.destroy()));
+        this._lightPools.set(
+            LightCtor,
+            new Pool(
+                () => new LightCtor(),
+                4,
+                (obj) => obj.destroy(),
+            ),
+        );
         l = this._lightPools.get(LightCtor)!;
     }
     const light = l.alloc();
@@ -217,19 +239,12 @@ rootProto._onDirectorPipelineChanged = function () {
     if (scene) {
         scene._activate();
     }
-}
+};
 
 const oldOnGlobalPipelineStateChanged = rootProto.onGlobalPipelineStateChanged;
-rootProto.onGlobalPipelineStateChanged = function() {
+rootProto.onGlobalPipelineStateChanged = function () {
     oldOnGlobalPipelineStateChanged.call(this);
-    const builder = cclegacy.rendering.getCustomPipeline(macro.CUSTOM_PIPELINE_NAME);
-    if (builder) {
-        if (typeof builder.onGlobalPipelineStateChanged === 'function') {
-            builder.onGlobalPipelineStateChanged();
-        }
-        cclegacy.rendering.forceResizeAllWindows();
-    }
-}
+};
 
 const oldFrameMove = rootProto.frameMove;
 rootProto.frameMove = function (deltaTime: number) {
@@ -237,34 +252,33 @@ rootProto.frameMove = function (deltaTime: number) {
 };
 
 const oldSetPipeline = rootProto.setRenderPipeline;
-rootProto.setRenderPipeline = function (customPipeline: boolean) {
+rootProto.setRenderPipeline = function (_customPipeline: boolean) {
     let ppl;
-    if (customPipeline) {
-        cclegacy.rendering.createCustomPipeline();
-        ppl = oldSetPipeline.call(this, null);
-        log(`Using custom pipeline: ${macro.CUSTOM_PIPELINE_NAME}`);
+    if (cclegacy.legacy_rendering) {
+        const pipeline = cclegacy.legacy_rendering.createDefaultPipeline();
+        pipeline.init();
+        ppl = oldSetPipeline.call(this, pipeline);
     } else {
-        // pipeline should not be created in C++, ._ctor need to be triggered
-        if (cclegacy.legacy_rendering) {
-            const pipeline = cclegacy.legacy_rendering.createDefaultPipeline();
-            pipeline.init();
-            ppl = oldSetPipeline.call(this, pipeline);
-        } else {
-            log(`No render pipeline: legacy-pipeline is not available`);
-        }
+        log("No render pipeline: legacy-pipeline is not available");
     }
     this._createBatcher2D();
     return ppl;
-}
+};
 
 rootProto.addBatch = function (batch) {
-    console.error('The Draw Batch class is implemented differently in the native platform and does not support this interface.');
-}
+    console.error(
+        "The Draw Batch class is implemented differently in the native platform and does not support this interface.",
+    );
+};
 
 rootProto.removeBatch = function (batch) {
-    console.error('The Draw Batch class is implemented differently in the native platform and does not support this interface.');
-}
+    console.error(
+        "The Draw Batch class is implemented differently in the native platform and does not support this interface.",
+    );
+};
 
 rootProto.removeBatches = function () {
-    console.error('The Draw Batch class is implemented differently in the native platform and does not support this interface.');
-}
+    console.error(
+        "The Draw Batch class is implemented differently in the native platform and does not support this interface.",
+    );
+};

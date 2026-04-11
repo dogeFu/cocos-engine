@@ -22,30 +22,33 @@
  THE SOFTWARE.
 */
 
-import { SubModel } from '../render-scene/scene/submodel';
-import { isEnableEffect, SetIndex } from './define';
-import { Device, RenderPass, Shader, CommandBuffer } from '../gfx';
-import { getPhaseID } from './pass-phase';
-import { PipelineStateManager } from './pipeline-state-manager';
-import { Pass, BatchingSchemes } from '../render-scene/core/pass';
-import { RenderInstancedQueue } from './render-instanced-queue';
-import { ShadowType } from '../render-scene/scene/shadows';
-import { Light, LightType } from '../render-scene/scene/light';
-import { cclegacy, geometry } from '../core';
-import { Model } from '../render-scene/scene/model';
-import { Camera, DirectionalLight, SpotLight } from '../render-scene/scene';
-import { shadowCulling } from './scene-culling';
-import { PipelineRuntime } from './custom/pipeline';
-import type { ShadowLayerVolume } from './shadow/csm-layers';
+import { SubModel } from "../render-scene/scene/submodel";
+import { isEnableEffect, SetIndex } from "./define";
+import { Device, RenderPass, Shader, CommandBuffer } from "../gfx";
+import { getPhaseID } from "./pass-phase";
+import { PipelineStateManager } from "./pipeline-state-manager";
+import { Pass, BatchingSchemes } from "../render-scene/core/pass";
+import { RenderInstancedQueue } from "./render-instanced-queue";
+import { ShadowType } from "../render-scene/scene/shadows";
+import { Light, LightType } from "../render-scene/scene/light";
+import { cclegacy, geometry } from "../core";
+import { Model } from "../render-scene/scene/model";
+import { Camera, DirectionalLight, SpotLight } from "../render-scene/scene";
+import { shadowCulling } from "./scene-culling";
+import { PipelineRuntime } from "./pipeline-types";
+import type { ShadowLayerVolume } from "./shadow/csm-layers";
 
-let _phaseID = getPhaseID('shadow-caster');
-function getShadowPassIndex (subModel: SubModel): number {
+let _phaseID = getPhaseID("shadow-caster");
+function getShadowPassIndex(subModel: SubModel): number {
     const passes = subModel.passes;
     const r = cclegacy.rendering;
-    if (isEnableEffect()) _phaseID = r.getPhaseID(r.getPassID('default'), 'shadow-caster');
+    if (isEnableEffect())
+        _phaseID = r.getPhaseID(r.getPassID("default"), "shadow-caster");
     for (let k = 0; k < passes.length; k++) {
-        if (((!r || !r.enableEffectImport) && passes[k].phase === _phaseID)
-        || (isEnableEffect() && passes[k].phaseID === _phaseID)) {
+        if (
+            ((!r || !r.enableEffectImport) && passes[k].phase === _phaseID) ||
+            (isEnableEffect() && passes[k].phaseID === _phaseID)
+        ) {
             return k;
         }
     }
@@ -57,63 +60,81 @@ function getShadowPassIndex (subModel: SubModel): number {
  * 阴影渲染队列
  */
 export class RenderShadowMapBatchedQueue {
-    private declare _pipeline: PipelineRuntime;
+    declare private _pipeline: PipelineRuntime;
     private _subModelsArray: SubModel[] = [];
     private _passArray: Pass[] = [];
     private _shaderArray: Shader[] = [];
     private _instancedQueue: RenderInstancedQueue = new RenderInstancedQueue();
 
-    public constructor (pipeline: PipelineRuntime) {
+    public constructor(pipeline: PipelineRuntime) {
         this._pipeline = pipeline;
     }
 
-    public gatherLightPasses (camera: Camera, light: Light, cmdBuff: CommandBuffer, level = 0): void {
+    public gatherLightPasses(
+        camera: Camera,
+        light: Light,
+        cmdBuff: CommandBuffer,
+        level = 0,
+    ): void {
         this.clear();
 
         const sceneData = this._pipeline.pipelineSceneData;
         const shadowInfo = sceneData.shadows;
-        if (light && shadowInfo.enabled && shadowInfo.type === ShadowType.ShadowMap) {
+        if (
+            light &&
+            shadowInfo.enabled &&
+            shadowInfo.type === ShadowType.ShadowMap
+        ) {
             switch (light.type) {
-            case LightType.DIRECTIONAL:
-                // eslint-disable-next-line no-case-declarations
-                const dirLight = light as DirectionalLight;
-                if (dirLight.shadowEnabled) {
-                    const csmLayers = sceneData.csmLayers;
-                    let layer: ShadowLayerVolume;
-                    if (dirLight.shadowFixedArea) {
-                        layer = csmLayers.specialLayer;
-                    } else {
-                        layer = csmLayers.layers[level];
-                    }
-                    shadowCulling(camera, sceneData, layer);
-                    const dirShadowObjects = layer.shadowObjects;
-                    for (let i = 0; i < dirShadowObjects.length; i++) {
-                        const ro = dirShadowObjects[i];
-                        const model = ro.model;
-                        this.add(model, level);
-                    }
-                }
-
-                break;
-            case LightType.SPOT:
-                // eslint-disable-next-line no-case-declarations
-                const spotLight = light as SpotLight;
-                if (spotLight.shadowEnabled) {
-                    const visibility = spotLight.visibility;
-                    const castShadowObjects = sceneData.csmLayers.castShadowObjects;
-                    for (let i = 0; i < castShadowObjects.length; i++) {
-                        const ro = castShadowObjects[i];
-                        const model = ro.model;
-                        if (model.worldBounds) {
-                            if (((visibility & model.node.layer) !== model.node.layer)
-                            || !geometry.intersect.aabbFrustum(model.worldBounds, spotLight.frustum)) { continue; }
+                case LightType.DIRECTIONAL:
+                    // eslint-disable-next-line no-case-declarations
+                    const dirLight = light as DirectionalLight;
+                    if (dirLight.shadowEnabled) {
+                        const csmLayers = sceneData.csmLayers;
+                        let layer: ShadowLayerVolume;
+                        if (dirLight.shadowFixedArea) {
+                            layer = csmLayers.specialLayer;
+                        } else {
+                            layer = csmLayers.layers[level];
                         }
-
-                        this.add(model, level);
+                        shadowCulling(camera, sceneData, layer);
+                        const dirShadowObjects = layer.shadowObjects;
+                        for (let i = 0; i < dirShadowObjects.length; i++) {
+                            const ro = dirShadowObjects[i];
+                            const model = ro.model;
+                            this.add(model, level);
+                        }
                     }
-                }
-                break;
-            default:
+
+                    break;
+                case LightType.SPOT:
+                    // eslint-disable-next-line no-case-declarations
+                    const spotLight = light as SpotLight;
+                    if (spotLight.shadowEnabled) {
+                        const visibility = spotLight.visibility;
+                        const castShadowObjects =
+                            sceneData.csmLayers.castShadowObjects;
+                        for (let i = 0; i < castShadowObjects.length; i++) {
+                            const ro = castShadowObjects[i];
+                            const model = ro.model;
+                            if (model.worldBounds) {
+                                if (
+                                    (visibility & model.node.layer) !==
+                                        model.node.layer ||
+                                    !geometry.intersect.aabbFrustum(
+                                        model.worldBounds,
+                                        spotLight.frustum,
+                                    )
+                                ) {
+                                    continue;
+                                }
+                            }
+
+                            this.add(model, level);
+                        }
+                    }
+                    break;
+                default:
             }
 
             this._instancedQueue.uploadBuffers(cmdBuff);
@@ -124,23 +145,26 @@ export class RenderShadowMapBatchedQueue {
      * @zh
      * clear light-Batched-Queue
      */
-    public clear (): void {
+    public clear(): void {
         this._subModelsArray.length = 0;
         this._shaderArray.length = 0;
         this._passArray.length = 0;
         this._instancedQueue.clear();
     }
 
-    public add (model: Model, level: number): void {
+    public add(model: Model, level: number): void {
         const subModels = model.subModels;
         for (let j = 0; j < subModels.length; j++) {
             const subModel = subModels[j];
             const shadowPassIdx = getShadowPassIndex(subModel);
-            if (shadowPassIdx < 0) { continue; }
+            if (shadowPassIdx < 0) {
+                continue;
+            }
             const pass = subModel.passes[shadowPassIdx];
             const batchingScheme = pass.batchingScheme;
 
-            if (batchingScheme === BatchingSchemes.INSTANCING) {            // instancing
+            if (batchingScheme === BatchingSchemes.INSTANCING) {
+                // instancing
                 const buffer = pass.getInstancedBuffer(level);
                 buffer.merge(subModel, shadowPassIdx);
                 this._instancedQueue.queue.add(buffer);
@@ -157,7 +181,11 @@ export class RenderShadowMapBatchedQueue {
      * @zh
      * record CommandBuffer
      */
-    public recordCommandBuffer (device: Device, renderPass: RenderPass, cmdBuff: CommandBuffer): void {
+    public recordCommandBuffer(
+        device: Device,
+        renderPass: RenderPass,
+        cmdBuff: CommandBuffer,
+    ): void {
         this._instancedQueue.recordCommandBuffer(device, renderPass, cmdBuff);
 
         for (let i = 0; i < this._subModelsArray.length; ++i) {
@@ -165,7 +193,13 @@ export class RenderShadowMapBatchedQueue {
             const shader = this._shaderArray[i];
             const pass = this._passArray[i];
             const ia = subModel.inputAssembler;
-            const pso = PipelineStateManager.getOrCreatePipelineState(device, pass, shader, renderPass, ia);
+            const pso = PipelineStateManager.getOrCreatePipelineState(
+                device,
+                pass,
+                shader,
+                renderPass,
+                ia,
+            );
             const descriptorSet = pass.descriptorSet;
 
             cmdBuff.bindPipelineState(pso);

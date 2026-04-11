@@ -31,14 +31,14 @@ import {
     TEST,
     EDITOR_NOT_IN_PREVIEW,
     WECHAT,
-} from 'internal:constants';
-import { systemInfo } from 'pal/system-info';
-import { findCanvas, loadJsFile } from 'pal/env';
-import { Pacer } from 'pal/pacer';
-import { ConfigOrientation } from 'pal/screen-adapter';
+} from "internal:constants";
+import { systemInfo } from "pal/system-info";
+import { findCanvas, loadJsFile } from "pal/env";
+import { Pacer } from "pal/pacer";
+import { ConfigOrientation } from "pal/screen-adapter";
 import assetManager, {
     IAssetManagerOptions,
-} from '../asset/asset-manager/asset-manager';
+} from "../asset/asset-manager/asset-manager";
 import {
     EventTarget,
     AsyncDelegate,
@@ -58,17 +58,17 @@ import {
     logID,
     SettingsCategory,
     Settings,
-} from '../core';
-import { input } from '../input';
-import { deviceManager, LegacyRenderMode } from '../gfx';
-import { SplashScreen } from './splash-screen';
-import { Layers, Node } from '../scene-graph';
-import { builtinResMgr } from '../asset/asset-manager/builtin-res-mgr';
-import { director, DirectorEvent } from './director';
-import { bindingMappingInfo } from '../rendering/define';
-import { ICustomJointTextureLayout } from '../3d/skeletal-animation/skeletal-animation-utils';
-import { IPhysicsConfig } from '../physics/framework/physics-config';
-import { effectSettings } from '../core/effect-settings';
+} from "../core";
+import { input } from "../input";
+import { deviceManager, LegacyRenderMode } from "../gfx";
+import { SplashScreen } from "./splash-screen";
+import { Layers, Node } from "../scene-graph";
+import { builtinResMgr } from "../asset/asset-manager/builtin-res-mgr";
+import { director, DirectorEvent } from "./director";
+import { bindingMappingInfo } from "../rendering/define";
+import { ICustomJointTextureLayout } from "../3d/skeletal-animation/skeletal-animation-utils";
+import { IPhysicsConfig } from "../physics/framework/physics-config";
+import { effectSettings } from "../core/effect-settings";
 
 const querySettings = settings.querySettings.bind(settings);
 
@@ -231,7 +231,7 @@ export class Game extends EventTarget {
      * });
      * ```
      */
-    public static readonly EVENT_HIDE = 'game_on_hide';
+    public static readonly EVENT_HIDE = "game_on_hide";
 
     /**
      * @en Event triggered when game back to foreground<br>
@@ -241,7 +241,7 @@ export class Game extends EventTarget {
      * 请注意，在 WEB 平台，这个事件不一定会 100% 触发，这完全取决于浏览器的回调行为。<br>
      * 在原生平台，它对应的是应用被切换到前台事件。
      */
-    public static readonly EVENT_SHOW: string = 'game_on_show';
+    public static readonly EVENT_SHOW: string = "game_on_show";
 
     /**
      * @en Event triggered when system in low memory status.<br>
@@ -249,13 +249,13 @@ export class Game extends EventTarget {
      * @zh 程序在内存不足时触发的事件。<br>
      * 该事件只会在 iOS/Android 平台触发。
      */
-    public static readonly EVENT_LOW_MEMORY: string = 'game_on_low_memory';
+    public static readonly EVENT_LOW_MEMORY: string = "game_on_low_memory";
 
     /**
      * @en Event triggered after game inited, at this point all engine objects and game scripts are loaded
      * @zh 游戏启动后的触发事件，此时加载所有的引擎对象和游戏脚本。
      */
-    public static readonly EVENT_GAME_INITED = 'game_inited';
+    public static readonly EVENT_GAME_INITED = "game_inited";
 
     /**
      * @en Event triggered after engine inited, at this point you will be able to use all engine classes.<br>
@@ -265,62 +265,64 @@ export class Game extends EventTarget {
      * 它在 Cocos Creator v1.x 版本中名字为 EVENT_RENDERER_INITED，在 v2.0 更名为 EVENT_ENGINE_INITED
      * 并在 Cocos Creator v3.0 中将 EVENT_RENDERER_INITED 用作为渲染器初始化的事件。
      */
-    public static readonly EVENT_ENGINE_INITED = 'engine_inited';
+    public static readonly EVENT_ENGINE_INITED = "engine_inited";
 
     /**
      * @en Event triggered after renderer inited, at this point you will be able to use all gfx renderer feature.<br>
      * @zh 在渲染器初始化之后触发的事件，此事件在 EVENT_ENGINE_INITED 之前触发，此时开始可使用 gfx 渲染框架。
      */
-    public static readonly EVENT_RENDERER_INITED: string = 'renderer_inited';
+    public static readonly EVENT_RENDERER_INITED: string = "renderer_inited";
 
     /**
      * @en Event triggered pre base module initialization, at this point you can not use pal/logging/sys/settings API.
      * @zh 基础模块初始化之前的事件，在这个事件点你无法使用 pal/logging/sys/settings 的相关接口。
      */
-    public static readonly EVENT_PRE_BASE_INIT = 'pre_base_init';
+    public static readonly EVENT_PRE_BASE_INIT = "pre_base_init";
     /**
      * @en Event triggered post base module initialization, at this point you can use pal/logging/sys/settings API safely.
      * @zh 基础模块初始化之后的事件，在这个事件点你可以安全使用 pal/logging/sys/settings 的相关接口。
      */
-    public static readonly EVENT_POST_BASE_INIT = 'post_base_init';
+    public static readonly EVENT_POST_BASE_INIT = "post_base_init";
     /**
      * @en Event triggered pre infrastructure initialization, at this point you can not use assetManager/gfx/screen/builtinResMgr/macro/Layer API.
      * @zh 基础设施初始化之前的事件，在这个事件点你无法使用 assetManager/gfx/screen/builtinResMgr/macro/Layer 的相关接口。
      */
-    public static readonly EVENT_PRE_INFRASTRUCTURE_INIT =        'pre_infrastructure_init';
+    public static readonly EVENT_PRE_INFRASTRUCTURE_INIT =
+        "pre_infrastructure_init";
     /**
      * @en Event triggered post infrastructure initialization, at this point you can use assetManager/gfx/screen/builtinResMgr/macro/Layer API safely.
      * @zh 基础设施初始化之后的事件，在这个事件点你可以安全使用 assetManager/gfx/screen/builtinResMgr/macro/Layer 的相关接口。
      */
-    public static readonly EVENT_POST_INFRASTRUCTURE_INIT =        'post_infrastructure_init';
+    public static readonly EVENT_POST_INFRASTRUCTURE_INIT =
+        "post_infrastructure_init";
     /**
      * @en Event triggered pre subsystem initialization, at this point you can not use physics/animation/rendering/tween/etc API.
      * @zh 子系统初始化之前的事件，在这个事件点你无法使用 physics/animation/rendering/tween/etc 的相关接口。
      */
-    public static readonly EVENT_PRE_SUBSYSTEM_INIT = 'pre_subsystem_init';
+    public static readonly EVENT_PRE_SUBSYSTEM_INIT = "pre_subsystem_init";
     /**
      * @en Event triggered post subsystem initialization, at this point you can use physics/animation/rendering/tween/etc API safely.
      * @zh 子系统初始化之后的事件，在这个事件点你可以安全使用 physics/animation/rendering/tween/etc 的相关接口。
      */
-    public static readonly EVENT_POST_SUBSYSTEM_INIT = 'post_subsystem_init';
+    public static readonly EVENT_POST_SUBSYSTEM_INIT = "post_subsystem_init";
     /**
      * @en Event triggered pre project data initialization,
      * at this point you can not access project data using [resources.load]/[director.loadScene] API.
      * @zh 项目数据初始化之前的事件，在这个事件点你无法使用访问项目数据的相关接口，例如 [resources.load]/[director.loadScene] 等 API。
      */
-    public static readonly EVENT_PRE_PROJECT_INIT = 'pre_project_init';
+    public static readonly EVENT_PRE_PROJECT_INIT = "pre_project_init";
     /**
      * @en Event triggered post project data initialization,
      * at this point you can access project data using [resources.load]/[director.loadScene] API safely.
      * @zh 项目数据初始化之后的事件，在这个事件点你可以安全使用访问项目数据的相关接口，例如 [resources.load]/[director.loadScene] 等 API。
      */
-    public static readonly EVENT_POST_PROJECT_INIT = 'post_project_init';
+    public static readonly EVENT_POST_PROJECT_INIT = "post_project_init";
 
     /**
      * @en Event triggered when game restart
      * @zh 调用restart后，触发事件
      */
-    public static readonly EVENT_RESTART = 'game_on_restart';
+    public static readonly EVENT_RESTART = "game_on_restart";
 
     /**
      * @en Triggered when the game is paused.<br>
@@ -333,19 +335,19 @@ export class Game extends EventTarget {
      * });
      * ```
      */
-    public static readonly EVENT_PAUSE = 'game_on_pause';
+    public static readonly EVENT_PAUSE = "game_on_pause";
 
     /**
      * @en Triggered when the game is resumed.<br>
      * @zh 游戏恢复时触发该事件。<br>
      */
-    public static readonly EVENT_RESUME = 'game_on_resume';
+    public static readonly EVENT_RESUME = "game_on_resume";
 
     /**
      * @en Triggered when the game will be closed. <br>
      * @zh 游戏将要关闭时触发的事件。<br>
      */
-    public static readonly EVENT_CLOSE = 'game_on_close';
+    public static readonly EVENT_CLOSE = "game_on_close";
 
     /**
      * @en Web Canvas 2d API as renderer backend.
@@ -422,7 +424,7 @@ export class Game extends EventTarget {
      */
     public onStart: Game.OnStart | null = null;
 
-    constructor () {
+    constructor() {
         super();
     }
 
@@ -430,7 +432,7 @@ export class Game extends EventTarget {
      * @en Indicates whether the engine and the renderer has been initialized
      * @zh 引擎和渲染器是否以完成初始化
      */
-    public get inited (): boolean {
+    public get inited(): boolean {
         return this._inited;
     }
 
@@ -438,11 +440,11 @@ export class Game extends EventTarget {
      * @en Expected frame rate of the game.
      * @zh 游戏的设定帧率。
      */
-    public get frameRate (): string | number {
+    public get frameRate(): string | number {
         return this._frameRate;
     }
-    public set frameRate (frameRate: number | string) {
-        if (typeof frameRate !== 'number') {
+    public set frameRate(frameRate: number | string) {
+        if (typeof frameRate !== "number") {
             frameRate = parseInt(frameRate, 10);
             if (Number.isNaN(frameRate)) {
                 frameRate = 60;
@@ -457,7 +459,7 @@ export class Game extends EventTarget {
      * @en The delta time since last frame, unit: s.
      * @zh 获取上一帧的增量时间，以秒为单位。
      */
-    public get deltaTime (): number {
+    public get deltaTime(): number {
         return this._useFixedDeltaTime
             ? this.frameTime / 1000
             : this._deltaTime;
@@ -467,7 +469,7 @@ export class Game extends EventTarget {
      * @en The total passed time since game start, unit: ms
      * @zh 获取从游戏开始到现在总共经过的时间，以毫秒为单位
      */
-    public get totalTime (): number {
+    public get totalTime(): number {
         return performance.now() - this._initTime;
     }
 
@@ -475,7 +477,7 @@ export class Game extends EventTarget {
      * @en The start time of the current frame in milliseconds.
      * @zh 获取当前帧开始的时间（以 ms 为单位）。
      */
-    public get frameStartTime (): number {
+    public get frameStartTime(): number {
         return this._startTime;
     }
 
@@ -576,7 +578,7 @@ export class Game extends EventTarget {
      * @zh 设置游戏帧率。
      * @deprecated since v3.3.0 please use [[game.frameRate]]
      */
-    public setFrameRate (frameRate: number | string): void {
+    public setFrameRate(frameRate: number | string): void {
         this.frameRate = frameRate;
     }
 
@@ -586,7 +588,7 @@ export class Game extends EventTarget {
      * @return frame rate
      * @deprecated since v3.3.0 please use [[game.frameRate]]
      */
-    public getFrameRate (): number {
+    public getFrameRate(): number {
         return this.frameRate as number;
     }
 
@@ -594,7 +596,7 @@ export class Game extends EventTarget {
      * @en Run the game frame by frame with a fixed delta time correspond to frame rate.
      * @zh 以固定帧间隔执行一帧游戏循环，帧间隔与设定的帧率匹配。
      */
-    public step (): void {
+    public step(): void {
         director.tick(this._calculateDT(true));
     }
 
@@ -602,7 +604,7 @@ export class Game extends EventTarget {
      * @en Called by the engine to pause the game.
      * @zh 提供给引擎调用暂停游戏接口。
      */
-    private pauseByEngine (): void {
+    private pauseByEngine(): void {
         if (this._paused) {
             return;
         }
@@ -614,7 +616,7 @@ export class Game extends EventTarget {
      * @en Resume paused game by engine call.
      * @zh 提供给引擎调用恢复暂停游戏接口。
      */
-    private resumeByEngine (): void {
+    private resumeByEngine(): void {
         if (this._pausedByEngine) {
             this.resume();
             this._pausedByEngine = false;
@@ -636,7 +638,7 @@ export class Game extends EventTarget {
      *
      * 这点和只暂停游戏逻辑的 `director.pause()` 不同。
      */
-    public pause (): void {
+    public pause(): void {
         if (this._paused) {
             return;
         }
@@ -650,7 +652,7 @@ export class Game extends EventTarget {
      * game logic execution, rendering process, event manager, background music and all audio effects.<br>
      * @zh 恢复游戏主循环。包含：游戏逻辑，渲染，事件处理，背景音乐和所有音效。
      */
-    public resume (): void {
+    public resume(): void {
         if (!this._paused) {
             return;
         }
@@ -664,7 +666,7 @@ export class Game extends EventTarget {
      * @en Check whether the game is paused.
      * @zh 判断游戏是否暂停。
      */
-    public isPaused (): boolean {
+    public isPaused(): boolean {
         return this._paused;
     }
 
@@ -672,7 +674,7 @@ export class Game extends EventTarget {
      * @en Restart game.
      * @zh 重新开始游戏
      */
-    public restart (): Promise<void> {
+    public restart(): Promise<void> {
         const endFramePromise = new Promise<void>((resolve): void => {
             director.once(DirectorEvent.END_FRAME, (): void => resolve());
         });
@@ -700,7 +702,7 @@ export class Game extends EventTarget {
      * @en End game, it will close the game window
      * @zh 退出游戏
      */
-    public end (): void {
+    public end(): void {
         systemInfo.close();
     }
 
@@ -718,7 +720,7 @@ export class Game extends EventTarget {
      * @param once - After the first invocation, whether the callback should be unregistered.
      * @return - Just returns the incoming callback so you can save the anonymous function easier.
      */
-    public on (
+    public on(
         type: string,
         callback: () => void,
         target?: any,
@@ -743,7 +745,7 @@ export class Game extends EventTarget {
      *                              The callback is ignored if it is a duplicate (the callbacks are unique).
      * @param target - The target (this object) to invoke the callback, can be null
      */
-    public once (type: string, callback: () => void, target?: any): any {
+    public once(type: string, callback: () => void, target?: any): any {
         // Make sure EVENT_ENGINE_INITED callbacks to be invoked
         if (this.canRegisterEvent(type)) {
             return callback.call(target);
@@ -751,11 +753,11 @@ export class Game extends EventTarget {
         return this.eventTargetOnce(type, callback, target);
     }
 
-    private canRegisterEvent (type: string): boolean {
+    private canRegisterEvent(type: string): boolean {
         return (
-            (this._engineInited && type === Game.EVENT_ENGINE_INITED)
-            || (this._inited && type === Game.EVENT_GAME_INITED)
-            || (this._rendererInitialized && type === Game.EVENT_RENDERER_INITED)
+            (this._engineInited && type === Game.EVENT_ENGINE_INITED) ||
+            (this._inited && type === Game.EVENT_GAME_INITED) ||
+            (this._rendererInitialized && type === Game.EVENT_RENDERER_INITED)
         );
     }
 
@@ -793,7 +795,7 @@ export class Game extends EventTarget {
      * -GameInitedEvent
      * @param config - Pass configuration object
      */
-    public init (config: IGameConfig): Promise<void> {
+    public init(config: IGameConfig): Promise<void> {
         this._compatibleWithOldParams(config);
         // DONT change the order unless you know what's you doing
         return (
@@ -806,7 +808,7 @@ export class Game extends EventTarget {
                 .then((): void => {
                     if (DEBUG) {
                         // eslint-disable-next-line no-console
-                        console.time('Init Base');
+                        console.time("Init Base");
                     }
                     const debugMode = config.debugMode || DebugMode.NONE;
                     _resetDebugSetting(debugMode);
@@ -816,15 +818,16 @@ export class Game extends EventTarget {
                     this._initEvents();
                 })
                 .then(
-                    (): Promise<void> => settings.init(
-                        config.settingsPath,
-                        config.overrideSettings,
-                    ),
+                    (): Promise<void> =>
+                        settings.init(
+                            config.settingsPath,
+                            config.overrideSettings,
+                        ),
                 )
                 .then((): Promise<void[]> => {
                     if (DEBUG) {
                         // eslint-disable-next-line no-console
-                        console.timeEnd('Init Base');
+                        console.timeEnd("Init Base");
                     }
                     this.emit(Game.EVENT_POST_BASE_INIT);
                     return this.onPostBaseInitDelegate.dispatch();
@@ -839,7 +842,7 @@ export class Game extends EventTarget {
                 .then((): boolean | Promise<boolean> => {
                     if (DEBUG) {
                         // eslint-disable-next-line no-console
-                        console.time('Init Infrastructure');
+                        console.time("Init Infrastructure");
                     }
                     macro.init();
                     const adapter = findCanvas();
@@ -853,30 +856,14 @@ export class Game extends EventTarget {
                     return deviceManager.init(this.canvas, bindingMappingInfo);
                 })
                 .then(() => {
-                    const usesCustomPipeline = querySettings(
-                        SettingsCategory.RENDERING,
-                        'customPipeline',
-                    );
-                    if (usesCustomPipeline) {
-                        if (!cclegacy.rendering) {
-                            errorID(12109);
-                            return;
-                        }
-                        if (!macro.CUSTOM_PIPELINE_NAME) {
-                            // If custom pipeline is used, but the name is not set, use the default name
-                            macro.CUSTOM_PIPELINE_NAME = 'Builtin';
-                        }
-                    } else {
-                        // If custom pipeline is not used, disable custom-pipeline module
-                        cclegacy.rendering = undefined;
-                    }
+                    cclegacy.rendering = undefined;
                     assetManager.init();
                     builtinResMgr.init();
                     Layers.init();
                     this.initPacer();
                     if (DEBUG) {
                         // eslint-disable-next-line no-console
-                        console.timeEnd('Init Infrastructure');
+                        console.timeEnd("Init Infrastructure");
                     }
                 })
                 .then((): Promise<void[]> => {
@@ -890,40 +877,18 @@ export class Game extends EventTarget {
                     return this.onPreSubsystemInitDelegate.dispatch();
                 })
                 .then(
-                    (): Promise<void> => effectSettings.init(
+                    (): Promise<void> =>
+                        effectSettings.init(
                             querySettings(
                                 SettingsCategory.RENDERING,
-                                'effectSettingsPath',
+                                "effectSettingsPath",
                             ) as string,
-                    ),
+                        ),
                 )
-                .then((): void => {
-                    // initialize custom render pipeline
-                    if (
-                        !cclegacy.rendering
-                        || !cclegacy.rendering.enableEffectImport
-                    ) {
-                        return;
-                    }
-                    const renderMode = querySettings(
-                        SettingsCategory.RENDERING,
-                        'renderMode',
-                    );
-                    if (renderMode === LegacyRenderMode.HEADLESS) {
-                        cclegacy.rendering.init(deviceManager.gfxDevice, null);
-                        return;
-                    }
-                    const data = effectSettings.data;
-                    if (data === null) {
-                        errorID(1102);
-                        return;
-                    }
-                    cclegacy.rendering.init(deviceManager.gfxDevice, data);
-                })
                 .then((): Promise<any[]> => {
                     const scriptPackages = querySettings<string[]>(
                         SettingsCategory.SCRIPTING,
-                        'scriptPackages',
+                        "scriptPackages",
                     );
                     if (scriptPackages) {
                         return Promise.all(
@@ -937,7 +902,7 @@ export class Game extends EventTarget {
                 .then((): Promise<void> => {
                     if (DEBUG) {
                         // eslint-disable-next-line no-console
-                        console.time('Init SubSystem');
+                        console.time("Init SubSystem");
                     }
                     director.init();
                     return builtinResMgr.loadBuiltinAssets();
@@ -945,7 +910,7 @@ export class Game extends EventTarget {
                 .then((): Promise<void[]> => {
                     if (DEBUG) {
                         // eslint-disable-next-line no-console
-                        console.timeEnd('Init SubSystem');
+                        console.timeEnd("Init SubSystem");
                     }
                     this.emit(Game.EVENT_POST_SUBSYSTEM_INIT);
                     return this.onPostSubsystemInitDelegate.dispatch();
@@ -964,18 +929,20 @@ export class Game extends EventTarget {
                 .then((): Promise<void> => {
                     if (DEBUG) {
                         // eslint-disable-next-line no-console
-                        console.time('Init Project');
+                        console.time("Init Project");
                     }
                     const jsList = querySettings<string[]>(
                         SettingsCategory.PLUGINS,
-                        'jsList',
+                        "jsList",
                     );
                     let promise = Promise.resolve();
                     if (jsList) {
                         jsList.forEach((jsListFile): void => {
-                            promise = promise.then((): any => loadJsFile(
-                                `${PREVIEW ? 'plugins' : 'src'}/${jsListFile}`,
-                            ));
+                            promise = promise.then((): any =>
+                                loadJsFile(
+                                    `${PREVIEW ? "plugins" : "src"}/${jsListFile}`,
+                                ),
+                            );
                         });
                     }
                     return promise;
@@ -994,7 +961,7 @@ export class Game extends EventTarget {
                 .then((): Promise<void[]> => {
                     if (DEBUG) {
                         // eslint-disable-next-line no-console
-                        console.timeEnd('Init Project');
+                        console.timeEnd("Init Project");
                     }
                     this.emit(Game.EVENT_POST_PROJECT_INIT);
                     return this.onPostProjectInitDelegate.dispatch();
@@ -1007,63 +974,66 @@ export class Game extends EventTarget {
         );
     }
 
-    private _compatibleWithOldParams (config: IGameConfig): void {
-        const overrideSettings = (config.overrideSettings =            config.overrideSettings || {});
-        if ('showFPS' in config) {
+    private _compatibleWithOldParams(config: IGameConfig): void {
+        const overrideSettings = (config.overrideSettings =
+            config.overrideSettings || {});
+        if ("showFPS" in config) {
             overrideSettings.profiling = overrideSettings.profiling || {};
             overrideSettings.profiling.showFPS = config.showFPS;
         }
-        if ('frameRate' in config) {
+        if ("frameRate" in config) {
             overrideSettings.screen = overrideSettings.screen || {};
             overrideSettings.screen.frameRate = config.frameRate;
         }
-        if ('renderMode' in config) {
+        if ("renderMode" in config) {
             overrideSettings.rendering = overrideSettings.rendering || {};
             overrideSettings.rendering.renderMode = config.renderMode;
         }
-        if ('renderPipeline' in config) {
+        if ("renderPipeline" in config) {
             overrideSettings.rendering = overrideSettings.rendering || {};
             overrideSettings.rendering.renderPipeline = config.renderPipeline;
         }
-        if ('assetOptions' in config) {
+        if ("assetOptions" in config) {
             overrideSettings.assets = overrideSettings.assets || {};
             Object.assign(overrideSettings.assets, config.assetOptions);
         }
-        if ('customJointTextureLayouts' in config) {
+        if ("customJointTextureLayouts" in config) {
             overrideSettings.animation = overrideSettings.animation || {};
-            overrideSettings.animation.customJointTextureLayouts =                config.customJointTextureLayouts;
+            overrideSettings.animation.customJointTextureLayouts =
+                config.customJointTextureLayouts;
         }
-        if ('physics' in config) {
+        if ("physics" in config) {
             overrideSettings.physics = overrideSettings.physics || {};
             Object.assign(overrideSettings.physics, config.physics);
         }
-        if ('orientation' in config) {
+        if ("orientation" in config) {
             overrideSettings.screen = overrideSettings.screen || {};
             overrideSettings.screen.orientation = config.orientation;
         }
-        if ('exactFitScreen' in config) {
+        if ("exactFitScreen" in config) {
             overrideSettings.screen = overrideSettings.screen || {};
             overrideSettings.screen.exactFitScreen = config.exactFitScreen;
         }
     }
 
-    private _loadPreloadAssets (): Promise<any[]> {
+    private _loadPreloadAssets(): Promise<any[]> {
         const preloadAssets = querySettings<string[]>(
             SettingsCategory.ASSETS,
-            'preloadAssets',
+            "preloadAssets",
         );
         if (!preloadAssets) return Promise.resolve([]);
         return Promise.all(
             preloadAssets.map(
-                (uuid): Promise<void> => new Promise<void>((resolve, reject): void => {
-                    assetManager.loadAny(uuid, (err): void => {
-                        if (err) {
-                            reject(err);
-                            return;
-                        }
-                        resolve();
-                    });
-                }),
+                (uuid): Promise<void> =>
+                    new Promise<void>((resolve, reject): void => {
+                        assetManager.loadAny(uuid, (err): void => {
+                            if (err) {
+                                reject(err);
+                                return;
+                            }
+                            resolve();
+                        });
+                    }),
             ),
         );
     }
@@ -1071,11 +1041,11 @@ export class Game extends EventTarget {
     /**
      * @internal only for browser preview
      */
-    private _loadCCEScripts (): Promise<void> {
+    private _loadCCEScripts(): Promise<void> {
         return new Promise<void>((resolve, reject): void => {
             // Since there is no script in the bundle during preview, we need to load the user's script in the following way
             if (PREVIEW && !TEST && !EDITOR && !NATIVE) {
-                const bundleName = 'cce:/internal/x/prerequisite-imports';
+                const bundleName = "cce:/internal/x/prerequisite-imports";
                 import(bundleName).then(
                     (): void => resolve(),
                     (reason): void => reject(reason),
@@ -1091,24 +1061,25 @@ export class Game extends EventTarget {
     /**
      * @internal only for game-view
      */
-    public _loadProjectBundles (): Promise<void[]> {
+    public _loadProjectBundles(): Promise<void[]> {
         const preloadBundles = querySettings<
             { bundle: string; version: string }[]
-        >(SettingsCategory.ASSETS, 'preloadBundles');
+        >(SettingsCategory.ASSETS, "preloadBundles");
         if (!preloadBundles) return Promise.resolve([]);
         return Promise.all(
             preloadBundles.map(
-                ({ bundle, version }): Promise<void> => new Promise<void>((resolve, reject): void => {
-                    const opts: Record<string, any> = {};
-                    if (version) opts.version = version;
-                    assetManager.loadBundle(bundle, opts, (err): void => {
-                        if (err) {
-                            reject(err);
-                            return;
-                        }
-                        resolve();
-                    });
-                }),
+                ({ bundle, version }): Promise<void> =>
+                    new Promise<void>((resolve, reject): void => {
+                        const opts: Record<string, any> = {};
+                        if (version) opts.version = version;
+                        assetManager.loadBundle(bundle, opts, (err): void => {
+                            if (err) {
+                                reject(err);
+                                return;
+                            }
+                            resolve();
+                        });
+                    }),
             ),
         );
     }
@@ -1118,7 +1089,7 @@ export class Game extends EventTarget {
      * @zh 运行游戏，并且指定引擎配置和 onStart 的回调。
      * @param onStart - function to be executed after game initialized
      */
-    public run (onStart?: Game.OnStart): void {
+    public run(onStart?: Game.OnStart): void {
         if (onStart) {
             this.onStart = onStart;
         }
@@ -1132,7 +1103,7 @@ export class Game extends EventTarget {
     /**
      * @engineInternal
      */
-    public _calculateDT (useFixedDeltaTime: boolean): number {
+    public _calculateDT(useFixedDeltaTime: boolean): number {
         this._useFixedDeltaTime = useFixedDeltaTime;
 
         if (useFixedDeltaTime) {
@@ -1141,7 +1112,8 @@ export class Game extends EventTarget {
         }
 
         const now = performance.now();
-        this._deltaTime =            now > this._startTime ? (now - this._startTime) / 1000 : 0;
+        this._deltaTime =
+            now > this._startTime ? (now - this._startTime) / 1000 : 0;
         if (this._deltaTime > Game.DEBUG_DT_THRESHOLD) {
             this._deltaTime = this.frameTime / 1000;
         }
@@ -1149,12 +1121,12 @@ export class Game extends EventTarget {
         return this._deltaTime;
     }
 
-    private _updateCallback (): void {
+    private _updateCallback(): void {
         if (!this._inited) return;
         if (
-            !WECHAT
-            && SplashScreen.instance
-            && !SplashScreen.instance.isFinished
+            !WECHAT &&
+            SplashScreen.instance &&
+            !SplashScreen.instance.isFinished
         ) {
             SplashScreen.instance.update(this._calculateDT(false));
         } else if (this._shouldLoadLaunchScene) {
@@ -1164,7 +1136,7 @@ export class Game extends EventTarget {
             this._shouldLoadLaunchScene = false;
             const launchScene = querySettings(
                 SettingsCategory.LAUNCH,
-                'launchScene',
+                "launchScene",
             ) as string;
             if (launchScene) {
                 // load scene
@@ -1184,31 +1156,32 @@ export class Game extends EventTarget {
         }
     }
 
-    private initPacer (): void {
-        const frameRate =            querySettings(SettingsCategory.SCREEN, 'frameRate') ?? 60;
-        assert(typeof frameRate === 'number');
+    private initPacer(): void {
+        const frameRate =
+            querySettings(SettingsCategory.SCREEN, "frameRate") ?? 60;
+        assert(typeof frameRate === "number");
         this._pacer = new Pacer();
         this._pacer.onTick = this._updateCallback.bind(this);
         this.frameRate = frameRate;
     }
 
-    private _initEvents (): void {
-        systemInfo.on('show', this._onShow, this);
-        systemInfo.on('hide', this._onHide, this);
-        systemInfo.on('close', this._onClose, this);
+    private _initEvents(): void {
+        systemInfo.on("show", this._onShow, this);
+        systemInfo.on("hide", this._onHide, this);
+        systemInfo.on("close", this._onClose, this);
     }
 
-    private _onHide (): void {
+    private _onHide(): void {
         this.emit(Game.EVENT_HIDE);
         this.pauseByEngine();
     }
 
-    private _onShow (): void {
+    private _onShow(): void {
         this.emit(Game.EVENT_SHOW);
         this.resumeByEngine();
     }
 
-    private _onClose (): void {
+    private _onClose(): void {
         this.emit(Game.EVENT_CLOSE);
         // TODO : Release Resources.
         systemInfo.exit();
@@ -1225,7 +1198,7 @@ export class Game extends EventTarget {
      * @param node - The node to be made persistent
      * @deprecated Since v3.6.0, please use director.addPersistRootNode instead.
      */
-    public addPersistRootNode (node: Node): void {
+    public addPersistRootNode(node: Node): void {
         director.addPersistRootNode(node);
     }
 
@@ -1235,7 +1208,7 @@ export class Game extends EventTarget {
      * @param node - The node to be removed from persistent node list
      * @deprecated Since v3.6.0, please use director.removePersistRootNode instead.
      */
-    public removePersistRootNode (node: Node): void {
+    public removePersistRootNode(node: Node): void {
         director.removePersistRootNode(node);
     }
 
@@ -1245,21 +1218,16 @@ export class Game extends EventTarget {
      * @param node - The node to be checked.
      * @deprecated Since v3.6.0, please use director.isPersistRootNode instead.
      */
-    public isPersistRootNode (node: Node): boolean {
+    public isPersistRootNode(node: Node): boolean {
         return director.isPersistRootNode(node);
     }
 
-    private _setupRenderPipeline (): void | Promise<void> {
-        const usesCustomPipeline = querySettings(
-            SettingsCategory.RENDERING,
-            'customPipeline',
-        );
-
-        return this._setRenderPipeline(!!usesCustomPipeline);
+    private _setupRenderPipeline(): void | Promise<void> {
+        return this._setRenderPipeline();
     }
 
-    private _setRenderPipeline (customPipeline: boolean): void {
-        if (!director.root!.setRenderPipeline(customPipeline)) {
+    private _setRenderPipeline(): void {
+        if (!director.root!.setRenderPipeline()) {
             errorID(1222);
             return;
         }
@@ -1268,7 +1236,7 @@ export class Game extends EventTarget {
         this._safeEmit(Game.EVENT_RENDERER_INITED);
     }
 
-    private _safeEmit (event: string | number): void {
+    private _safeEmit(event: string | number): void {
         if (EDITOR) {
             try {
                 this.emit(event);

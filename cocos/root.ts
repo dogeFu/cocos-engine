@@ -27,34 +27,33 @@ import {
     cclegacy,
     warnID,
     settings,
-    macro,
     log,
     errorID,
     SettingsCategory,
-} from './core';
-import { DebugView } from './rendering/debug-view';
+} from "./core";
+import { DebugView } from "./rendering/debug-view";
 import {
     Camera,
     CameraType,
     Light,
     Model,
     TrackingType,
-} from './render-scene/scene';
-import type { DataPoolManager } from './3d/skeletal-animation/data-pool-manager';
-import { LightType } from './render-scene/scene/light';
+} from "./render-scene/scene";
+import type { DataPoolManager } from "./3d/skeletal-animation/data-pool-manager";
+import { LightType } from "./render-scene/scene/light";
 import {
     IRenderSceneInfo,
     RenderScene,
-} from './render-scene/core/render-scene';
-import { DirectionalLight } from './render-scene/scene/directional-light';
-import { SphereLight } from './render-scene/scene/sphere-light';
-import { SpotLight } from './render-scene/scene/spot-light';
-import { PointLight } from './render-scene/scene/point-light';
-import { RangedDirectionalLight } from './render-scene/scene/ranged-directional-light';
+} from "./render-scene/core/render-scene";
+import { DirectionalLight } from "./render-scene/scene/directional-light";
+import { SphereLight } from "./render-scene/scene/sphere-light";
+import { SpotLight } from "./render-scene/scene/spot-light";
+import { PointLight } from "./render-scene/scene/point-light";
+import { RangedDirectionalLight } from "./render-scene/scene/ranged-directional-light";
 import {
     RenderWindow,
     IRenderWindowInfo,
-} from './render-scene/core/render-window';
+} from "./render-scene/core/render-window";
 import {
     ColorAttachment,
     DepthStencilAttachment,
@@ -64,13 +63,13 @@ import {
     Swapchain,
     deviceManager,
     LegacyRenderMode,
-} from './gfx';
-import { BasicPipeline, PipelineRuntime } from './rendering/custom/pipeline';
-import { Batcher2D } from './2d/renderer/batcher-2d';
+} from "./gfx";
+import { PipelineRuntime } from "./rendering/pipeline-types";
+import { Batcher2D } from "./2d/renderer/batcher-2d";
 import {
     IPipelineEvent,
     PipelineEventProcessor,
-} from './rendering/pipeline-event';
+} from "./rendering/pipeline-event";
 import {
     localDescriptorSetLayout_ResizeMaxJoints,
     UBOCameraEnum,
@@ -78,9 +77,9 @@ import {
     UBOLocalEnum,
     UBOShadowEnum,
     UBOWorldBound,
-} from './rendering/define';
-import { ICustomJointTextureLayout } from './3d/skeletal-animation/skeletal-animation-utils';
-import { getPipelineSceneData } from './rendering/pipeline-scene-data-utils';
+} from "./rendering/define";
+import { ICustomJointTextureLayout } from "./3d/skeletal-animation/skeletal-animation-utils";
+import { getPipelineSceneData } from "./rendering/pipeline-scene-data-utils";
 
 /**
  * @en Initialization information for the Root
@@ -107,7 +106,7 @@ export class Root {
      * @en The GFX device
      * @zh GFX 设备
      */
-    public get device (): Device {
+    public get device(): Device {
         return this._device;
     }
 
@@ -115,7 +114,7 @@ export class Root {
      * @en The main window
      * @zh 主窗口
      */
-    public get mainWindow (): RenderWindow | null {
+    public get mainWindow(): RenderWindow | null {
         return this._mainWindow;
     }
 
@@ -123,11 +122,11 @@ export class Root {
      * @en The current active window
      * @zh 当前激活的窗口
      */
-    public set curWindow (window: RenderWindow | null) {
+    public set curWindow(window: RenderWindow | null) {
         this._curWindow = window;
     }
 
-    public get curWindow (): RenderWindow | null {
+    public get curWindow(): RenderWindow | null {
         return this._curWindow;
     }
 
@@ -136,11 +135,11 @@ export class Root {
      * @zh 临时窗口（用于数据传输）
      * @internal
      */
-    public set tempWindow (window: RenderWindow | null) {
+    public set tempWindow(window: RenderWindow | null) {
         this._tempWindow = window;
     }
 
-    public get tempWindow (): RenderWindow | null {
+    public get tempWindow(): RenderWindow | null {
         return this._tempWindow;
     }
 
@@ -148,7 +147,7 @@ export class Root {
      * @en The windows list
      * @zh 窗口列表
      */
-    public get windows (): RenderWindow[] {
+    public get windows(): RenderWindow[] {
         return this._windows;
     }
 
@@ -156,7 +155,7 @@ export class Root {
      * @zh
      * 启用自定义渲染管线
      */
-    public get usesCustomPipeline (): boolean {
+    public get usesCustomPipeline(): boolean {
         return this._usesCustomPipeline;
     }
 
@@ -164,23 +163,15 @@ export class Root {
      * @en The render pipeline
      * @zh 渲染管线
      */
-    public get pipeline (): PipelineRuntime {
+    public get pipeline(): PipelineRuntime {
         return this._pipeline!;
-    }
-
-    /**
-     * @en The custom render pipeline
-     * @zh 自定义渲染管线
-     */
-    public get customPipeline (): BasicPipeline {
-        return this._customPipeline!;
     }
 
     /**
      * @en The pipeline events
      * @zh 渲染管线事件
      */
-    public get pipelineEvent (): IPipelineEvent {
+    public get pipelineEvent(): IPipelineEvent {
         return this._pipelineEvent!;
     }
 
@@ -188,7 +179,7 @@ export class Root {
      * @en The draw batch manager for 2D UI, for engine internal usage, user do not need to use this.
      * @zh 2D UI 渲染合批管理器，引擎内部使用，用户无需使用此接口
      */
-    public get batcher2D (): Batcher2D {
+    public get batcher2D(): Batcher2D {
         return this._batcher as Batcher2D;
     }
 
@@ -196,7 +187,7 @@ export class Root {
      * @en Render scenes list
      * @zh 渲染场景列表
      */
-    public get scenes (): RenderScene[] {
+    public get scenes(): RenderScene[] {
         return this._scenes;
     }
 
@@ -204,7 +195,7 @@ export class Root {
      * @en The debug view manager for rendering
      * @zh 渲染调试管理器
      */
-    public get debugView (): DebugView {
+    public get debugView(): DebugView {
         return this._debugView;
     }
 
@@ -212,7 +203,7 @@ export class Root {
      * @en The time cumulated in seconds since the game began running.
      * @zh 累计时间（秒）。
      */
-    public get cumulativeTime (): number {
+    public get cumulativeTime(): number {
         return this._cumulativeTime;
     }
 
@@ -220,7 +211,7 @@ export class Root {
      * @en The current frame time in seconds.
      * @zh 帧时间（秒）。
      */
-    public get frameTime (): number {
+    public get frameTime(): number {
         return this._frameTime;
     }
 
@@ -228,7 +219,7 @@ export class Root {
      * @en The frame count during the last second
      * @zh 一秒内的累计帧数
      */
-    public get frameCount (): number {
+    public get frameCount(): number {
         return this._frameCount;
     }
 
@@ -236,7 +227,7 @@ export class Root {
      * @en The recent frame rate for the last second
      * @zh 当前每秒帧率
      */
-    public get fps (): number {
+    public get fps(): number {
         return this._fps;
     }
 
@@ -244,20 +235,20 @@ export class Root {
      * @en The wanted frame rate set by user
      * @zh 每秒设定帧率
      */
-    public set fixedFPS (fps: number) {
+    public set fixedFPS(fps: number) {
         if (fps > 0) {
             this._fixedFPS = fps;
         }
     }
 
-    public get fixedFPS (): number {
+    public get fixedFPS(): number {
         return this._fixedFPS;
     }
 
     /**
      * @internal
      */
-    public get dataPoolManager (): DataPoolManager {
+    public get dataPoolManager(): DataPoolManager {
         return this._dataPoolMgr;
     }
 
@@ -265,11 +256,11 @@ export class Root {
      * @en Whether the built-in deferred pipeline is used.
      * @zh 是否启用内置延迟渲染管线
      */
-    public get useDeferredPipeline (): boolean {
+    public get useDeferredPipeline(): boolean {
         return this._useDeferredPipeline;
     }
 
-    public get cameraList (): Camera[] {
+    public get cameraList(): Camera[] {
         return this._cameraList;
     }
 
@@ -287,11 +278,11 @@ export class Root {
     private _mainWindow: RenderWindow | null = null;
     private _curWindow: RenderWindow | null = null;
     private _tempWindow: RenderWindow | null = null;
-    private _usesCustomPipeline = true;
+    private _usesCustomPipeline = false;
     private _pipeline: PipelineRuntime | null = null;
-    private _pipelineEvent: IPipelineEvent | null =        new PipelineEventProcessor();
+    private _pipelineEvent: IPipelineEvent | null =
+        new PipelineEventProcessor();
     private _classicPipeline: (PipelineRuntime & IPipelineEvent) | null = null;
-    private _customPipeline: BasicPipeline | null = null;
     private _batcher: Batcher2D | null = null;
     declare private _dataPoolMgr: DataPoolManager;
     private _scenes: RenderScene[] = [];
@@ -314,10 +305,11 @@ export class Root {
      * @zh 构造函数，用户不应该自己创建任何 Root 对象，它是由 [[Director]] 管理的。
      * @param device GFX device
      */
-    constructor (device: Device) {
+    constructor(device: Device) {
         this._device = device;
-        this._dataPoolMgr =            cclegacy.internal.DataPoolManager
-            && (new cclegacy.internal.DataPoolManager(device) as DataPoolManager);
+        this._dataPoolMgr =
+            cclegacy.internal.DataPoolManager &&
+            (new cclegacy.internal.DataPoolManager(device) as DataPoolManager);
 
         RenderScene.registerCreateFunc(this);
         RenderWindow.registerCreateFunc(this);
@@ -334,7 +326,7 @@ export class Root {
      * @zh 初始化函数，用户不应该自己初始化 Root，它是由 [[Director]] 管理的。
      * @param info Root initialization information
      */
-    public initialize (info: IRootInfo): void {
+    public initialize(info: IRootInfo): void {
         const swapchain: Swapchain = deviceManager.swapchain;
         const colorAttachment = new ColorAttachment();
         colorAttachment.format = swapchain.colorTexture.format;
@@ -348,17 +340,18 @@ export class Root {
         );
 
         this._mainWindow = this.createWindow({
-            title: 'rootMainWindow',
+            title: "rootMainWindow",
             width: swapchain.width,
             height: swapchain.height,
             renderPassInfo,
             swapchain,
         });
         this._curWindow = this._mainWindow;
-        const customJointTextureLayouts =            (settings.querySettings(
-            SettingsCategory.ANIMATION,
-            'customJointTextureLayouts',
-        ) as ICustomJointTextureLayout[]) || [];
+        const customJointTextureLayouts =
+            (settings.querySettings(
+                SettingsCategory.ANIMATION,
+                "customJointTextureLayouts",
+            ) as ICustomJointTextureLayout[]) || [];
         this._dataPoolMgr?.jointTexturePool.registerCustomTextureLayouts(
             customJointTextureLayouts,
         );
@@ -369,7 +362,7 @@ export class Root {
      * @en Destroy the root, user shouldn't invoke this function, it will cause undefined behavior.
      * @zh 销毁 Root，用户不应该调用此方法，会造成未知行为。
      */
-    public destroy (): void {
+    public destroy(): void {
         this.destroyScenes();
 
         if (this._pipeline) {
@@ -399,7 +392,7 @@ export class Root {
      * @param height The new height of the window.
      * @param windowId The system window ID, optional for now.
      */
-    public resize (width: number, height: number, windowId?: number): void {
+    public resize(width: number, height: number, windowId?: number): void {
         this._windows.forEach((window) => {
             if (window.swapchain) {
                 window.resize(width, height);
@@ -413,36 +406,25 @@ export class Root {
      * @param rppl The render pipeline
      * @returns The setup is successful or not
      */
-    public setRenderPipeline (useCustomPipeline?: boolean): boolean {
-        const { internal, director, rendering, legacy_rendering } = cclegacy;
-        if (rendering === undefined && legacy_rendering === undefined) {
+    public setRenderPipeline(_useCustomPipeline?: boolean): boolean {
+        const { internal, director, legacy_rendering } = cclegacy;
+        if (legacy_rendering === undefined) {
             errorID(1223);
             return false;
         }
-        //-----------------------------------------------
-        // prepare classic pipeline
-        //-----------------------------------------------
-        let isCreateDefaultPipeline = false;
-        if (useCustomPipeline) {
-            this._customPipeline = rendering.createCustomPipeline();
-            isCreateDefaultPipeline = true;
-            this._pipeline = this._customPipeline!;
-            // Use default _pipelineEvent
-            log(`Using custom pipeline: ${macro.CUSTOM_PIPELINE_NAME}`);
-        } else {
-            const rppl: PipelineRuntime & IPipelineEvent =                legacy_rendering.createDefaultPipeline();
-            isCreateDefaultPipeline = true;
-            log(`Using legacy pipeline`);
+        const rppl: PipelineRuntime & IPipelineEvent =
+            legacy_rendering.createDefaultPipeline();
+        const isCreateDefaultPipeline = true;
+        log("Using legacy pipeline");
 
-            this._classicPipeline = rppl!;
-            this._pipeline = this._classicPipeline;
-            this._pipelineEvent = this._classicPipeline; // Use forward pipeline's pipeline event
-            this._usesCustomPipeline = false;
-        }
+        this._classicPipeline = rppl!;
+        this._pipeline = this._classicPipeline;
+        this._pipelineEvent = this._classicPipeline;
+        this._usesCustomPipeline = false;
 
         const renderMode = settings.querySettings(
             SettingsCategory.RENDERING,
-            'renderMode',
+            "renderMode",
         );
         if (renderMode !== LegacyRenderMode.HEADLESS || this._classicPipeline) {
             if (!this._pipeline.activate(this._mainWindow!.swapchain)) {
@@ -450,7 +432,6 @@ export class Root {
                     this._pipeline.destroy();
                 }
                 this._classicPipeline = null;
-                this._customPipeline = null;
                 this._pipeline = null;
                 this._pipelineEvent = null;
 
@@ -482,7 +463,7 @@ export class Root {
      * @en Notify the pipeline and all scenes that the global pipeline state have been updated so that they can update their render data and states.
      * @zh 通知渲染管线和所有场景全局管线状态已更新，需要更新自身状态。
      */
-    public onGlobalPipelineStateChanged (): void {
+    public onGlobalPipelineStateChanged(): void {
         for (let i = 0; i < this._scenes.length; i++) {
             this._scenes[i].onGlobalPipelineStateChanged();
         }
@@ -499,7 +480,7 @@ export class Root {
      * @zh 激活指定窗口为当前窗口 [[curWindow]]
      * @param window The render window to be activated
      */
-    public activeWindow (window: RenderWindow): void {
+    public activeWindow(window: RenderWindow): void {
         this._curWindow = window;
     }
 
@@ -507,7 +488,7 @@ export class Root {
      * @en Reset the time cumulated
      * @zh 重置累计时间
      */
-    public resetCumulativeTime (): void {
+    public resetCumulativeTime(): void {
         this._cumulativeTime = 0;
     }
 
@@ -516,7 +497,7 @@ export class Root {
      * @zh 用于每帧执行渲染流程的入口函数
      * @param deltaTime @en The delta time since last update. @zh 距离上一帧间隔时间
      */
-    public frameMove (deltaTime: number): void {
+    public frameMove(deltaTime: number): void {
         this._frameTime = deltaTime;
 
         ++this._frameCount;
@@ -538,7 +519,7 @@ export class Root {
      * @zh 创建一个新的窗口
      * @param info @en The window creation information @zh 窗口描述信息
      */
-    public createWindow (info: IRenderWindowInfo): RenderWindow | null {
+    public createWindow(info: IRenderWindowInfo): RenderWindow | null {
         const window = this._createWindowFun(this);
         window.initialize(this.device, info);
         this._windows.push(window);
@@ -550,7 +531,7 @@ export class Root {
      * @zh 销毁指定的窗口
      * @param window The render window to be destroyed
      */
-    public destroyWindow (window: RenderWindow): void {
+    public destroyWindow(window: RenderWindow): void {
         for (let i = 0; i < this._windows.length; ++i) {
             if (this._windows[i] === window) {
                 window.destroy();
@@ -564,7 +545,7 @@ export class Root {
      * @en Destroy all render windows
      * @zh 销毁全部窗口
      */
-    public destroyWindows (): void {
+    public destroyWindows(): void {
         this._windows.forEach((window) => {
             window.destroy();
         });
@@ -576,7 +557,7 @@ export class Root {
      * @zh 创建渲染场景
      * @param info @en The creation information for render scene @zh 渲染场景描述信息
      */
-    public createScene (info: IRenderSceneInfo): RenderScene {
+    public createScene(info: IRenderSceneInfo): RenderScene {
         const scene: RenderScene = this._createSceneFun(this);
         scene.initialize(info);
         this._scenes.push(scene);
@@ -588,7 +569,7 @@ export class Root {
      * @zh 销毁指定的渲染场景
      * @param scene @en The render scene to be destroyed. @zh 要销毁的渲染场景
      */
-    public destroyScene (scene: RenderScene): void {
+    public destroyScene(scene: RenderScene): void {
         for (let i = 0; i < this._scenes.length; ++i) {
             if (this._scenes[i] === scene) {
                 scene.destroy();
@@ -602,7 +583,7 @@ export class Root {
      * @en Destroy all render scenes.
      * @zh 销毁全部场景。
      */
-    public destroyScenes (): void {
+    public destroyScenes(): void {
         this._scenes.forEach((scene) => {
             scene.destroy();
         });
@@ -615,7 +596,7 @@ export class Root {
      * @param ModelCtor @en The class of the model @zh 模型的类
      * @returns The model created
      */
-    public createModel<T extends Model> (ModelCtor: typeof Model): T {
+    public createModel<T extends Model>(ModelCtor: typeof Model): T {
         let p = this._modelPools.get(ModelCtor);
         if (!p) {
             this._modelPools.set(
@@ -638,7 +619,7 @@ export class Root {
      * @zh 销毁指定的模型
      * @param m @en The model to be destroyed @zh 要销毁的模型
      */
-    public destroyModel (m: Model): void {
+    public destroyModel(m: Model): void {
         const p = this._modelPools.get(m.constructor as Constructor<Model>);
         if (p) {
             p.free(m);
@@ -656,7 +637,7 @@ export class Root {
      * @zh 创建一个相机
      * @returns The camera created.
      */
-    public createCamera (): Camera {
+    public createCamera(): Camera {
         return this._cameraPool!.alloc();
     }
 
@@ -666,7 +647,7 @@ export class Root {
      * @param LightCtor @en The class of the light @zh 光源的类
      * @returns The light created
      */
-    public createLight<T extends Light> (LightCtor: new () => T): T {
+    public createLight<T extends Light>(LightCtor: new () => T): T {
         let l = this._lightPools.get(LightCtor);
         if (!l) {
             this._lightPools.set(
@@ -689,42 +670,9 @@ export class Root {
      * @zh 销毁指定的光源
      * @param l @en The light to be destroyed @zh 要销毁的光源
      */
-    public destroyLight (l: Light): void {
+    public destroyLight(l: Light): void {
         if (l.scene) {
             switch (l.type) {
-            case LightType.DIRECTIONAL:
-                l.scene.removeDirectionalLight(l as DirectionalLight);
-                break;
-            case LightType.SPHERE:
-                l.scene.removeSphereLight(l as SphereLight);
-                break;
-            case LightType.SPOT:
-                l.scene.removeSpotLight(l as SpotLight);
-                break;
-            case LightType.POINT:
-                l.scene.removePointLight(l as PointLight);
-                break;
-            case LightType.RANGED_DIRECTIONAL:
-                l.scene.removeRangedDirLight(l as RangedDirectionalLight);
-                break;
-            default:
-                break;
-            }
-        }
-        l.destroy();
-    }
-
-    /**
-     * @en recycle the given light to light object pool
-     * @zh 回收指定的光源到对象池
-     * @param l @en The light to be recycled @zh 要回收的光源
-     */
-    public recycleLight (l: Light): void {
-        const p = this._lightPools.get(l.constructor as Constructor<Light>);
-        if (p) {
-            p.free(l);
-            if (l.scene) {
-                switch (l.type) {
                 case LightType.DIRECTIONAL:
                     l.scene.removeDirectionalLight(l as DirectionalLight);
                     break;
@@ -738,18 +686,51 @@ export class Root {
                     l.scene.removePointLight(l as PointLight);
                     break;
                 case LightType.RANGED_DIRECTIONAL:
-                    l.scene.removeRangedDirLight(
-                            l as RangedDirectionalLight,
-                    );
+                    l.scene.removeRangedDirLight(l as RangedDirectionalLight);
                     break;
                 default:
                     break;
+            }
+        }
+        l.destroy();
+    }
+
+    /**
+     * @en recycle the given light to light object pool
+     * @zh 回收指定的光源到对象池
+     * @param l @en The light to be recycled @zh 要回收的光源
+     */
+    public recycleLight(l: Light): void {
+        const p = this._lightPools.get(l.constructor as Constructor<Light>);
+        if (p) {
+            p.free(l);
+            if (l.scene) {
+                switch (l.type) {
+                    case LightType.DIRECTIONAL:
+                        l.scene.removeDirectionalLight(l as DirectionalLight);
+                        break;
+                    case LightType.SPHERE:
+                        l.scene.removeSphereLight(l as SphereLight);
+                        break;
+                    case LightType.SPOT:
+                        l.scene.removeSpotLight(l as SpotLight);
+                        break;
+                    case LightType.POINT:
+                        l.scene.removePointLight(l as PointLight);
+                        break;
+                    case LightType.RANGED_DIRECTIONAL:
+                        l.scene.removeRangedDirLight(
+                            l as RangedDirectionalLight,
+                        );
+                        break;
+                    default:
+                        break;
                 }
             }
         }
     }
 
-    private _frameMoveBegin (): void {
+    private _frameMoveBegin(): void {
         for (let i = 0; i < this._scenes.length; ++i) {
             this._scenes[i].removeBatches();
         }
@@ -757,7 +738,7 @@ export class Root {
         this._cameraList.length = 0;
     }
 
-    private _frameMoveProcess (): void {
+    private _frameMoveProcess(): void {
         const { director } = cclegacy;
         const windows = this._windows;
         const cameraList = this._cameraList;
@@ -783,7 +764,7 @@ export class Root {
         }
     }
 
-    private _frameMoveEnd (): void {
+    private _frameMoveEnd(): void {
         const { director, Director } = cclegacy;
         const cameraList = this._cameraList;
         if (this._pipeline && cameraList.length > 0) {
@@ -804,21 +785,21 @@ export class Root {
         if (this._batcher) this._batcher.reset();
     }
 
-    private _resizeMaxJointForDS (): void {
+    private _resizeMaxJointForDS(): void {
         // TODO: usedUBOVectorCount should be estimated more carefully, the UBOs used could vary in different scenes.
         const usedUBOVectorCount = Math.max(
-            (UBOGlobalEnum.COUNT
-                + UBOCameraEnum.COUNT
-                + UBOShadowEnum.COUNT
-                + UBOLocalEnum.COUNT
-                + UBOWorldBound.COUNT)
-                / 4,
+            (UBOGlobalEnum.COUNT +
+                UBOCameraEnum.COUNT +
+                UBOShadowEnum.COUNT +
+                UBOLocalEnum.COUNT +
+                UBOWorldBound.COUNT) /
+                4,
             100,
         );
         let maxJoints = Math.floor(
-            (deviceManager.gfxDevice.capabilities.maxVertexUniformVectors
-                - usedUBOVectorCount)
-                / 3,
+            (deviceManager.gfxDevice.capabilities.maxVertexUniformVectors -
+                usedUBOVectorCount) /
+                3,
         );
         maxJoints = maxJoints < 256 ? maxJoints : 256;
         localDescriptorSetLayout_ResizeMaxJoints(maxJoints);

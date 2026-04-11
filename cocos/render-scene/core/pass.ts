@@ -22,26 +22,69 @@
  THE SOFTWARE.
 */
 
-import { DEBUG, EDITOR } from 'internal:constants';
-import { Root } from '../../root';
-import { TextureBase } from '../../asset/assets/texture-base';
-import { builtinResMgr } from '../../asset/asset-manager/builtin-res-mgr';
-import { getPhaseID } from '../../rendering/pass-phase';
-import { murmurhash2_32_gc, errorID, assertID, cclegacy, warnID } from '../../core';
+import { DEBUG, EDITOR } from "internal:constants";
+import { Root } from "../../root";
+import { TextureBase } from "../../asset/assets/texture-base";
+import { builtinResMgr } from "../../asset/asset-manager/builtin-res-mgr";
+import { getPhaseID } from "../../rendering/pass-phase";
 import {
-    BufferUsageBit, DynamicStateFlagBit, DynamicStateFlags, Feature, GetTypeSize, MemoryUsageBit, PrimitiveMode, Type, Color,
-    BlendState, BlendTarget, Buffer, BufferInfo, BufferViewInfo, DepthStencilState, DescriptorSet,
-    DescriptorSetInfo, DescriptorSetLayout, Device, RasterizerState, Sampler, Texture, Shader, PipelineLayout, deviceManager, UniformBlock,
-} from '../../gfx';
-import { EffectAsset } from '../../asset/assets/effect-asset';
-import { IProgramInfo, programLib } from './program-lib';
+    murmurhash2_32_gc,
+    errorID,
+    assertID,
+    cclegacy,
+    warnID,
+} from "../../core";
 import {
-    MacroRecord, MaterialProperty, customizeType, getBindingFromHandle, getDefaultFromType, getStringFromType,
-    getOffsetFromHandle, getTypeFromHandle, type2reader, type2writer, getCountFromHandle, type2validator,
-} from './pass-utils';
-import { RenderPassStage, RenderPriority, SetIndex } from '../../rendering/define';
-import { InstancedBuffer } from '../../rendering/instanced-buffer';
-import { ProgramLibrary } from '../../rendering/custom/private';
+    BufferUsageBit,
+    DynamicStateFlagBit,
+    DynamicStateFlags,
+    Feature,
+    GetTypeSize,
+    MemoryUsageBit,
+    PrimitiveMode,
+    Type,
+    Color,
+    BlendState,
+    BlendTarget,
+    Buffer,
+    BufferInfo,
+    BufferViewInfo,
+    DepthStencilState,
+    DescriptorSet,
+    DescriptorSetInfo,
+    DescriptorSetLayout,
+    Device,
+    RasterizerState,
+    Sampler,
+    Texture,
+    Shader,
+    PipelineLayout,
+    deviceManager,
+    UniformBlock,
+} from "../../gfx";
+import { EffectAsset } from "../../asset/assets/effect-asset";
+import { IProgramInfo, programLib } from "./program-lib";
+import {
+    MacroRecord,
+    MaterialProperty,
+    customizeType,
+    getBindingFromHandle,
+    getDefaultFromType,
+    getStringFromType,
+    getOffsetFromHandle,
+    getTypeFromHandle,
+    type2reader,
+    type2writer,
+    getCountFromHandle,
+    type2validator,
+} from "./pass-utils";
+import {
+    RenderPassStage,
+    RenderPriority,
+    SetIndex,
+} from "../../rendering/define";
+import { InstancedBuffer } from "../../rendering/instanced-buffer";
+import { ProgramLibrary } from "./program-library-interface";
 
 export interface IPassInfoFull extends EffectAsset.IPassInfo {
     // generated part
@@ -117,11 +160,19 @@ export class Pass {
      * @param hPass The pass handle point to the pass
      * @param info The pass override info
      */
-    public static fillPipelineInfo (pass: Pass, info: PassOverrides): void {
-        if (info.priority !== undefined) { pass._priority = info.priority; }
-        if (info.primitive !== undefined) { pass._primitive = info.primitive; }
-        if (info.stage !== undefined) { pass._stage = info.stage; }
-        if (info.dynamicStates !== undefined) { pass._dynamicStates = info.dynamicStates; }
+    public static fillPipelineInfo(pass: Pass, info: PassOverrides): void {
+        if (info.priority !== undefined) {
+            pass._priority = info.priority;
+        }
+        if (info.primitive !== undefined) {
+            pass._primitive = info.primitive;
+        }
+        if (info.stage !== undefined) {
+            pass._stage = info.stage;
+        }
+        if (info.dynamicStates !== undefined) {
+            pass._dynamicStates = info.dynamicStates;
+        }
         if (info.phase !== undefined) {
             pass._phase = getPhaseID(info.phase);
         }
@@ -136,9 +187,15 @@ export class Pass {
                 });
             }
 
-            if (bsInfo.isA2C !== undefined) { bs.isA2C = bsInfo.isA2C; }
-            if (bsInfo.isIndepend !== undefined) { bs.isIndepend = bsInfo.isIndepend; }
-            if (bsInfo.blendColor !== undefined) { bs.blendColor = bsInfo.blendColor as Color; }
+            if (bsInfo.isA2C !== undefined) {
+                bs.isA2C = bsInfo.isA2C;
+            }
+            if (bsInfo.isIndepend !== undefined) {
+                bs.isIndepend = bsInfo.isIndepend;
+            }
+            if (bsInfo.blendColor !== undefined) {
+                bs.blendColor = bsInfo.blendColor as Color;
+            }
         }
         pass._rs.assign(info.rasterizerState as RasterizerState);
         pass._dss.assign(info.depthStencilState as DepthStencilState);
@@ -150,11 +207,12 @@ export class Pass {
      *
      * @param hPass Handle of the pass info used to compute hash value.
      */
-    public static getPassHash (pass: Pass): number {
-        let shaderKey = '';
+    public static getPassHash(pass: Pass): number {
+        let shaderKey = "";
         if (cclegacy.rendering && cclegacy.rendering.enableEffectImport) {
-            const key = (cclegacy.rendering.programLib as ProgramLibrary)
-                .getKey(pass._phaseID, pass.program, pass.defines);
+            const key = (
+                cclegacy.rendering.programLib as ProgramLibrary
+            ).getKey(pass._phaseID, pass.program, pass.defines);
             shaderKey = `${pass._phaseID.toString()},${key}`;
         } else {
             shaderKey = programLib.getKey(pass.program, pass.defines);
@@ -175,7 +233,7 @@ export class Pass {
     // internal data
     protected _passIndex = 0;
     protected _propertyIndex = 0;
-    protected _programName = '';
+    protected _programName = "";
     protected _dynamics: IPassDynamics = {};
     protected _propertyHandleMap: Record<string, number> = {};
     protected _rootBlock: ArrayBuffer | null = null;
@@ -190,21 +248,21 @@ export class Pass {
     protected _rs: RasterizerState = new RasterizerState();
     protected _priority: RenderPriority = RenderPriority.DEFAULT;
     protected _stage: RenderPassStage = RenderPassStage.DEFAULT;
-    protected _phase = getPhaseID('default');
-    protected _passID = 0xFFFFFFFF;
-    protected _subpassID = 0xFFFFFFFF;
-    protected _phaseID = 0xFFFFFFFF;
+    protected _phase = getPhaseID("default");
+    protected _passID = 0xffffffff;
+    protected _subpassID = 0xffffffff;
+    protected _phaseID = 0xffffffff;
     protected _primitive: PrimitiveMode = PrimitiveMode.TRIANGLE_LIST;
     protected _batchingScheme: BatchingSchemes = BatchingSchemes.NONE;
     protected _dynamicStates: DynamicStateFlagBit = DynamicStateFlagBit.NONE;
     protected _instancedBuffers: Record<number, InstancedBuffer> = {};
     protected _hash = 0;
     // external references
-    protected declare _root: Root;
-    protected declare _device: Device;
+    declare protected _root: Root;
+    declare protected _device: Device;
     protected _rootBufferDirty = false;
 
-    constructor (root: Root) {
+    constructor(root: Root) {
         this._root = root;
         this._device = deviceManager.gfxDevice;
     }
@@ -213,7 +271,7 @@ export class Pass {
      * @en Initialize the pass with given pass info, shader will be compiled in the init process
      * @zh 根据指定参数初始化当前 pass，shader 会在这一阶段就尝试编译。
      */
-    public initialize (info: IPassInfoFull): void {
+    public initialize(info: IPassInfoFull): void {
         this._doInit(info);
         this.resetUBOs();
         this.resetTextures();
@@ -238,8 +296,15 @@ export class Pass {
      * pass.setUniform(hThreshold, 0.5); // now, albedoScale.w = 0.5
      * ```
      */
-    public getHandle (name: string, offset = 0, targetType = Type.UNKNOWN): number {
-        let handle = this._propertyHandleMap[name]; if (!handle) { return 0; }
+    public getHandle(
+        name: string,
+        offset = 0,
+        targetType = Type.UNKNOWN,
+    ): number {
+        let handle = this._propertyHandleMap[name];
+        if (!handle) {
+            return 0;
+        }
         if (targetType) {
             handle = customizeType(handle, targetType);
         } else if (offset) {
@@ -253,9 +318,11 @@ export class Pass {
      * @zh 获取指定 uniform 的 binding。
      * @param name The name of target uniform
      */
-    public getBinding (name: string): number {
+    public getBinding(name: string): number {
         const handle = this.getHandle(name);
-        if (!handle) { return -1; }
+        if (!handle) {
+            return -1;
+        }
         return getBindingFromHandle(handle);
     }
 
@@ -265,14 +332,19 @@ export class Pass {
      * @param handle The handle for the target uniform
      * @param value New value
      */
-    public setUniform (handle: number, value: MaterialProperty): void {
+    public setUniform(handle: number, value: MaterialProperty): void {
         const binding = getBindingFromHandle(handle);
         const type = getTypeFromHandle(handle);
         const ofs = getOffsetFromHandle(handle);
         const block = this._getBlockView(type, binding);
         if (DEBUG) {
             const validator = type2validator[type];
-            assertID(Boolean(validator && validator(value)), 12011, binding, Type[type]);
+            assertID(
+                Boolean(validator && validator(value)),
+                12011,
+                binding,
+                Type[type],
+            );
         }
         type2writer[type](block, value, ofs);
         this._rootBufferDirty = true;
@@ -284,7 +356,7 @@ export class Pass {
      * @param handle The handle for the target uniform
      * @param out The output property to store the result
      */
-    public getUniform<T extends MaterialProperty> (handle: number, out: T): T {
+    public getUniform<T extends MaterialProperty>(handle: number, out: T): T {
         const binding = getBindingFromHandle(handle);
         const type = getTypeFromHandle(handle);
         const ofs = getOffsetFromHandle(handle);
@@ -298,14 +370,16 @@ export class Pass {
      * @param handle The handle for the target uniform
      * @param value New value
      */
-    public setUniformArray (handle: number, value: MaterialProperty[]): void {
+    public setUniformArray(handle: number, value: MaterialProperty[]): void {
         const binding = getBindingFromHandle(handle);
         const type = getTypeFromHandle(handle);
         const stride = GetTypeSize(type) >> 2;
         const block = this._getBlockView(type, binding);
         let ofs = getOffsetFromHandle(handle);
         for (let i = 0; i < value.length; i++, ofs += stride) {
-            if (value[i] === null) { continue; }
+            if (value[i] === null) {
+                continue;
+            }
             type2writer[type](block, value[i], ofs);
         }
         this._rootBufferDirty = true;
@@ -317,7 +391,7 @@ export class Pass {
      * @param binding The binding for target uniform of texture type
      * @param value Target texture
      */
-    public bindTexture (binding: number, value: Texture, index?: number): void {
+    public bindTexture(binding: number, value: Texture, index?: number): void {
         this._descriptorSet.bindTexture(binding, value, index || 0);
     }
 
@@ -327,7 +401,7 @@ export class Pass {
      * @param binding The binding for target uniform of sampler type
      * @param value Target sampler
      */
-    public bindSampler (binding: number, value: Sampler, index?: number): void {
+    public bindSampler(binding: number, value: Sampler, index?: number): void {
         this._descriptorSet.bindSampler(binding, value, index || 0);
     }
 
@@ -337,10 +411,13 @@ export class Pass {
      * @param state Target dynamic state
      * @param value Target value
      */
-    public setDynamicState (state: DynamicStateFlagBit, value: number): void {
+    public setDynamicState(state: DynamicStateFlagBit, value: number): void {
         const ds = this._dynamics[state];
-        if (ds && ds.value === value) { return; }
-        ds.value = value; ds.dirty = true;
+        if (ds && ds.value === value) {
+            return;
+        }
+        ds.value = value;
+        ds.dirty = true;
     }
 
     /**
@@ -349,7 +426,10 @@ export class Pass {
      * @param original The original pass info
      * @param value The override pipeline state info
      */
-    public overridePipelineStates (original: EffectAsset.IPassInfo, overrides: PassOverrides): void {
+    public overridePipelineStates(
+        original: EffectAsset.IPassInfo,
+        overrides: PassOverrides,
+    ): void {
         warnID(12102);
     }
 
@@ -357,7 +437,7 @@ export class Pass {
      * @en Update the current uniforms data.
      * @zh 更新当前 Uniform 数据。
      */
-    public update (): void {
+    public update(): void {
         if (!this._descriptorSet) {
             errorID(12006);
             return;
@@ -370,15 +450,18 @@ export class Pass {
         this._descriptorSet.update();
     }
 
-    public getInstancedBuffer (extraKey = 0): InstancedBuffer {
-        return this._instancedBuffers[extraKey] || (this._instancedBuffers[extraKey] = new InstancedBuffer(this));
+    public getInstancedBuffer(extraKey = 0): InstancedBuffer {
+        return (
+            this._instancedBuffers[extraKey] ||
+            (this._instancedBuffers[extraKey] = new InstancedBuffer(this))
+        );
     }
 
     /**
      * @en Destroy the current pass.
      * @zh 销毁当前 pass。
      */
-    public destroy (): void {
+    public destroy(): void {
         for (let i = 0; i < this._shaderInfo.blocks.length; i++) {
             const u = this._shaderInfo.blocks[i];
             this._buffers[u.binding].destroy();
@@ -405,9 +488,11 @@ export class Pass {
      * This method does not support array type uniform.
      * @zh 重置指定（非数组） Uniform 为 [[EffectAsset]] 默认值。
      */
-    public resetUniform (name: string): void {
+    public resetUniform(name: string): void {
         const handle = this.getHandle(name);
-        if (!handle) { return; }
+        if (!handle) {
+            return;
+        }
         const type = getTypeFromHandle(handle);
         const binding = getBindingFromHandle(handle);
         const ofs = getOffsetFromHandle(handle);
@@ -417,7 +502,9 @@ export class Pass {
         const givenDefault = info && info.value;
         const value = (givenDefault || getDefaultFromType(type)) as number[];
         const size = (GetTypeSize(type) >> 2) * count;
-        for (let k = 0; k + value.length <= size; k += value.length) { block.set(value, ofs + k); }
+        for (let k = 0; k + value.length <= size; k += value.length) {
+            block.set(value, ofs + k);
+        }
         this._rootBufferDirty = true;
     }
 
@@ -425,22 +512,32 @@ export class Pass {
      * @en Resets the value of the given texture by name to the default value in [[EffectAsset]].
      * @zh 重置指定贴图为 [[EffectAsset]] 默认值。
      */
-    public resetTexture (name: string, index?: number): void {
+    public resetTexture(name: string, index?: number): void {
         const handle = this.getHandle(name);
-        if (!handle) { return; }
+        if (!handle) {
+            return;
+        }
         const type = getTypeFromHandle(handle);
         const binding = getBindingFromHandle(handle);
         const info = this._properties[name];
         const value = info && info.value;
         let textureBase: TextureBase;
-        if (typeof value === 'string') {
-            textureBase = builtinResMgr.get<TextureBase>(`${value}${getStringFromType(type)}`);
+        if (typeof value === "string") {
+            textureBase = builtinResMgr.get<TextureBase>(
+                `${value}${getStringFromType(type)}`,
+            );
         } else {
-            textureBase = value as TextureBase || builtinResMgr.get<TextureBase>(getDefaultFromType(type) as string);
+            textureBase =
+                (value as TextureBase) ||
+                builtinResMgr.get<TextureBase>(
+                    getDefaultFromType(type) as string,
+                );
         }
         const texture = textureBase && textureBase.getGFXTexture()!;
-        const samplerInfo = info && info.samplerHash !== undefined
-            ? Sampler.unpackFromHash(info.samplerHash) : textureBase && textureBase.getSamplerInfo();
+        const samplerInfo =
+            info && info.samplerHash !== undefined
+                ? Sampler.unpackFromHash(info.samplerHash)
+                : textureBase && textureBase.getSamplerInfo();
         const sampler = this._device.getSampler(samplerInfo);
         this._descriptorSet.bindSampler(binding, sampler, index || 0);
         this._descriptorSet.bindTexture(binding, texture, index || 0);
@@ -450,7 +547,7 @@ export class Pass {
      * @en Resets all uniform buffer objects to the default values in [[EffectAsset]]
      * @zh 重置所有 UBO 为默认值。
      */
-    public resetUBOs (): void {
+    public resetUBOs(): void {
         for (let i = 0; i < this._shaderInfo.blocks.length; i++) {
             const u = this._shaderInfo.blocks[i];
             let ofs = 0;
@@ -459,9 +556,12 @@ export class Pass {
                 const block = this._getBlockView(cur.type, u.binding);
                 const info = this._properties[cur.name];
                 const givenDefault = info && info.value;
-                const value = (givenDefault || getDefaultFromType(cur.type)) as number[];
+                const value = (givenDefault ||
+                    getDefaultFromType(cur.type)) as number[];
                 const size = (GetTypeSize(cur.type) >> 2) * cur.count;
-                for (let k = 0; k + value.length <= size; k += value.length) { block.set(value, ofs + k); }
+                for (let k = 0; k + value.length <= size; k += value.length) {
+                    block.set(value, ofs + k);
+                }
                 ofs += size;
             }
         }
@@ -472,7 +572,7 @@ export class Pass {
      * @en Resets all textures and samplers to the default values in [[EffectAsset]]
      * @zh 重置所有 texture 和 sampler 为初始默认值。
      */
-    public resetTextures (): void {
+    public resetTextures(): void {
         if (cclegacy.rendering) {
             const set = this._shaderInfo.descriptors[SetIndex.MATERIAL];
             set.samplerTextures.forEach((combined) => {
@@ -494,7 +594,7 @@ export class Pass {
      * @en Try to compile the shader and retrieve related resources references.
      * @zh 尝试编译 shader 并获取相关资源引用。
      */
-    public tryCompile (): boolean {
+    public tryCompile(): boolean {
         const { pipeline } = this._root;
         if (!pipeline) {
             return false;
@@ -514,15 +614,26 @@ export class Pass {
                 return false;
             }
             this._shader = program.shader;
-            this._pipelineLayout = programLib.getPipelineLayout(this.device, this._phaseID, this._programName);
+            this._pipelineLayout = programLib.getPipelineLayout(
+                this.device,
+                this._phaseID,
+                this._programName,
+            );
         } else {
-            const shader = programLib.getGFXShader(this._device, this._programName, this._defines, pipeline);
+            const shader = programLib.getGFXShader(
+                this._device,
+                this._programName,
+                this._defines,
+                pipeline,
+            );
             if (!shader) {
                 warnID(12104, this._programName);
                 return false;
             }
             this._shader = shader;
-            this._pipelineLayout = programLib.getTemplateInfo(this._programName).pipelineLayout;
+            this._pipelineLayout = programLib.getTemplateInfo(
+                this._programName,
+            ).pipelineLayout;
         }
 
         this._hash = Pass.getPassHash(this);
@@ -534,7 +645,9 @@ export class Pass {
      * @zh 结合指定的编译宏组合获取当前 Pass 的 Shader Variant
      * @param patches The macro patches
      */
-    public getShaderVariant (patches: Readonly<IMacroPatch[] | null> = null): Shader | null {
+    public getShaderVariant(
+        patches: Readonly<IMacroPatch[] | null> = null,
+    ): Shader | null {
         if (!this._shader && !this.tryCompile()) {
             warnID(12105);
             return null;
@@ -546,7 +659,7 @@ export class Pass {
 
         if (EDITOR) {
             for (let i = 0; i < patches.length; i++) {
-                if (!patches[i].name.startsWith('CC_')) {
+                if (!patches[i].name.startsWith("CC_")) {
                     warnID(12106);
                     return null;
                 }
@@ -565,13 +678,24 @@ export class Pass {
 
         let shader: Shader | null = null;
         if (cclegacy.rendering && cclegacy.rendering.enableEffectImport) {
-            const program = (cclegacy.rendering.programLib as ProgramLibrary)
-                .getProgramVariant(this._device, this._phaseID, this._programName, this._defines);
+            const program = (
+                cclegacy.rendering.programLib as ProgramLibrary
+            ).getProgramVariant(
+                this._device,
+                this._phaseID,
+                this._programName,
+                this._defines,
+            );
             if (program) {
                 shader = program.shader;
             }
         } else {
-            shader = programLib.getGFXShader(this._device, this._programName, this._defines, pipeline);
+            shader = programLib.getGFXShader(
+                this._device,
+                this._programName,
+                this._defines,
+                pipeline,
+            );
         }
 
         for (let i = 0; i < patches.length; i++) {
@@ -581,7 +705,7 @@ export class Pass {
         return shader;
     }
 
-    protected get _isBlend (): boolean {
+    protected get _isBlend(): boolean {
         return this.blendState.targets.some((target) => target.blend);
     }
 
@@ -590,21 +714,22 @@ export class Pass {
      * @private
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public beginChangeStatesSilently (): void {}
+    public beginChangeStatesSilently(): void {}
 
     /**
      * @private
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public endChangeStatesSilently (): void {}
+    public endChangeStatesSilently(): void {}
 
-    protected _doInit (info: IPassInfoFull, copyDefines = false): void {
+    protected _doInit(info: IPassInfoFull, copyDefines = false): void {
         this._priority = RenderPriority.DEFAULT;
         this._stage = RenderPassStage.DEFAULT;
-        const enableEffectImport: boolean = cclegacy.rendering?.enableEffectImport;
+        const enableEffectImport: boolean =
+            cclegacy.rendering?.enableEffectImport;
         if (enableEffectImport) {
             const r = cclegacy.rendering;
-            if (typeof info.phase === 'number') {
+            if (typeof info.phase === "number") {
                 this._passID = (info as Pass)._passID;
                 this._subpassID = (info as Pass)._subpassID;
                 this._phaseID = (info as Pass)._phaseID;
@@ -612,8 +737,14 @@ export class Pass {
                 this._passID = r.getPassID(info.pass);
                 if (this._passID !== r.INVALID_ID) {
                     if (info.subpass) {
-                        this._subpassID = r.getSubpassID(this._passID, info.subpass);
-                        this._phaseID = r.getPhaseID(this._subpassID, info.phase);
+                        this._subpassID = r.getSubpassID(
+                            this._passID,
+                            info.subpass,
+                        );
+                        this._phaseID = r.getPhaseID(
+                            this._subpassID,
+                            info.phase,
+                        );
                     } else {
                         this._phaseID = r.getPhaseID(this._passID, info.phase);
                     }
@@ -627,30 +758,34 @@ export class Pass {
                 errorID(12108, info.program);
                 return;
             }
-        } else  {
+        } else {
             // Here we are in legacy-pipeline
             // eslint-disable-next-line no-lonely-if
-            if (typeof info.phase === 'number') {
+            if (typeof info.phase === "number") {
                 this._passID = (info as Pass)._passID;
-            } else if (info.pass && info.pass !== 'default') {
+            } else if (info.pass && info.pass !== "default") {
                 // In legacy pipeline, user might select invalid material,
                 // whose pass name is not 'default'.
                 // We should filter these passes.
                 // Here we set _passID to 0, if pass is not 'default'.
-                assertID(this._passID === 0xFFFFFFFF, 12110);
+                assertID(this._passID === 0xffffffff, 12110);
                 this._passID = 0;
             }
         }
-        this._phase = getPhaseID('default');
+        this._phase = getPhaseID("default");
         this._primitive = PrimitiveMode.TRIANGLE_LIST;
 
         this._passIndex = info.passIndex;
-        this._propertyIndex = info.propertyIndex !== undefined ? info.propertyIndex : info.passIndex;
+        this._propertyIndex =
+            info.propertyIndex !== undefined
+                ? info.propertyIndex
+                : info.passIndex;
         this._programName = info.program;
-        this._defines = copyDefines ? ({ ...info.defines }) : info.defines;
+        this._defines = copyDefines ? { ...info.defines } : info.defines;
         if (enableEffectImport) {
-            this._shaderInfo = (cclegacy.rendering.programLib as ProgramLibrary)
-                .getProgramInfo(this._phaseID, this._programName);
+            this._shaderInfo = (
+                cclegacy.rendering.programLib as ProgramLibrary
+            ).getProgramInfo(this._phaseID, this._programName);
         } else {
             this._shaderInfo = programLib.getTemplate(info.program);
         }
@@ -659,14 +794,24 @@ export class Pass {
         // init gfx
         const device = this._device;
         Pass.fillPipelineInfo(this, info);
-        if (info.stateOverrides) { Pass.fillPipelineInfo(this, info.stateOverrides); }
+        if (info.stateOverrides) {
+            Pass.fillPipelineInfo(this, info.stateOverrides);
+        }
 
         // init descriptor set
         if (enableEffectImport) {
-            _dsInfo.layout = (cclegacy.rendering.programLib as ProgramLibrary)
-                .getMaterialDescriptorSetLayout(this._device, this._phaseID, info.program);
+            _dsInfo.layout = (
+                cclegacy.rendering.programLib as ProgramLibrary
+            ).getMaterialDescriptorSetLayout(
+                this._device,
+                this._phaseID,
+                info.program,
+            );
         } else {
-            _dsInfo.layout = programLib.getDescriptorSetLayout(this._device, info.program);
+            _dsInfo.layout = programLib.getDescriptorSetLayout(
+                this._device,
+                info.program,
+            );
         }
         this._descriptorSet = this._device.createDescriptorSet(_dsInfo);
 
@@ -675,9 +820,15 @@ export class Pass {
         let blockSizes: number[];
         let handleMap: Record<string, number>;
         if (enableEffectImport) {
-            const programLib = (cclegacy.rendering.programLib as ProgramLibrary);
-            blockSizes = programLib.getBlockSizes(this._phaseID, this._programName);
-            handleMap = programLib.getHandleMap(this._phaseID, this._programName);
+            const programLib = cclegacy.rendering.programLib as ProgramLibrary;
+            blockSizes = programLib.getBlockSizes(
+                this._phaseID,
+                this._programName,
+            );
+            handleMap = programLib.getHandleMap(
+                this._phaseID,
+                this._programName,
+            );
         } else {
             const tmplInfo = programLib.getTemplateInfo(info.program);
             blockSizes = tmplInfo.blockSizes;
@@ -686,28 +837,45 @@ export class Pass {
 
         // build uniform blocks
         if (enableEffectImport) {
-            const programLib = (cclegacy.rendering.programLib as ProgramLibrary);
-            const shaderInfo = programLib.getShaderInfo(this._phaseID, this.program);
-            this._buildMaterialUniformBlocks(device, shaderInfo.blocks, blockSizes);
+            const programLib = cclegacy.rendering.programLib as ProgramLibrary;
+            const shaderInfo = programLib.getShaderInfo(
+                this._phaseID,
+                this.program,
+            );
+            this._buildMaterialUniformBlocks(
+                device,
+                shaderInfo.blocks,
+                blockSizes,
+            );
         } else {
             this._buildUniformBlocks(device, blocks, blockSizes);
         }
 
         // store handles
-        const directHandleMap = this._propertyHandleMap = handleMap;
+        const directHandleMap = (this._propertyHandleMap = handleMap);
         const indirectHandleMap: Record<string, number> = {};
         for (const name in this._properties) {
             const prop = this._properties[name];
-            if (!prop.handleInfo) { continue; }
-            indirectHandleMap[name] = this.getHandle.apply(this, prop.handleInfo)!;
+            if (!prop.handleInfo) {
+                continue;
+            }
+            indirectHandleMap[name] = this.getHandle.apply(
+                this,
+                prop.handleInfo,
+            )!;
         }
         Object.assign(directHandleMap, indirectHandleMap);
     }
 
-    private _buildUniformBlocks (device: Device, blocks: EffectAsset.IBlockInfo[], blockSizes: number[]): void {
+    private _buildUniformBlocks(
+        device: Device,
+        blocks: EffectAsset.IBlockInfo[],
+        blockSizes: number[],
+    ): void {
         const alignment = device.capabilities.uboOffsetAlignment;
         const startOffsets: number[] = [];
-        let lastSize = 0; let lastOffset = 0;
+        let lastSize = 0;
+        let lastOffset = 0;
         for (let i = 0; i < blocks.length; i++) {
             const size = blockSizes[i];
             startOffsets.push(lastOffset);
@@ -716,7 +884,9 @@ export class Pass {
         }
         // create gfx buffer resource
         // lastSize is aligned to 16, the same as _bufferViewInfo.range.
-        const totalSize = startOffsets[startOffsets.length - 1] + Math.ceil(lastSize / 16) * 16;
+        const totalSize =
+            startOffsets[startOffsets.length - 1] +
+            Math.ceil(lastSize / 16) * 16;
         if (totalSize) {
             // https://bugs.chromium.org/p/chromium/issues/detail?id=988988
             _bufferInfo.size = Math.ceil(totalSize / 16) * 16;
@@ -730,7 +900,8 @@ export class Pass {
             _bufferViewInfo.buffer = this._rootBuffer!;
             _bufferViewInfo.offset = startOffsets[count++];
             _bufferViewInfo.range = Math.ceil(size / 16) * 16;
-            const bufferView = this._buffers[binding] = device.createBuffer(_bufferViewInfo);
+            const bufferView = (this._buffers[binding] =
+                device.createBuffer(_bufferViewInfo));
             // non-builtin UBO data pools, note that the effect compiler
             // guarantees these bindings to be consecutive, starting from 0 and non-array-typed
             this._blocks[binding] = new Float32Array(
@@ -738,15 +909,24 @@ export class Pass {
                 _bufferViewInfo.offset,
                 size / Float32Array.BYTES_PER_ELEMENT,
             );
-            this._blocksInt[binding] = new Int32Array(this._blocks[binding].buffer, this._blocks[binding].byteOffset, this._blocks[binding].length);
+            this._blocksInt[binding] = new Int32Array(
+                this._blocks[binding].buffer,
+                this._blocks[binding].byteOffset,
+                this._blocks[binding].length,
+            );
             this._descriptorSet.bindBuffer(binding, bufferView);
         }
     }
 
-    private _buildMaterialUniformBlocks (device: Device, blocks: UniformBlock[], blockSizes: number[]): void {
+    private _buildMaterialUniformBlocks(
+        device: Device,
+        blocks: UniformBlock[],
+        blockSizes: number[],
+    ): void {
         const alignment = device.capabilities.uboOffsetAlignment;
         const startOffsets: number[] = [];
-        let lastSize = 0; let lastOffset = 0;
+        let lastSize = 0;
+        let lastOffset = 0;
         for (let i = 0; i < blocks.length; i++) {
             const block = blocks[i];
             if (block.set !== _materialSet) {
@@ -778,7 +958,8 @@ export class Pass {
             _bufferViewInfo.buffer = this._rootBuffer!;
             _bufferViewInfo.offset = startOffsets[count++];
             _bufferViewInfo.range = Math.ceil(size / 16) * 16;
-            const bufferView = this._buffers[binding] = device.createBuffer(_bufferViewInfo);
+            const bufferView = (this._buffers[binding] =
+                device.createBuffer(_bufferViewInfo));
             // non-builtin UBO data pools, note that the effect compiler
             // guarantees these bindings to be consecutive, starting from 0 and non-array-typed
             this._blocks[binding] = new Float32Array(
@@ -786,12 +967,16 @@ export class Pass {
                 _bufferViewInfo.offset,
                 size / Float32Array.BYTES_PER_ELEMENT,
             );
-            this._blocksInt[binding] = new Int32Array(this._blocks[binding].buffer, this._blocks[binding].byteOffset, this._blocks[binding].length);
+            this._blocksInt[binding] = new Int32Array(
+                this._blocks[binding].buffer,
+                this._blocks[binding].byteOffset,
+                this._blocks[binding].length,
+            );
             this._descriptorSet.bindBuffer(binding, bufferView);
         }
     }
 
-    protected _syncBatchingScheme (): void {
+    protected _syncBatchingScheme(): void {
         if (this._defines.USE_INSTANCING) {
             if (this._device.hasFeature(Feature.INSTANCED_ARRAYS)) {
                 this._batchingScheme = BatchingSchemes.INSTANCING;
@@ -804,8 +989,13 @@ export class Pass {
         }
     }
 
-    private _getBlockView (type: Type, binding: number): Int32Array | Float32Array {
-        return type < Type.FLOAT ? this._blocksInt[binding] : this._blocks[binding];
+    private _getBlockView(
+        type: Type,
+        binding: number,
+    ): Int32Array | Float32Array {
+        return type < Type.FLOAT
+            ? this._blocksInt[binding]
+            : this._blocks[binding];
     }
 
     /**
@@ -813,7 +1003,11 @@ export class Pass {
      * @mangle
      * Only for UI
      */
-    public _initPassFromTarget (target: Pass, dss: DepthStencilState, hashFactor: number): void {
+    public _initPassFromTarget(
+        target: Pass,
+        dss: DepthStencilState,
+        hashFactor: number,
+    ): void {
         this._priority = target.priority;
         this._stage = target.stage;
         this._phase = target.phase;
@@ -840,10 +1034,13 @@ export class Pass {
         this._shader = target._shader;
 
         if (cclegacy.rendering && cclegacy.rendering.enableEffectImport) {
-            this._pipelineLayout = (cclegacy.rendering.programLib as ProgramLibrary)
-                .getPipelineLayout(this.device, this._phaseID, this._programName);
+            this._pipelineLayout = (
+                cclegacy.rendering.programLib as ProgramLibrary
+            ).getPipelineLayout(this.device, this._phaseID, this._programName);
         } else {
-            this._pipelineLayout = programLib.getTemplateInfo(this._programName).pipelineLayout;
+            this._pipelineLayout = programLib.getTemplateInfo(
+                this._programName,
+            ).pipelineLayout;
         }
         this._hash = target._hash ^ hashFactor;
     }
@@ -853,62 +1050,127 @@ export class Pass {
      * @engineInternal
      * @mangle
      */
-    public _updatePassHash (): void {
+    public _updatePassHash(): void {
         this._hash = Pass.getPassHash(this);
     }
 
     // infos
-    get root (): Root { return this._root; }
-    get device (): Device { return this._device; }
-    get shaderInfo (): IProgramInfo { return this._shaderInfo; }
-    get localSetLayout (): DescriptorSetLayout {
+    get root(): Root {
+        return this._root;
+    }
+    get device(): Device {
+        return this._device;
+    }
+    get shaderInfo(): IProgramInfo {
+        return this._shaderInfo;
+    }
+    get localSetLayout(): DescriptorSetLayout {
         if (cclegacy.rendering && cclegacy.rendering.enableEffectImport) {
-            return (cclegacy.rendering.programLib as ProgramLibrary)
-                .getLocalDescriptorSetLayout(this._device, this._phaseID, this._programName);
+            return (
+                cclegacy.rendering.programLib as ProgramLibrary
+            ).getLocalDescriptorSetLayout(
+                this._device,
+                this._phaseID,
+                this._programName,
+            );
         } else {
-            return programLib.getDescriptorSetLayout(this._device, this._programName, true);
+            return programLib.getDescriptorSetLayout(
+                this._device,
+                this._programName,
+                true,
+            );
         }
     }
-    get program (): string { return this._programName; }
-    get properties (): Record<string, EffectAsset.IPropertyInfo> { return this._properties; }
-    get defines (): Record<string, string | number | boolean> { return this._defines; }
-    get passIndex (): number { return this._passIndex; }
-    get propertyIndex (): number { return this._propertyIndex; }
+    get program(): string {
+        return this._programName;
+    }
+    get properties(): Record<string, EffectAsset.IPropertyInfo> {
+        return this._properties;
+    }
+    get defines(): Record<string, string | number | boolean> {
+        return this._defines;
+    }
+    get passIndex(): number {
+        return this._passIndex;
+    }
+    get propertyIndex(): number {
+        return this._propertyIndex;
+    }
     // data
-    get dynamics (): IPassDynamics { return this._dynamics; }
-    get blocks (): Float32Array[] { return this._blocks; }
-    get blocksInt (): Int32Array[] { return this._blocksInt; }
-    get rootBufferDirty (): boolean { return this._rootBufferDirty; }
+    get dynamics(): IPassDynamics {
+        return this._dynamics;
+    }
+    get blocks(): Float32Array[] {
+        return this._blocks;
+    }
+    get blocksInt(): Int32Array[] {
+        return this._blocksInt;
+    }
+    get rootBufferDirty(): boolean {
+        return this._rootBufferDirty;
+    }
     /**
      * @engineInternal
      * @mangle
      * Currently, can not just mark setter as engine internal, so change to a function.
      */
-    setRootBufferDirty (val: boolean): void { this._rootBufferDirty = val; }
+    setRootBufferDirty(val: boolean): void {
+        this._rootBufferDirty = val;
+    }
     // states
-    get priority (): RenderPriority { return this._priority; }
+    get priority(): RenderPriority {
+        return this._priority;
+    }
     /**
      * @engineInternal
      * @mangle
      * Currently, can not just mark setter as engine internal, so change to a function.
      */
-    setPriority (val: RenderPriority): void { this._priority = val; }
-    get primitive (): PrimitiveMode { return this._primitive; }
-    get stage (): RenderPassStage { return this._stage; }
-    get phase (): number { return this._phase; }
-    get passID (): number { return this._passID; }
-    get phaseID (): number { return this._phaseID; }
-    get rasterizerState (): RasterizerState { return this._rs; }
-    get depthStencilState (): DepthStencilState { return this._dss; }
-    get blendState (): BlendState { return this._bs; }
-    get dynamicStates (): DynamicStateFlags { return this._dynamicStates; }
-    get batchingScheme (): BatchingSchemes { return this._batchingScheme; }
-    get descriptorSet (): DescriptorSet { return this._descriptorSet; }
-    get hash (): number { return this._hash; }
-    get pipelineLayout (): PipelineLayout { return this._pipelineLayout; }
+    setPriority(val: RenderPriority): void {
+        this._priority = val;
+    }
+    get primitive(): PrimitiveMode {
+        return this._primitive;
+    }
+    get stage(): RenderPassStage {
+        return this._stage;
+    }
+    get phase(): number {
+        return this._phase;
+    }
+    get passID(): number {
+        return this._passID;
+    }
+    get phaseID(): number {
+        return this._phaseID;
+    }
+    get rasterizerState(): RasterizerState {
+        return this._rs;
+    }
+    get depthStencilState(): DepthStencilState {
+        return this._dss;
+    }
+    get blendState(): BlendState {
+        return this._bs;
+    }
+    get dynamicStates(): DynamicStateFlags {
+        return this._dynamicStates;
+    }
+    get batchingScheme(): BatchingSchemes {
+        return this._batchingScheme;
+    }
+    get descriptorSet(): DescriptorSet {
+        return this._descriptorSet;
+    }
+    get hash(): number {
+        return this._hash;
+    }
+    get pipelineLayout(): PipelineLayout {
+        return this._pipelineLayout;
+    }
 }
 
-function serializeBlendState (bs: BlendState): string {
+function serializeBlendState(bs: BlendState): string {
     let res = `,bs,${bs.isA2C}`;
     bs.targets.forEach((t) => {
         res += `,bt,${t.blend},${t.blendEq},${t.blendAlphaEq},${t.blendColorMask}`;
@@ -917,11 +1179,11 @@ function serializeBlendState (bs: BlendState): string {
     return res;
 }
 
-function serializeRasterizerState (rs: RasterizerState): string {
+function serializeRasterizerState(rs: RasterizerState): string {
     return `,rs,${rs.cullMode},${rs.depthBias},${rs.isFrontFaceCCW}`;
 }
 
-function serializeDepthStencilState (dss: DepthStencilState): string {
+function serializeDepthStencilState(dss: DepthStencilState): string {
     let res = `,dss,${dss.depthTest},${dss.depthWrite},${dss.depthFunc}`;
     res += `,${dss.stencilTestFront},${dss.stencilFuncFront},${dss.stencilRefFront},${dss.stencilReadMaskFront}`;
     res += `,${dss.stencilFailOpFront},${dss.stencilZFailOpFront},${dss.stencilPassOpFront},${dss.stencilWriteMaskFront}`;

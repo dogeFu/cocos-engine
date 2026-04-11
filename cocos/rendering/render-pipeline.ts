@@ -22,31 +22,69 @@
  THE SOFTWARE.
 */
 
-import { ccclass, displayOrder, serializable, type } from 'cc.decorator';
-import { systemInfo } from 'pal/system-info';
-import { sceneCulling, validPunctualLightsCulling } from './scene-culling';
-import { Asset } from '../asset/assets/asset';
-import { AccessFlagBit, Attribute, Buffer, BufferInfo, BufferUsageBit, ClearFlagBit, ClearFlags, ColorAttachment, CommandBuffer,
-    DepthStencilAttachment, DescriptorSet, Device, Feature, Format, FormatFeatureBit, Framebuffer, FramebufferInfo, InputAssembler,
-    InputAssemblerInfo, LoadOp, MemoryUsageBit, Rect, RenderPass, RenderPassInfo, Sampler, StoreOp, SurfaceTransform, Swapchain,
-    Texture, TextureInfo, TextureType, TextureUsageBit, Viewport, GeneralBarrierInfo, deviceManager, DescriptorSetLayout,
-} from '../gfx';
-import { MacroRecord } from '../render-scene/core/pass-utils';
-import { RenderWindow } from '../render-scene/core/render-window';
-import { Camera, SkyBoxFlagValue } from '../render-scene/scene/camera';
-import { Model } from '../render-scene/scene/model';
-import { GlobalDSManager } from './global-descriptor-set-manager';
-import { GeometryRenderer } from './geometry-renderer';
-import { PipelineSceneData } from './pipeline-scene-data';
-import { PipelineUBO } from './pipeline-ubo';
-import { RenderFlow } from './render-flow';
-import { IPipelineEvent, PipelineEventCallback, PipelineEventProcessor, PipelineEventType } from './pipeline-event';
-import { decideProfilerCamera } from './pipeline-funcs';
-import { OS } from '../../pal/system-info/enum-type';
-import { macro, murmurhash2_32_gc, cclegacy } from '../core';
-import { UBOSkinning } from './define';
-import { PipelineInputAssemblerData } from './render-types';
-import { PipelineRuntime } from './custom/pipeline';
+import { ccclass, displayOrder, serializable, type } from "cc.decorator";
+import { systemInfo } from "pal/system-info";
+import { sceneCulling, validPunctualLightsCulling } from "./scene-culling";
+import { Asset } from "../asset/assets/asset";
+import {
+    AccessFlagBit,
+    Attribute,
+    Buffer,
+    BufferInfo,
+    BufferUsageBit,
+    ClearFlagBit,
+    ClearFlags,
+    ColorAttachment,
+    CommandBuffer,
+    DepthStencilAttachment,
+    DescriptorSet,
+    Device,
+    Feature,
+    Format,
+    FormatFeatureBit,
+    Framebuffer,
+    FramebufferInfo,
+    InputAssembler,
+    InputAssemblerInfo,
+    LoadOp,
+    MemoryUsageBit,
+    Rect,
+    RenderPass,
+    RenderPassInfo,
+    Sampler,
+    StoreOp,
+    SurfaceTransform,
+    Swapchain,
+    Texture,
+    TextureInfo,
+    TextureType,
+    TextureUsageBit,
+    Viewport,
+    GeneralBarrierInfo,
+    deviceManager,
+    DescriptorSetLayout,
+} from "../gfx";
+import { MacroRecord } from "../render-scene/core/pass-utils";
+import { RenderWindow } from "../render-scene/core/render-window";
+import { Camera, SkyBoxFlagValue } from "../render-scene/scene/camera";
+import { Model } from "../render-scene/scene/model";
+import { GlobalDSManager } from "./global-descriptor-set-manager";
+import { GeometryRenderer } from "./geometry-renderer";
+import { PipelineSceneData } from "./pipeline-scene-data";
+import { PipelineUBO } from "./pipeline-ubo";
+import { RenderFlow } from "./render-flow";
+import {
+    IPipelineEvent,
+    PipelineEventCallback,
+    PipelineEventProcessor,
+    PipelineEventType,
+} from "./pipeline-event";
+import { decideProfilerCamera } from "./pipeline-funcs";
+import { OS } from "../../pal/system-info/enum-type";
+import { macro, murmurhash2_32_gc, cclegacy } from "../core";
+import { UBOSkinning } from "./define";
+import { PipelineInputAssemblerData } from "./render-types";
+import { PipelineRuntime } from "./pipeline-types";
 
 /**
  * @en Render pipeline information descriptor
@@ -87,7 +125,7 @@ export class PipelineRenderData {
     bloom: BloomRenderData | null = null;
 }
 
-function hashFrameBuffer (fbo: Framebuffer): number {
+function hashFrameBuffer(fbo: Framebuffer): number {
     let hash = 666;
     for (const color of fbo.colorTextures) {
         const info = color?.info;
@@ -114,14 +152,17 @@ function hashFrameBuffer (fbo: Framebuffer): number {
  * 这个类主要包含一些通用的管线配置，必要的渲染资源和一些 [[RenderFlow]]。
  * 渲染流程函数 [[render]] 会由 [[Root]] 发起调用并对所有 [[Camera]] 执行预设的渲染流程。
  */
-@ccclass('cc.RenderPipeline')
-export abstract class RenderPipeline extends Asset implements IPipelineEvent, PipelineRuntime {
+@ccclass("cc.RenderPipeline")
+export abstract class RenderPipeline
+    extends Asset
+    implements IPipelineEvent, PipelineRuntime
+{
     /**
      * @en The tag of pipeline.
      * @zh 管线的标签。
      * @readonly
      */
-    get tag (): number {
+    get tag(): number {
         return this._tag;
     }
 
@@ -130,7 +171,7 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * @zh 管线的渲染流程列表。
      * @readonly
      */
-    get flows (): RenderFlow[] {
+    get flows(): RenderFlow[] {
         return this._flows;
     }
 
@@ -158,9 +199,10 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
     protected _quadVBOffscreen: Buffer | null = null;
     protected _quadIAOnscreen: InputAssembler | null = null;
     protected _quadIAOffscreen: InputAssembler | null = null;
-    protected _eventProcessor: PipelineEventProcessor = new PipelineEventProcessor();
+    protected _eventProcessor: PipelineEventProcessor =
+        new PipelineEventProcessor();
 
-    constructor (name?: string) {
+    constructor(name?: string) {
         super(name);
     }
 
@@ -168,15 +210,15 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * @zh
      * 四边形输入汇集器。
      */
-    public get quadIAOnscreen (): InputAssembler {
+    public get quadIAOnscreen(): InputAssembler {
         return this._quadIAOnscreen!;
     }
 
-    public get quadIAOffscreen (): InputAssembler {
+    public get quadIAOffscreen(): InputAssembler {
         return this._quadIAOffscreen!;
     }
 
-    public getPipelineRenderData (): PipelineRenderData {
+    public getPipelineRenderData(): PipelineRenderData {
         return this._pipelineRenderData!;
     }
 
@@ -187,7 +229,7 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * @zh 常量宏定义字符串，运行时全程不会改变，用于给 shader 传一些只和平台相关的参数。
      * @readonly
      */
-    get constantMacros (): string {
+    get constantMacros(): string {
         return this._constantMacros;
     }
 
@@ -198,66 +240,66 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * @zh 当前的全局宏定义，用于控制如 IBL、雾效等模块。
      * @readonly
      */
-    get macros (): MacroRecord {
+    get macros(): MacroRecord {
         return this._macros;
     }
 
-    get device (): Device {
+    get device(): Device {
         return this._device;
     }
 
-    get globalDSManager (): GlobalDSManager {
+    get globalDSManager(): GlobalDSManager {
         return this._globalDSManager;
     }
 
-    get descriptorSetLayout (): DescriptorSetLayout {
+    get descriptorSetLayout(): DescriptorSetLayout {
         return this._globalDSManager.descriptorSetLayout;
     }
 
-    get descriptorSet (): DescriptorSet {
+    get descriptorSet(): DescriptorSet {
         return this._descriptorSet;
     }
 
-    get commandBuffers (): CommandBuffer[] {
+    get commandBuffers(): CommandBuffer[] {
         return this._commandBuffers;
     }
 
-    get pipelineUBO (): PipelineUBO {
+    get pipelineUBO(): PipelineUBO {
         return this._pipelineUBO;
     }
 
-    get pipelineSceneData (): PipelineSceneData {
+    get pipelineSceneData(): PipelineSceneData {
         return this._pipelineSceneData;
     }
 
-    set profiler (value) {
+    set profiler(value) {
         this._profiler = value;
     }
 
-    get profiler (): Model | null {
+    get profiler(): Model | null {
         return this._profiler;
     }
 
     /**
      * @deprecated since v3.6, please use camera.geometryRenderer instead.
      */
-    get geometryRenderer (): GeometryRenderer | null {
+    get geometryRenderer(): GeometryRenderer | null {
         return this._geometryRenderer;
     }
 
-    set clusterEnabled (value) {
+    set clusterEnabled(value) {
         this._clusterEnabled = value;
     }
 
-    get clusterEnabled (): boolean {
+    get clusterEnabled(): boolean {
         return this._clusterEnabled;
     }
 
-    set bloomEnabled (value) {
+    set bloomEnabled(value) {
         this._bloomEnabled = value;
     }
 
-    get bloomEnabled (): boolean {
+    get bloomEnabled(): boolean {
         return this._bloomEnabled;
     }
 
@@ -267,10 +309,10 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
     protected _commandBuffers: CommandBuffer[] = [];
     protected _pipelineUBO = new PipelineUBO();
     protected _macros: MacroRecord = {};
-    protected _constantMacros = '';
+    protected _constantMacros = "";
     protected _profiler: Model | null = null;
     protected _geometryRenderer: GeometryRenderer | null = null;
-    protected declare _pipelineSceneData: PipelineSceneData;
+    declare protected _pipelineSceneData: PipelineSceneData;
     protected _pipelineRenderData: PipelineRenderData | null = null;
     protected _renderPasses = new Map<number, RenderPass>();
     protected _width = 0;
@@ -284,13 +326,19 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * @zh 初始化函数，正常情况下不会用到，仅用于程序化生成渲染管线的情况。
      * @param info The render pipeline information
      */
-    public initialize (info: IRenderPipelineInfo): boolean {
+    public initialize(info: IRenderPipelineInfo): boolean {
         this._flows = info.flows;
-        if (info.tag) { this._tag = info.tag; }
+        if (info.tag) {
+            this._tag = info.tag;
+        }
         return true;
     }
 
-    public createRenderPass (clearFlags: ClearFlags, colorFmt: Format, depthFmt: Format): RenderPass {
+    public createRenderPass(
+        clearFlags: ClearFlags,
+        colorFmt: Format,
+        depthFmt: Format,
+    ): RenderPass {
         const device = this._device;
         const colorAttachment = new ColorAttachment();
         const depthStencilAttachment = new DepthStencilAttachment();
@@ -304,42 +352,61 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
                 colorAttachment.loadOp = LoadOp.CLEAR;
             } else {
                 colorAttachment.loadOp = LoadOp.LOAD;
-                colorAttachment.barrier = device.getGeneralBarrier(new GeneralBarrierInfo(
-                    AccessFlagBit.COLOR_ATTACHMENT_WRITE,
-                    AccessFlagBit.COLOR_ATTACHMENT_WRITE,
-                ));
+                colorAttachment.barrier = device.getGeneralBarrier(
+                    new GeneralBarrierInfo(
+                        AccessFlagBit.COLOR_ATTACHMENT_WRITE,
+                        AccessFlagBit.COLOR_ATTACHMENT_WRITE,
+                    ),
+                );
             }
         }
 
-        if ((clearFlags & ClearFlagBit.DEPTH_STENCIL) !== ClearFlagBit.DEPTH_STENCIL) {
-            if (!(clearFlags & ClearFlagBit.DEPTH)) depthStencilAttachment.depthLoadOp = LoadOp.LOAD;
-            if (!(clearFlags & ClearFlagBit.STENCIL)) depthStencilAttachment.stencilLoadOp = LoadOp.LOAD;
+        if (
+            (clearFlags & ClearFlagBit.DEPTH_STENCIL) !==
+            ClearFlagBit.DEPTH_STENCIL
+        ) {
+            if (!(clearFlags & ClearFlagBit.DEPTH))
+                depthStencilAttachment.depthLoadOp = LoadOp.LOAD;
+            if (!(clearFlags & ClearFlagBit.STENCIL))
+                depthStencilAttachment.stencilLoadOp = LoadOp.LOAD;
         }
-        depthStencilAttachment.barrier = device.getGeneralBarrier(new GeneralBarrierInfo(
-            AccessFlagBit.DEPTH_STENCIL_ATTACHMENT_WRITE,
-            AccessFlagBit.DEPTH_STENCIL_ATTACHMENT_WRITE,
-        ));
+        depthStencilAttachment.barrier = device.getGeneralBarrier(
+            new GeneralBarrierInfo(
+                AccessFlagBit.DEPTH_STENCIL_ATTACHMENT_WRITE,
+                AccessFlagBit.DEPTH_STENCIL_ATTACHMENT_WRITE,
+            ),
+        );
 
-        const renderPassInfo = new RenderPassInfo([colorAttachment], depthStencilAttachment);
+        const renderPassInfo = new RenderPassInfo(
+            [colorAttachment],
+            depthStencilAttachment,
+        );
 
         return device.createRenderPass(renderPassInfo);
     }
 
-    public getRenderPass (clearFlags: ClearFlags, fbo: Framebuffer): RenderPass {
+    public getRenderPass(clearFlags: ClearFlags, fbo: Framebuffer): RenderPass {
         const fbHash = hashFrameBuffer(fbo);
         const hash = murmurhash2_32_gc(`${fbHash}_${clearFlags}`, 666);
         let renderPass = this._renderPasses.get(hash);
-        if (renderPass) { return renderPass; }
-        renderPass = this.createRenderPass(clearFlags, fbo.colorTextures[0]!.format, fbo.depthStencilTexture!.format);
+        if (renderPass) {
+            return renderPass;
+        }
+        renderPass = this.createRenderPass(
+            clearFlags,
+            fbo.colorTextures[0]!.format,
+            fbo.depthStencilTexture!.format,
+        );
         this._renderPasses.set(hash, renderPass);
         return renderPass;
     }
 
-    public newFramebufferByRatio (dyingFramebuffer: Framebuffer): Framebuffer {
+    public newFramebufferByRatio(dyingFramebuffer: Framebuffer): Framebuffer {
         const sceneData = this.pipelineSceneData;
         const width = this._width * sceneData.shadingScale;
         const height = this._height * sceneData.shadingScale;
-        const colorTexArr: Texture[] = dyingFramebuffer.colorTextures as Texture[];
+        const colorTexArr: Texture[] =
+            dyingFramebuffer.colorTextures as Texture[];
         for (let i = 0; i < colorTexArr.length; i++) {
             colorTexArr[i]!.resize(width, height);
         }
@@ -347,11 +414,13 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
             dyingFramebuffer.depthStencilTexture.resize(width, height);
         }
         // move
-        const newFramebuffer = this._device.createFramebuffer(new FramebufferInfo(
-            dyingFramebuffer.renderPass,
-            colorTexArr,
-            dyingFramebuffer.depthStencilTexture,
-        ));
+        const newFramebuffer = this._device.createFramebuffer(
+            new FramebufferInfo(
+                dyingFramebuffer.renderPass,
+                colorTexArr,
+                dyingFramebuffer.depthStencilTexture,
+            ),
+        );
         dyingFramebuffer.destroy();
         return newFramebuffer;
     }
@@ -362,7 +431,7 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * @param camera the camera
      * @returns
      */
-    public generateRenderArea (camera: Camera, out: Rect): void {
+    public generateRenderArea(camera: Camera, out: Rect): void {
         const vp = camera.viewport;
         const w = camera.window.width;
         const h = camera.window.height;
@@ -372,7 +441,7 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
         out.height = vp.height * h;
     }
 
-    public generateViewport (camera: Camera, out?: Viewport): Viewport {
+    public generateViewport(camera: Camera, out?: Viewport): Viewport {
         this.generateRenderArea(camera, tmpRect);
         if (!out) out = tmpViewport;
         const shadingScale = this.pipelineSceneData.shadingScale;
@@ -383,7 +452,7 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
         return out;
     }
 
-    public generateScissor (camera: Camera, out?: Rect): Rect {
+    public generateScissor(camera: Camera, out?: Rect): Rect {
         if (!out) out = tmpRect;
         this.generateRenderArea(camera, out);
         const shadingScale = this.pipelineSceneData.shadingScale;
@@ -394,26 +463,26 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
         return out;
     }
 
-    public get shadingScale (): number {
+    public get shadingScale(): number {
         return this._pipelineSceneData.shadingScale;
     }
 
-    public set shadingScale (val: number) {
+    public set shadingScale(val: number) {
         if (this._pipelineSceneData.shadingScale !== val) {
             this._pipelineSceneData.shadingScale = val;
             this.emit(PipelineEventType.ATTACHMENT_SCALE_CAHNGED, val);
         }
     }
 
-    public getMacroString (name: string): string {
+    public getMacroString(name: string): string {
         const str = this._macros[name];
         if (str === undefined) {
-            return '';
+            return "";
         }
         return str as string;
     }
 
-    public getMacroInt (name: string): number {
+    public getMacroInt(name: string): number {
         const value = this._macros[name];
         if (value === undefined) {
             return 0;
@@ -421,7 +490,7 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
         return value as number;
     }
 
-    public getMacroBool (name: string): boolean {
+    public getMacroBool(name: string): boolean {
         const value = this._macros[name];
         if (value === undefined) {
             return false;
@@ -429,15 +498,15 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
         return value as boolean;
     }
 
-    public setMacroString (name: string, value: string): void {
+    public setMacroString(name: string, value: string): void {
         this._macros[name] = value;
     }
 
-    public setMacroInt (name: string, value: number): void {
+    public setMacroInt(name: string, value: number): void {
         this._macros[name] = value;
     }
 
-    public setMacroBool (name: string, value: boolean): void {
+    public setMacroBool(name: string, value: boolean): void {
         this._macros[name] = value;
     }
 
@@ -447,7 +516,7 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * TODO: remove swapchain dependency at this stage
      * after deferred pipeline can handle multiple swapchains
      */
-    public activate (swapchain: Swapchain): boolean {
+    public activate(swapchain: Swapchain): boolean {
         this._device = deviceManager.gfxDevice;
         this._generateConstantMacros();
         this._globalDSManager = new GlobalDSManager(this._device);
@@ -466,14 +535,14 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
         return true;
     }
 
-    protected _ensureEnoughSize (cameras: Camera[]): void {}
+    protected _ensureEnoughSize(cameras: Camera[]): void {}
 
     /**
      * @en Render function, it basically run the render process of all flows in sequence for the given view.
      * @zh 渲染函数，对指定的渲染视图按顺序执行所有渲染流程。
      * @param view Render view。
      */
-    public render (cameras: Camera[]): void {
+    public render(cameras: Camera[]): void {
         if (cameras.length === 0) {
             return;
         }
@@ -506,7 +575,7 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * @zh
      * 销毁四边形输入汇集器。
      */
-    protected _destroyQuadInputAssembler (): void {
+    protected _destroyQuadInputAssembler(): void {
         if (this._quadIB) {
             this._quadIB.destroy();
             this._quadIB = null;
@@ -533,7 +602,7 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
         }
     }
 
-    protected _destroyBloomData (): void {
+    protected _destroyBloomData(): void {
         const bloom = this._pipelineRenderData!.bloom;
         if (bloom === null) return;
 
@@ -562,7 +631,10 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
         this._pipelineRenderData!.bloom = null;
     }
 
-    private _genQuadVertexData (surfaceTransform: SurfaceTransform, renderArea: Rect): Float32Array {
+    private _genQuadVertexData(
+        surfaceTransform: SurfaceTransform,
+        renderArea: Rect,
+    ): Float32Array {
         const vbData = new Float32Array(4 * 4);
 
         const minX = renderArea.x / this._width;
@@ -571,41 +643,89 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
         let maxY = (renderArea.y + renderArea.height) / this._height;
         if (this.device.capabilities.screenSpaceSignY > 0) {
             const temp = maxY;
-            maxY       = minY;
-            minY       = temp;
+            maxY = minY;
+            minY = temp;
         }
         let n = 0;
         switch (surfaceTransform) {
-        case (SurfaceTransform.IDENTITY):
-            n = 0;
-            vbData[n++] = -1.0; vbData[n++] = -1.0; vbData[n++] = minX; vbData[n++] = maxY;
-            vbData[n++] = 1.0; vbData[n++] = -1.0; vbData[n++] = maxX; vbData[n++] = maxY;
-            vbData[n++] = -1.0; vbData[n++] = 1.0; vbData[n++] = minX; vbData[n++] = minY;
-            vbData[n++] = 1.0; vbData[n++] = 1.0; vbData[n++] = maxX; vbData[n++] = minY;
-            break;
-        case (SurfaceTransform.ROTATE_90):
-            n = 0;
-            vbData[n++] = -1.0; vbData[n++] = -1.0; vbData[n++] = maxX; vbData[n++] = maxY;
-            vbData[n++] = 1.0; vbData[n++] = -1.0; vbData[n++] = maxX; vbData[n++] = minY;
-            vbData[n++] = -1.0; vbData[n++] = 1.0; vbData[n++] = minX; vbData[n++] = maxY;
-            vbData[n++] = 1.0; vbData[n++] = 1.0; vbData[n++] = minX; vbData[n++] = minY;
-            break;
-        case (SurfaceTransform.ROTATE_180):
-            n = 0;
-            vbData[n++] = -1.0; vbData[n++] = -1.0; vbData[n++] = minX; vbData[n++] = minY;
-            vbData[n++] = 1.0; vbData[n++] = -1.0; vbData[n++] = maxX; vbData[n++] = minY;
-            vbData[n++] = -1.0; vbData[n++] = 1.0; vbData[n++] = minX; vbData[n++] = maxY;
-            vbData[n++] = 1.0; vbData[n++] = 1.0; vbData[n++] = maxX; vbData[n++] = maxY;
-            break;
-        case (SurfaceTransform.ROTATE_270):
-            n = 0;
-            vbData[n++] = -1.0; vbData[n++] = -1.0; vbData[n++] = minX; vbData[n++] = minY;
-            vbData[n++] = 1.0; vbData[n++] = -1.0; vbData[n++] = minX; vbData[n++] = maxY;
-            vbData[n++] = -1.0; vbData[n++] = 1.0; vbData[n++] = maxX; vbData[n++] = minY;
-            vbData[n++] = 1.0; vbData[n++] = 1.0; vbData[n++] = maxX; vbData[n++] = maxY;
-            break;
-        default:
-            break;
+            case SurfaceTransform.IDENTITY:
+                n = 0;
+                vbData[n++] = -1.0;
+                vbData[n++] = -1.0;
+                vbData[n++] = minX;
+                vbData[n++] = maxY;
+                vbData[n++] = 1.0;
+                vbData[n++] = -1.0;
+                vbData[n++] = maxX;
+                vbData[n++] = maxY;
+                vbData[n++] = -1.0;
+                vbData[n++] = 1.0;
+                vbData[n++] = minX;
+                vbData[n++] = minY;
+                vbData[n++] = 1.0;
+                vbData[n++] = 1.0;
+                vbData[n++] = maxX;
+                vbData[n++] = minY;
+                break;
+            case SurfaceTransform.ROTATE_90:
+                n = 0;
+                vbData[n++] = -1.0;
+                vbData[n++] = -1.0;
+                vbData[n++] = maxX;
+                vbData[n++] = maxY;
+                vbData[n++] = 1.0;
+                vbData[n++] = -1.0;
+                vbData[n++] = maxX;
+                vbData[n++] = minY;
+                vbData[n++] = -1.0;
+                vbData[n++] = 1.0;
+                vbData[n++] = minX;
+                vbData[n++] = maxY;
+                vbData[n++] = 1.0;
+                vbData[n++] = 1.0;
+                vbData[n++] = minX;
+                vbData[n++] = minY;
+                break;
+            case SurfaceTransform.ROTATE_180:
+                n = 0;
+                vbData[n++] = -1.0;
+                vbData[n++] = -1.0;
+                vbData[n++] = minX;
+                vbData[n++] = minY;
+                vbData[n++] = 1.0;
+                vbData[n++] = -1.0;
+                vbData[n++] = maxX;
+                vbData[n++] = minY;
+                vbData[n++] = -1.0;
+                vbData[n++] = 1.0;
+                vbData[n++] = minX;
+                vbData[n++] = maxY;
+                vbData[n++] = 1.0;
+                vbData[n++] = 1.0;
+                vbData[n++] = maxX;
+                vbData[n++] = maxY;
+                break;
+            case SurfaceTransform.ROTATE_270:
+                n = 0;
+                vbData[n++] = -1.0;
+                vbData[n++] = -1.0;
+                vbData[n++] = minX;
+                vbData[n++] = minY;
+                vbData[n++] = 1.0;
+                vbData[n++] = -1.0;
+                vbData[n++] = minX;
+                vbData[n++] = maxY;
+                vbData[n++] = -1.0;
+                vbData[n++] = 1.0;
+                vbData[n++] = maxX;
+                vbData[n++] = minY;
+                vbData[n++] = 1.0;
+                vbData[n++] = 1.0;
+                vbData[n++] = maxX;
+                vbData[n++] = maxY;
+                break;
+            default:
+                break;
         }
 
         return vbData;
@@ -615,19 +735,21 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * @zh
      * 创建四边形输入汇集器。
      */
-    protected _createQuadInputAssembler (): PipelineInputAssemblerData {
+    protected _createQuadInputAssembler(): PipelineInputAssemblerData {
         // create vertex buffer
         const inputAssemblerData = new PipelineInputAssemblerData();
 
         const vbStride = Float32Array.BYTES_PER_ELEMENT * 4;
         const vbSize = vbStride * 4;
 
-        const quadVB = this._device.createBuffer(new BufferInfo(
-            BufferUsageBit.VERTEX | BufferUsageBit.TRANSFER_DST,
-            MemoryUsageBit.DEVICE | MemoryUsageBit.HOST,
-            vbSize,
-            vbStride,
-        ));
+        const quadVB = this._device.createBuffer(
+            new BufferInfo(
+                BufferUsageBit.VERTEX | BufferUsageBit.TRANSFER_DST,
+                MemoryUsageBit.DEVICE | MemoryUsageBit.HOST,
+                vbSize,
+                vbStride,
+            ),
+        );
 
         if (!quadVB) {
             return inputAssemblerData;
@@ -637,34 +759,38 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
         const ibStride = Uint8Array.BYTES_PER_ELEMENT;
         const ibSize = ibStride * 6;
 
-        const quadIB = this._device.createBuffer(new BufferInfo(
-            BufferUsageBit.INDEX | BufferUsageBit.TRANSFER_DST,
-            MemoryUsageBit.DEVICE,
-            ibSize,
-            ibStride,
-        ));
+        const quadIB = this._device.createBuffer(
+            new BufferInfo(
+                BufferUsageBit.INDEX | BufferUsageBit.TRANSFER_DST,
+                MemoryUsageBit.DEVICE,
+                ibSize,
+                ibStride,
+            ),
+        );
 
         if (!quadIB) {
             return inputAssemblerData;
         }
 
         const indices = new Uint8Array(6);
-        indices[0] = 0; indices[1] = 1; indices[2] = 2;
-        indices[3] = 1; indices[4] = 3; indices[5] = 2;
+        indices[0] = 0;
+        indices[1] = 1;
+        indices[2] = 2;
+        indices[3] = 1;
+        indices[4] = 3;
+        indices[5] = 2;
 
         quadIB.update(indices);
 
         // create input assembler
 
         const attributes = new Array<Attribute>(2);
-        attributes[0] = new Attribute('a_position', Format.RG32F);
-        attributes[1] = new Attribute('a_texCoord', Format.RG32F);
+        attributes[0] = new Attribute("a_position", Format.RG32F);
+        attributes[1] = new Attribute("a_texCoord", Format.RG32F);
 
-        const quadIA = this._device.createInputAssembler(new InputAssemblerInfo(
-            attributes,
-            [quadVB],
-            quadIB,
-        ));
+        const quadIA = this._device.createInputAssembler(
+            new InputAssemblerInfo(attributes, [quadVB], quadIB),
+        );
 
         inputAssemblerData.quadIB = quadIB;
         inputAssemblerData.quadVB = quadVB;
@@ -672,18 +798,27 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
         return inputAssemblerData;
     }
 
-    public updateQuadVertexData (renderArea: Rect, window: RenderWindow): void {
+    public updateQuadVertexData(renderArea: Rect, window: RenderWindow): void {
         const cachedArea = this._lastUsedRenderArea;
-        if (cachedArea.x === renderArea.x
-            && cachedArea.y === renderArea.y
-            && cachedArea.width === renderArea.width
-            && cachedArea.height === renderArea.height) {
+        if (
+            cachedArea.x === renderArea.x &&
+            cachedArea.y === renderArea.y &&
+            cachedArea.width === renderArea.width &&
+            cachedArea.height === renderArea.height
+        ) {
             return;
         }
 
-        const offData = this._genQuadVertexData(SurfaceTransform.IDENTITY, renderArea);
+        const offData = this._genQuadVertexData(
+            SurfaceTransform.IDENTITY,
+            renderArea,
+        );
         this._quadVBOffscreen!.update(offData);
-        const onData = this._genQuadVertexData(window.swapchain && window.swapchain.surfaceTransform || SurfaceTransform.IDENTITY, renderArea);
+        const onData = this._genQuadVertexData(
+            (window.swapchain && window.swapchain.surfaceTransform) ||
+                SurfaceTransform.IDENTITY,
+            renderArea,
+        );
         this._quadVBOnscreen!.update(onData);
 
         cachedArea.copy(renderArea);
@@ -693,7 +828,7 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * @en Internal destroy function
      * @zh 内部销毁函数。
      */
-    public destroy (): boolean {
+    public destroy(): boolean {
         for (let i = 0; i < this._flows.length; i++) {
             this._flows[i].destroy();
         }
@@ -715,14 +850,18 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
         return super.destroy();
     }
 
-    public onGlobalPipelineStateChanged (): void {
+    public onGlobalPipelineStateChanged(): void {
         // do nothing
     }
 
-    protected _generateConstantMacros (): void {
-        let str = '';
-        str += `#define CC_DEVICE_SUPPORT_FLOAT_TEXTURE ${this.device.getFormatFeatures(Format.RGBA32F)
-            & (FormatFeatureBit.RENDER_TARGET | FormatFeatureBit.SAMPLED_TEXTURE) ? 1 : 0}\n`;
+    protected _generateConstantMacros(): void {
+        let str = "";
+        str += `#define CC_DEVICE_SUPPORT_FLOAT_TEXTURE ${
+            this.device.getFormatFeatures(Format.RGBA32F) &
+            (FormatFeatureBit.RENDER_TARGET | FormatFeatureBit.SAMPLED_TEXTURE)
+                ? 1
+                : 0
+        }\n`;
         str += `#define CC_ENABLE_CLUSTERED_LIGHT_CULLING ${this._clusterEnabled ? 1 : 0}\n`;
         str += `#define CC_DEVICE_MAX_VERTEX_UNIFORM_VECTORS ${this.device.capabilities.maxVertexUniformVectors}\n`;
         str += `#define CC_DEVICE_MAX_FRAGMENT_UNIFORM_VECTORS ${this.device.capabilities.maxFragmentUniformVectors}\n`;
@@ -736,7 +875,7 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
         this._constantMacros = str;
     }
 
-    protected updateGeometryRenderer (cameras: Camera[]): void {
+    protected updateGeometryRenderer(cameras: Camera[]): void {
         if (this._geometryRenderer) {
             return;
         }
@@ -752,10 +891,10 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
         }
     }
 
-    public generateBloomRenderData (): void {
+    public generateBloomRenderData(): void {
         if (this._pipelineRenderData!.bloom != null) return;
 
-        const bloom = this._pipelineRenderData!.bloom = new BloomRenderData();
+        const bloom = (this._pipelineRenderData!.bloom = new BloomRenderData());
         const device = this.device;
 
         // create renderPass
@@ -763,72 +902,88 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
         colorAttachment.format = Format.RGBA8;
         colorAttachment.loadOp = LoadOp.CLEAR;
         colorAttachment.storeOp = StoreOp.STORE;
-        colorAttachment.barrier = device.getGeneralBarrier(new GeneralBarrierInfo(
-            AccessFlagBit.NONE,
-            AccessFlagBit.COLOR_ATTACHMENT_WRITE,
-        ));
-        bloom.renderPass = device.createRenderPass(new RenderPassInfo([colorAttachment]));
+        colorAttachment.barrier = device.getGeneralBarrier(
+            new GeneralBarrierInfo(
+                AccessFlagBit.NONE,
+                AccessFlagBit.COLOR_ATTACHMENT_WRITE,
+            ),
+        );
+        bloom.renderPass = device.createRenderPass(
+            new RenderPassInfo([colorAttachment]),
+        );
 
         let curWidth = this._width;
         let curHeight = this._height;
 
         // prefilter
-        bloom.prefiterTex = device.createTexture(new TextureInfo(
-            TextureType.TEX2D,
-            TextureUsageBit.COLOR_ATTACHMENT | TextureUsageBit.SAMPLED,
-            Format.RGBA8,
-            curWidth >> 1,
-            curHeight >> 1,
-        ));
-        bloom.prefilterFramebuffer = device.createFramebuffer(new FramebufferInfo(
-            bloom.renderPass,
-            [bloom.prefiterTex],
-        ));
-
-        // downsample & upsample
-        curWidth >>= 1;
-        curHeight >>= 1;
-        for (let i = 0; i < MAX_BLOOM_FILTER_PASS_NUM; ++i) {
-            bloom.downsampleTexs.push(device.createTexture(new TextureInfo(
+        bloom.prefiterTex = device.createTexture(
+            new TextureInfo(
                 TextureType.TEX2D,
                 TextureUsageBit.COLOR_ATTACHMENT | TextureUsageBit.SAMPLED,
                 Format.RGBA8,
                 curWidth >> 1,
                 curHeight >> 1,
-            )));
-            bloom.downsampleFramebuffers[i] = device.createFramebuffer(new FramebufferInfo(
-                bloom.renderPass,
-                [bloom.downsampleTexs[i]],
-            ));
+            ),
+        );
+        bloom.prefilterFramebuffer = device.createFramebuffer(
+            new FramebufferInfo(bloom.renderPass, [bloom.prefiterTex]),
+        );
 
-            bloom.upsampleTexs.push(device.createTexture(new TextureInfo(
-                TextureType.TEX2D,
-                TextureUsageBit.COLOR_ATTACHMENT | TextureUsageBit.SAMPLED,
-                Format.RGBA8,
-                curWidth,
-                curHeight,
-            )));
-            bloom.upsampleFramebuffers[i] = device.createFramebuffer(new FramebufferInfo(
-                bloom.renderPass,
-                [bloom.upsampleTexs[i]],
-            ));
+        // downsample & upsample
+        curWidth >>= 1;
+        curHeight >>= 1;
+        for (let i = 0; i < MAX_BLOOM_FILTER_PASS_NUM; ++i) {
+            bloom.downsampleTexs.push(
+                device.createTexture(
+                    new TextureInfo(
+                        TextureType.TEX2D,
+                        TextureUsageBit.COLOR_ATTACHMENT |
+                            TextureUsageBit.SAMPLED,
+                        Format.RGBA8,
+                        curWidth >> 1,
+                        curHeight >> 1,
+                    ),
+                ),
+            );
+            bloom.downsampleFramebuffers[i] = device.createFramebuffer(
+                new FramebufferInfo(bloom.renderPass, [
+                    bloom.downsampleTexs[i],
+                ]),
+            );
+
+            bloom.upsampleTexs.push(
+                device.createTexture(
+                    new TextureInfo(
+                        TextureType.TEX2D,
+                        TextureUsageBit.COLOR_ATTACHMENT |
+                            TextureUsageBit.SAMPLED,
+                        Format.RGBA8,
+                        curWidth,
+                        curHeight,
+                    ),
+                ),
+            );
+            bloom.upsampleFramebuffers[i] = device.createFramebuffer(
+                new FramebufferInfo(bloom.renderPass, [bloom.upsampleTexs[i]]),
+            );
 
             curWidth >>= 1;
             curHeight >>= 1;
         }
 
         // combine
-        bloom.combineTex = device.createTexture(new TextureInfo(
-            TextureType.TEX2D,
-            TextureUsageBit.COLOR_ATTACHMENT | TextureUsageBit.SAMPLED,
-            Format.RGBA8,
-            this._width,
-            this._height,
-        ));
-        bloom.combineFramebuffer = device.createFramebuffer(new FramebufferInfo(
-            bloom.renderPass,
-            [bloom.combineTex],
-        ));
+        bloom.combineTex = device.createTexture(
+            new TextureInfo(
+                TextureType.TEX2D,
+                TextureUsageBit.COLOR_ATTACHMENT | TextureUsageBit.SAMPLED,
+                Format.RGBA8,
+                this._width,
+                this._height,
+            ),
+        );
+        bloom.combineFramebuffer = device.createFramebuffer(
+            new FramebufferInfo(bloom.renderPass, [bloom.combineTex]),
+        );
 
         // sampler
         bloom.sampler = this.globalDSManager.linearSampler;
@@ -840,7 +995,12 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * @zh
      * 在渲染管线中注册管线事件类型的回调。
      */
-    public on<TFunction extends PipelineEventCallback> (type: PipelineEventType, callback: TFunction, target?: any, once?: boolean): typeof callback {
+    public on<TFunction extends PipelineEventCallback>(
+        type: PipelineEventType,
+        callback: TFunction,
+        target?: any,
+        once?: boolean,
+    ): typeof callback {
         return this._eventProcessor.on(type, callback, target, once);
     }
 
@@ -851,7 +1011,11 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * @zh
      * 在渲染管线中注册管线事件类型的回调, 回调后会在第一时间删除自身。
      */
-    public once<TFunction extends PipelineEventCallback> (type: PipelineEventType, callback: TFunction, target?: any): typeof callback {
+    public once<TFunction extends PipelineEventCallback>(
+        type: PipelineEventType,
+        callback: TFunction,
+        target?: any,
+    ): typeof callback {
         return this._eventProcessor.once(type, callback, target);
     }
 
@@ -862,7 +1026,11 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * @zh
      * 删除之前用同类型、回调、目标或 useCapture 注册的事件监听器，如果只传递 type，将会删除 type 类型的所有事件监听器。
      */
-    public off<TFunction extends PipelineEventCallback> (type: PipelineEventType, callback?: TFunction, target?: any): void {
+    public off<TFunction extends PipelineEventCallback>(
+        type: PipelineEventType,
+        callback?: TFunction,
+        target?: any,
+    ): void {
         this._eventProcessor.off(type, callback, target);
     }
 
@@ -872,7 +1040,14 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * @param type - event type
      * @param args - Arguments when the event triggered
      */
-    public emit (type: PipelineEventType, arg0?: any, arg1?: any, arg2?: any, arg3?: any, arg4?: any): void {
+    public emit(
+        type: PipelineEventType,
+        arg0?: any,
+        arg1?: any,
+        arg2?: any,
+        arg3?: any,
+        arg4?: any,
+    ): void {
         this._eventProcessor.emit(type, arg0, arg1, arg2, arg3, arg4);
     }
 
@@ -886,7 +1061,7 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * 这个函数只能删除 target 参数在当前 EventTarget 上注册的所有事件监听器。
      * @param typeOrTarget - The target to be searched for all related listeners
      */
-    public targetOff (typeOrTarget: any): void {
+    public targetOff(typeOrTarget: any): void {
         this._eventProcessor.targetOff(typeOrTarget);
     }
 
@@ -895,7 +1070,7 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * @en Removes all callbacks registered in a certain event type or all callbacks registered with a certain target
      * @param typeOrTarget - The event type or target with which the listeners will be removed
      */
-    public removeAll (typeOrTarget: any): void {
+    public removeAll(typeOrTarget: any): void {
         this._eventProcessor.removeAll(typeOrTarget);
     }
 
@@ -906,7 +1081,11 @@ export abstract class RenderPipeline extends Asset implements IPipelineEvent, Pi
      * @param callback - Callback function when event triggered.
      * @param target - Callback callee.
      */
-    public hasEventListener (type: PipelineEventType, callback?: PipelineEventCallback, target?: any): boolean {
+    public hasEventListener(
+        type: PipelineEventType,
+        callback?: PipelineEventCallback,
+        target?: any,
+    ): boolean {
         return this._eventProcessor.hasEventListener(type, callback, target);
     }
 }

@@ -22,20 +22,36 @@
  THE SOFTWARE.
 */
 
-import { ccclass, serializable, editable, editorOnly } from 'cc.decorator';
-import { EDITOR_NOT_IN_PREVIEW } from 'internal:constants';
-import { Root } from '../../root';
-import { BlendState, DepthStencilState, RasterizerState,
-    DynamicStateFlags, PrimitiveMode, ShaderStageFlags, Type, Uniform, MemoryAccess, Format, deviceManager, ShaderInfo, Shader,
-    SampleType } from '../../gfx';
-import { RenderPassStage } from '../../rendering/define';
-import { MacroRecord } from '../../render-scene/core/pass-utils';
-import { programLib } from '../../render-scene/core/program-lib';
-import { Asset } from './asset';
-import { cclegacy, warnID } from '../../core';
-import { ProgramLibrary } from '../../rendering/custom/private';
-import { addEffectDefaultProperties, getCombinationDefines } from '../../render-scene/core/program-utils';
-import { TextureBase } from './texture-base';
+import { ccclass, serializable, editable, editorOnly } from "cc.decorator";
+import { EDITOR_NOT_IN_PREVIEW } from "internal:constants";
+import { Root } from "../../root";
+import {
+    BlendState,
+    DepthStencilState,
+    RasterizerState,
+    DynamicStateFlags,
+    PrimitiveMode,
+    ShaderStageFlags,
+    Type,
+    Uniform,
+    MemoryAccess,
+    Format,
+    deviceManager,
+    ShaderInfo,
+    Shader,
+    SampleType,
+} from "../../gfx";
+import { RenderPassStage } from "../../rendering/define";
+import { MacroRecord } from "../../render-scene/core/pass-utils";
+import { programLib } from "../../render-scene/core/program-lib";
+import { Asset } from "./asset";
+import { cclegacy, warnID } from "../../core";
+import { ProgramLibrary } from "../../render-scene/core/program-library-interface";
+import {
+    addEffectDefaultProperties,
+    getCombinationDefines,
+} from "../../render-scene/core/program-utils";
+import { TextureBase } from "./texture-base";
 
 export declare namespace EffectAsset {
     export interface IPropertyInfo {
@@ -163,10 +179,14 @@ export declare namespace EffectAsset {
     export interface IShaderInfo {
         name: string;
         hash: number;
-        glsl4: { vert: string, frag: string, compute?: string };
-        glsl3: { vert: string, frag: string, compute?: string };
-        glsl1: { vert: string, frag: string };
-        builtins: { globals: IBuiltinInfo, locals: IBuiltinInfo, statistics: Record<string, number> };
+        glsl4: { vert: string; frag: string; compute?: string };
+        glsl3: { vert: string; frag: string; compute?: string };
+        glsl1: { vert: string; frag: string };
+        builtins: {
+            globals: IBuiltinInfo;
+            locals: IBuiltinInfo;
+            statistics: Record<string, number>;
+        };
         defines: IDefineInfo[];
         attributes: IAttributeInfo[];
         blocks: IBlockInfo[];
@@ -184,29 +204,29 @@ export declare namespace EffectAsset {
 }
 
 const legacyBuiltinEffectNames = [
-    'planar-shadow',
-    'skybox',
-    'deferred-lighting',
-    'bloom',
-    'hbao',
-    'copy-pass',
-    'post-process',
-    'profiler',
-    'splash-screen',
-    'unlit',
-    'sprite',
-    'particle',
-    'particle-gpu',
-    'particle-trail',
-    'billboard',
-    'graphics',
-    'clear-stencil',
-    'spine',
-    'occlusion-query',
-    'geometry-renderer',
-    'debug-renderer',
-    'ssss-blur',
-    'float-output-process',
+    "planar-shadow",
+    "skybox",
+    "deferred-lighting",
+    "bloom",
+    "hbao",
+    "copy-pass",
+    "post-process",
+    "profiler",
+    "splash-screen",
+    "unlit",
+    "sprite",
+    "particle",
+    "particle-gpu",
+    "particle-trail",
+    "billboard",
+    "graphics",
+    "clear-stencil",
+    "spine",
+    "occlusion-query",
+    "geometry-renderer",
+    "debug-renderer",
+    "ssss-blur",
+    "float-output-process",
 ];
 
 /**
@@ -215,7 +235,7 @@ const legacyBuiltinEffectNames = [
  * @zh Effect 资源，作为材质实例初始化的模板，每个 effect 资源都应是全局唯一的。
  * 所有 Effect 资源都由此类的一个静态对象管理。
  */
-@ccclass('cc.EffectAsset')
+@ccclass("cc.EffectAsset")
 export class EffectAsset extends Asset {
     /**
      * @en Register the effect asset to the static map.
@@ -223,7 +243,7 @@ export class EffectAsset extends Asset {
      *
      * @param asset @en The effect asset to be registered. @zh 待注册的 effect asset。
      */
-    public static register (asset: EffectAsset): void {
+    public static register(asset: EffectAsset): void {
         EffectAsset._effects[asset.name] = asset;
         EffectAsset._layoutValid = false;
     }
@@ -234,13 +254,19 @@ export class EffectAsset extends Asset {
      *
      * @param asset - @en The effect asset to be removed. @zh 待移除的 effect asset。
      */
-    public static remove (asset: EffectAsset | string): void {
-        if (typeof asset !== 'string') {
-            if (EffectAsset._effects[asset.name] && EffectAsset._effects[asset.name] === asset) {
+    public static remove(asset: EffectAsset | string): void {
+        if (typeof asset !== "string") {
+            if (
+                EffectAsset._effects[asset.name] &&
+                EffectAsset._effects[asset.name] === asset
+            ) {
                 delete EffectAsset._effects[asset.name];
             }
         } else {
-            if (EffectAsset._effects[asset]) { delete EffectAsset._effects[asset]; return; }
+            if (EffectAsset._effects[asset]) {
+                delete EffectAsset._effects[asset];
+                return;
+            }
             for (const n in EffectAsset._effects) {
                 if (EffectAsset._effects[n]._uuid === asset) {
                     delete EffectAsset._effects[n];
@@ -257,8 +283,10 @@ export class EffectAsset extends Asset {
      * @param name - @en The name of effect you want to get. @zh 想要获取的 effect 的名字。
      * @returns @en The effect. @zh 你查询的 effect.
      */
-    public static get (name: string): EffectAsset | null {
-        if (EffectAsset._effects[name]) { return EffectAsset._effects[name]; }
+    public static get(name: string): EffectAsset | null {
+        if (EffectAsset._effects[name]) {
+            return EffectAsset._effects[name];
+        }
         for (const n in EffectAsset._effects) {
             if (EffectAsset._effects[n]._uuid === name) {
                 return EffectAsset._effects[n];
@@ -275,7 +303,9 @@ export class EffectAsset extends Asset {
      * @zh 获取所有已注册的 effect 资源。
      * @returns @en All registered effects. @zh 所有已注册的 effect 资源。
      */
-    public static getAll (): Record<string, EffectAsset> { return EffectAsset._effects; }
+    public static getAll(): Record<string, EffectAsset> {
+        return EffectAsset._effects;
+    }
 
     /**
      * @engineInternal
@@ -285,11 +315,15 @@ export class EffectAsset extends Asset {
     /**
      * @engineInternal
      */
-    public static isLayoutValid (): boolean { return EffectAsset._layoutValid; }
+    public static isLayoutValid(): boolean {
+        return EffectAsset._layoutValid;
+    }
     /**
      * @engineInternal
      */
-    public static setLayoutValid (): void { EffectAsset._layoutValid = true; }
+    public static setLayoutValid(): void {
+        EffectAsset._layoutValid = true;
+    }
     /**
      * @engineInternal
      */
@@ -327,7 +361,7 @@ export class EffectAsset extends Asset {
     @editorOnly
     public hideInEditor = false;
 
-    constructor (name?: string) {
+    constructor(name?: string) {
         super(name);
     }
 
@@ -335,7 +369,7 @@ export class EffectAsset extends Asset {
      * @en The loaded callback which should be invoked by the [[AssetManager]], will automatically register the effect.
      * @zh 通过 [[AssetManager]] 加载完成时的回调，将自动注册 effect 资源。
      */
-    public onLoaded (): void {
+    public onLoaded(): void {
         if (cclegacy.rendering && cclegacy.rendering.enableEffectImport) {
             addEffectDefaultProperties(this);
             const programLib = cclegacy.rendering.programLib;
@@ -345,16 +379,25 @@ export class EffectAsset extends Asset {
             programLib.register(this);
         }
         EffectAsset.register(this);
-        if (!EDITOR_NOT_IN_PREVIEW) { cclegacy.game.once(cclegacy.Game.EVENT_RENDERER_INITED, this._precompile, this); }
+        if (!EDITOR_NOT_IN_PREVIEW) {
+            cclegacy.game.once(
+                cclegacy.Game.EVENT_RENDERER_INITED,
+                this._precompile,
+                this,
+            );
+        }
     }
 
     /**
      * @engineInternal
      * @mangle
      */
-    protected _precompile (): void {
+    protected _precompile(): void {
         if (cclegacy.rendering && cclegacy.rendering.enableEffectImport) {
-            (cclegacy.rendering.programLib as ProgramLibrary).precompileEffect(deviceManager.gfxDevice, this);
+            (cclegacy.rendering.programLib as ProgramLibrary).precompileEffect(
+                deviceManager.gfxDevice,
+                this,
+            );
             return;
         }
         const root = cclegacy.director.root as Root;
@@ -366,26 +409,32 @@ export class EffectAsset extends Asset {
             }
             const defines = getCombinationDefines(combination);
             defines.forEach(
-                (defines): Shader => programLib.getGFXShader(deviceManager.gfxDevice, shader.name, defines, root.pipeline),
+                (defines): Shader =>
+                    programLib.getGFXShader(
+                        deviceManager.gfxDevice,
+                        shader.name,
+                        defines,
+                        root.pipeline,
+                    ),
             );
         }
     }
 
-    public destroy (): boolean {
+    public destroy(): boolean {
         EffectAsset.remove(this);
         return super.destroy();
     }
 
-    public initDefault (uuid?: string): void {
+    public initDefault(uuid?: string): void {
         super.initDefault(uuid);
-        const effect = EffectAsset.get('builtin-unlit');
-        this.name = 'builtin-unlit';
+        const effect = EffectAsset.get("builtin-unlit");
+        this.name = "builtin-unlit";
         this.shaders = effect!.shaders;
         this.combinations = effect!.combinations;
         this.techniques = effect!.techniques;
     }
 
-    public validate (): boolean {
+    public validate(): boolean {
         return this.techniques.length > 0 && this.shaders.length > 0;
     }
 }
