@@ -1,0 +1,157 @@
+{
+  "timestamp": "2026-04-11T07:30:56.979Z",
+  "summary": {
+    "totalLines": 734375,
+    "totalFiles": 2952,
+    "buildSize": 6117491
+  },
+  "details": {
+    "typescript": {
+      "files": 1013,
+      "lines": 263672,
+      "modules": {
+        "2d": {
+          "files": 86,
+          "lines": 24785
+        },
+        "3d": {
+          "files": 55,
+          "lines": 12708
+        },
+        "animation": {
+          "files": 49,
+          "lines": 10855
+        },
+        "asset": {
+          "files": 66,
+          "lines": 16269
+        },
+        "audio": {
+          "files": 6,
+          "lines": 1049
+        },
+        "core": {
+          "files": 131,
+          "lines": 34531
+        },
+        "dragon-bones": {
+          "files": 14,
+          "lines": 4622
+        },
+        "game": {
+          "files": 5,
+          "lines": 3259
+        },
+        "gfx": {
+          "files": 109,
+          "lines": 28360
+        },
+        "gi": {
+          "files": 9,
+          "lines": 1884
+        },
+        "input": {
+          "files": 21,
+          "lines": 3836
+        },
+        "misc": {
+          "files": 9,
+          "lines": 1700
+        },
+        "native-binding": {
+          "files": 3,
+          "lines": 3276
+        },
+        "particle": {
+          "files": 31,
+          "lines": 10588
+        },
+        "particle-2d": {
+          "files": 10,
+          "lines": 3682
+        },
+        "physics": {
+          "files": 51,
+          "lines": 9946
+        },
+        "physics-2d": {
+          "files": 99,
+          "lines": 14582
+        },
+        "primitive": {
+          "files": 14,
+          "lines": 2062
+        },
+        "profiler": {
+          "files": 3,
+          "lines": 877
+        },
+        "render-scene": {
+          "files": 46,
+          "lines": 13209
+        },
+        "rendering": {
+          "files": 64,
+          "lines": 13301
+        },
+        "scene-graph": {
+          "files": 28,
+          "lines": 12332
+        },
+        "serialization": {
+          "files": 11,
+          "lines": 3431
+        },
+        "sorting": {
+          "files": 4,
+          "lines": 462
+        },
+        "spine": {
+          "files": 22,
+          "lines": 6130
+        },
+        "tiledmap": {
+          "files": 11,
+          "lines": 5527
+        },
+        "tween": {
+          "files": 12,
+          "lines": 4147
+        },
+        "ui": {
+          "files": 26,
+          "lines": 12802
+        },
+        "video": {
+          "files": 9,
+          "lines": 1600
+        },
+        "web-view": {
+          "files": 5,
+          "lines": 626
+        },
+        "webgpu": {
+          "files": 1,
+          "lines": 103
+        }
+      }
+    },
+    "cpp": {
+      "files": 1939,
+      "lines": 470703
+    },
+    "build": {
+      "size": 6117491,
+      "files": {
+        ".ts": {
+          "count": 1,
+          "size": 3197370
+        },
+        ".js": {
+          "count": 38,
+          "size": 2920121
+        }
+      }
+    }
+  }
+}

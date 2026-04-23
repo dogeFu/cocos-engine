@@ -1,0 +1,177 @@
+{
+  "timestamp": "2026-04-10T17:30:23.856Z",
+  "summary": {
+    "totalLines": 788596,
+    "totalFiles": 3240,
+    "buildSize": 64962223
+  },
+  "details": {
+    "typescript": {
+      "files": 1235,
+      "lines": 309627,
+      "modules": {
+        "2d": {
+          "files": 86,
+          "lines": 24785
+        },
+        "3d": {
+          "files": 55,
+          "lines": 12708
+        },
+        "animation": {
+          "files": 150,
+          "lines": 24672
+        },
+        "asset": {
+          "files": 66,
+          "lines": 16220
+        },
+        "audio": {
+          "files": 6,
+          "lines": 1049
+        },
+        "core": {
+          "files": 131,
+          "lines": 34531
+        },
+        "dragon-bones": {
+          "files": 14,
+          "lines": 4622
+        },
+        "game": {
+          "files": 5,
+          "lines": 3045
+        },
+        "gfx": {
+          "files": 109,
+          "lines": 28376
+        },
+        "gi": {
+          "files": 9,
+          "lines": 1884
+        },
+        "input": {
+          "files": 21,
+          "lines": 3836
+        },
+        "misc": {
+          "files": 9,
+          "lines": 1700
+        },
+        "native-binding": {
+          "files": 3,
+          "lines": 3276
+        },
+        "particle": {
+          "files": 31,
+          "lines": 10588
+        },
+        "particle-2d": {
+          "files": 10,
+          "lines": 3682
+        },
+        "physics": {
+          "files": 124,
+          "lines": 22580
+        },
+        "physics-2d": {
+          "files": 99,
+          "lines": 14582
+        },
+        "primitive": {
+          "files": 14,
+          "lines": 2062
+        },
+        "profiler": {
+          "files": 3,
+          "lines": 785
+        },
+        "render-scene": {
+          "files": 45,
+          "lines": 12531
+        },
+        "rendering": {
+          "files": 110,
+          "lines": 33695
+        },
+        "scene-graph": {
+          "files": 28,
+          "lines": 12332
+        },
+        "serialization": {
+          "files": 11,
+          "lines": 3431
+        },
+        "sorting": {
+          "files": 4,
+          "lines": 462
+        },
+        "spine": {
+          "files": 22,
+          "lines": 6130
+        },
+        "tiledmap": {
+          "files": 11,
+          "lines": 5527
+        },
+        "tween": {
+          "files": 12,
+          "lines": 4147
+        },
+        "ui": {
+          "files": 26,
+          "lines": 12659
+        },
+        "video": {
+          "files": 9,
+          "lines": 1600
+        },
+        "web-view": {
+          "files": 5,
+          "lines": 626
+        },
+        "webgpu": {
+          "files": 1,
+          "lines": 103
+        },
+        "xr": {
+          "files": 3,
+          "lines": 275
+        }
+      }
+    },
+    "cpp": {
+      "files": 2005,
+      "lines": 478969
+    },
+    "build": {
+      "size": 64962223,
+      "files": {
+        ".ts": {
+          "count": 2,
+          "size": 3507962
+        },
+        ".js": {
+          "count": 153,
+          "size": 13781077
+        },
+        ".map": {
+          "count": 115,
+          "size": 40393666
+        },
+        ".wasm": {
+          "count": 7,
+          "size": 6411864
+        },
+        ".bin": {
+          "count": 1,
+          "size": 25366
+        },
+        ".html": {
+          "count": 1,
+          "size": 842288
+        }
+      }
+    }
+  }
+}
