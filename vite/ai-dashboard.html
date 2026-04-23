@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cocos Engine AI Auto-Fix Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            padding: 20px;
+        }
+        .header {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: #58a6ff;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #8b949e;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .card h2 {
+            color: #58a6ff;
+            font-size: 16px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #30363d;
+        }
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #21262d;
+        }
+        .stat:last-child { border-bottom: none; }
+        .stat-label { color: #8b949e; }
+        .stat-value { font-weight: bold; }
+        .stat-value.success { color: #3fb950; }
+        .stat-value.error { color: #f85149; }
+        .stat-value.warning { color: #d29922; }
+        .stat-value.info { color: #58a6ff; }
+        .test-list { max-height: 400px; overflow-y: auto; }
+        .test-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin: 4px 0;
+            background: #21262d;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .test-item.pass { border-left: 3px solid #3fb950; }
+        .test-item.fail { border-left: 3px solid #f85149; }
+        .test-name { flex: 1; }
+        .test-status { font-weight: bold; margin-left: 10px; }
+        .test-status.pass { color: #3fb950; }
+        .test-status.fail { color: #f85149; }
+        .error-list { max-height: 300px; overflow-y: auto; }
+        .error-item {
+            background: #2d1214;
+            border-left: 3px solid #f85149;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .error-type { color: #f85149; font-weight: bold; }
+        .error-message { color: #c9d1d9; margin-top: 4px; }
+        .error-stack { color: #8b949e; margin-top: 8px; white-space: pre-wrap; }
+        .rec-item {
+            background: #1c2333;
+            border-left: 3px solid #58a6ff;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+        .rec-item.critical { border-left-color: #f85149; background: #2d1214; }
+        .rec-item.high { border-left-color: #d29922; }
+        .rec-priority {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .rec-priority.critical { background: #f85149; }
+        .rec-priority.high { background: #d29922; }
+        .rec-priority.medium { background: #58a6ff; }
+        .rec-message { margin-top: 8px; }
+        .fix-log { max-height: 300px; overflow-y: auto; }
+        .fix-log-item {
+            padding: 10px;
+            margin: 8px 0;
+            background: #21262d;
+            border-radius: 4px;
+            border-left: 3px solid #8b949e;
+        }
+        .fix-log-item.SUCCESS { border-left-color: #3fb950; }
+        .fix-log-item.ITERATION { border-left-color: #58a6ff; }
+        .fix-log-item.ERROR { border-left-color: #f85149; }
+        .fix-log-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .fix-log-type { font-weight: bold; color: #58a6ff; }
+        .fix-log-time { color: #8b949e; font-size: 11px; }
+        .fix-log-message { color: #c9d1d9; }
+        .btn {
+            background: #238636;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        .btn:hover { background: #2ea043; }
+        .btn.secondary { background: #30363d; }
+        .btn.secondary:hover { background: #484f58; }
+        .btn.danger { background: #da3633; }
+        .btn.danger:hover { background: #f85149; }
+        .controls { margin: 20px 0; }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #8b949e;
+        }
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 AI Auto-Fix Dashboard</h1>
+        <p>Real-time monitoring of AI-driven test and fix cycles</p>
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="refreshDashboard()">🔄 Refresh</button>
+        <button class="btn secondary" onclick="loadTestPage('test.html')">📋 API Tests</button>
+        <button class="btn secondary" onclick="loadTestPage('platform-test.html')">🖥️ Platform Tests</button>
+        <button class="btn secondary" onclick="loadTestPage('behavior-test.html')">🧪 Behavior Tests</button>
+        <button class="btn danger" onclick="clearData()">🗑️ Clear Data</button>
+    </div>
+
+    <div id="dashboard" class="loading">Loading dashboard</div>
+
+    <iframe id="testFrame" style="display:none;"></iframe>
+
+    <script>
+        const dashboard = document.getElementById('dashboard');
+        const testFrame = document.getElementById('testFrame');
+
+        function loadTestPage(page) {
+            testFrame.src = `/${page}`;
+            dashboard.innerHTML = `<div class="loading">Loading ${page}</div>`;
+            
+            testFrame.onload = () => {
+                setTimeout(refreshDashboard, 3000);
+            };
+        }
+
+        function refreshDashboard() {
+            try {
+                const iframeWindow = testFrame.contentWindow;
+                const framework = iframeWindow.AI_TEST_FRAMEWORK;
+                const autoFix = iframeWindow.AI_AUTO_FIX;
+
+                if (!framework) {
+                    dashboard.innerHTML = '<div class="card"><h2>⚠️ No test framework detected</h2><p>Load a test page first</p></div>';
+                    return;
+                }
+
+                const report = framework.getAIReport();
+                const fixLog = autoFix ? autoFix.getFixLog() : [];
+
+                renderDashboard(report, fixLog);
+            } catch (e) {
+                console.error('Dashboard error:', e);
+                dashboard.innerHTML = `<div class="card"><h2>❌ Error</h2><p>${e.message}</p></div>`;
+            }
+        }
+
+        function renderDashboard(report, fixLog) {
+            const { summary, failureAnalysis, errorAnalysis, recommendations } = report;
+
+            let html = `
+                <div class="grid">
+                    <!-- Summary Card -->
+                    <div class="card">
+                        <h2>📊 Test Summary</h2>
+                        <div class="stat">
+                            <span class="stat-label">Total Tests</span>
+                            <span class="stat-value info">${summary.total}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Passed</span>
+                            <span class="stat-value success">${summary.passed}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Failed</span>
+                            <span class="stat-value error">${summary.failed}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Skipped</span>
+                            <span class="stat-value warning">${summary.skipped}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Status</span>
+                            <span class="stat-value ${report.meta.status === 'complete' ? 'success' : 'warning'}">${report.meta.status}</span>
+                        </div>
+                    </div>
+
+                    <!-- Failure Analysis -->
+                    <div class="card">
+                        <h2>🔍 Failure Analysis (${failureAnalysis.totalFailures})</h2>
+                        ${Object.entries(failureAnalysis.byType).map(([type, data]) => `
+                            <div class="stat">
+                                <span class="stat-label">${type}</span>
+                                <span class="stat-value error">${data.count}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Error Analysis -->
+                    <div class="card">
+                        <h2>⚠️ Runtime Errors (${errorAnalysis.totalErrors})</h2>
+                        ${Object.entries(errorAnalysis.byType).map(([type, data]) => `
+                            <div class="stat">
+                                <span class="stat-label">${type}</span>
+                                <span class="stat-value error">${data.count}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="card">
+                        <h2>💡 AI Recommendations</h2>
+                        ${recommendations.length > 0 ? recommendations.map(rec => `
+                            <div class="rec-item ${rec.priority}">
+                                <span class="rec-priority ${rec.priority}">${rec.priority.toUpperCase()}</span>
+                                <div class="rec-message">${rec.message}</div>
+                            </div>
+                        `).join('') : '<p style="color:#8b949e;">No recommendations</p>'}
+                    </div>
+                </div>
+
+                <!-- Failure Details -->
+                ${failureAnalysis.totalFailures > 0 ? `
+                    <div class="card">
+                        <h2>❌ Failed Tests</h2>
+                        <div class="test-list">
+                            ${Object.entries(failureAnalysis.bySection).map(([section, data]) => `
+                                <div style="margin:15px 0;">
+                                    <h3 style="color:#58a6ff;margin-bottom:10px;">${section} (${data.count})</h3>
+                                    ${data.failures.map(f => `
+                                        <div class="test-item fail">
+                                            <span class="test-name">${f.test}</span>
+                                            <span style="color:#8b949e;margin-right:10px;font-size:12px;">${f.detail}</span>
+                                            <span class="test-status fail">FAIL</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
+                <!-- Error Details -->
+                ${errorAnalysis.totalErrors > 0 ? `
+                    <div class="card">
+                        <h2>🚨 Error Details</h2>
+                        <div class="error-list">
+                            ${errorAnalysis.stackTraces.map(e => `
+                                <div class="error-item">
+                                    <div class="error-type">Error</div>
+                                    <div class="error-message">${e.message}</div>
+                                    <div class="error-stack">${e.stack || 'No stack trace'}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
+                <!-- Fix Log -->
+                ${fixLog.length > 0 ? `
+                    <div class="card">
+                        <h2>📝 AI Fix Log (${fixLog.length} entries)</h2>
+                        <div class="fix-log">
+                            ${fixLog.map(entry => `
+                                <div class="fix-log-item ${entry.type}">
+                                    <div class="fix-log-header">
+                                        <span class="fix-log-type">[${entry.type}]</span>
+                                        <span class="fix-log-time">${new Date(entry.timestamp).toLocaleTimeString()}</span>
+                                    </div>
+                                    <div class="fix-log-message">${entry.message}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
+                <!-- Quick Actions -->
+                <div class="card">
+                    <h2>🛠️ Quick Actions</h2>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button class="btn" onclick="exportReport()">📤 Export Report</button>
+                        <button class="btn secondary" onclick="copyFailureJSON()">📋 Copy Failures</button>
+                        <button class="btn secondary" onclick="copyAIReport()">🤖 Copy AI Report</button>
+                    </div>
+                </div>
+            `;
+
+            dashboard.innerHTML = html;
+        }
+
+        function exportReport() {
+            try {
+                const iframeWindow = testFrame.contentWindow;
+                const report = iframeWindow.AI_TEST_FRAMEWORK.getAIReport();
+                const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ai-test-report-${Date.now()}.json`;
+                a.click();
+            } catch (e) {
+                alert('Export failed: ' + e.message);
+            }
+        }
+
+        function copyFailureJSON() {
+            try {
+                const iframeWindow = testFrame.contentWindow;
+                const failures = iframeWindow.AI_TEST_FRAMEWORK.getFailureReport();
+                navigator.clipboard.writeText(JSON.stringify(failures, null, 2));
+                alert('Failure report copied to clipboard');
+            } catch (e) {
+                alert('Copy failed: ' + e.message);
+            }
+        }
+
+        function copyAIReport() {
+            try {
+                const iframeWindow = testFrame.contentWindow;
+                const report = iframeWindow.AI_TEST_FRAMEWORK.getAIReport();
+                navigator.clipboard.writeText(JSON.stringify(report, null, 2));
+                alert('AI report copied to clipboard');
+            } catch (e) {
+                alert('Copy failed: ' + e.message);
+            }
+        }
+
+        function clearData() {
+            dashboard.innerHTML = '<div class="loading">Cleared</div>';
+            testFrame.src = 'about:blank';
+        }
+
+        // Auto-refresh every 5 seconds
+        setInterval(refreshDashboard, 5000);
+
+        // Initial load
+        loadTestPage('test.html');
+    </script>
+</body>
+</html>

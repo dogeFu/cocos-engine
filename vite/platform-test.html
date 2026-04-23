@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cocos Engine Platform Test</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        h1 { color: #fff; border-bottom: 2px solid #4a9eff; padding-bottom: 10px; }
+        h2 { color: #4a9eff; margin-top: 30px; }
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .summary-card {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .summary-card h3 { margin: 0 0 10px 0; font-size: 14px; color: #888; }
+        .summary-card .value { font-size: 28px; font-weight: bold; }
+        .summary-card.success .value { color: #4caf50; }
+        .summary-card.error .value { color: #f44336; }
+        .summary-card.warning .value { color: #ff9800; }
+        .test-section {
+            background: #2a2a2a;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .test-section-header {
+            background: #333;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .test-section-content { padding: 15px 20px; }
+        .test-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 4px 0;
+            background: #222;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+        }
+        .test-item.pass { border-left: 3px solid #4caf50; }
+        .test-item.fail { border-left: 3px solid #f44336; }
+        .test-name { flex: 1; }
+        .test-status { font-weight: bold; margin-left: 10px; }
+        .test-status.pass { color: #4caf50; }
+        .test-status.fail { color: #f44336; }
+        .log-container {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+        }
+        .log-entry { margin: 3px 0; padding: 3px 8px; border-radius: 3px; }
+        .log-entry.info { color: #2196f3; }
+        .log-entry.success { color: #4caf50; }
+        .log-entry.error { color: #f44336; }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .badge.success { background: #4caf50; color: #fff; }
+        .badge.error { background: #f44336; color: #fff; }
+        .progress-bar {
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #4a9eff;
+            transition: width 0.3s ease;
+        }
+        .platform-info {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .platform-info h3 { margin-top: 0; color: #4a9eff; }
+        .platform-info table { width: 100%; border-collapse: collapse; }
+        .platform-info th, .platform-info td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+        .platform-info th { background: #3a3a3a; }
+    </style>
+</head>
+<body>
+    <h1>🖥️ Cocos Engine Platform Test</h1>
+    
+    <div class="platform-info">
+        <h3>Platform Information</h3>
+        <table>
+            <tr>
+                <th>Property</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>Platform</td>
+                <td id="platformName">-</td>
+            </tr>
+            <tr>
+                <td>Browser</td>
+                <td id="browserType">-</td>
+            </tr>
+            <tr>
+                <td>OS</td>
+                <td id="osName">-</td>
+            </tr>
+            <tr>
+                <td>Language</td>
+                <td id="language">-</td>
+            </tr>
+            <tr>
+                <td>Network Type</td>
+                <td id="networkType">-</td>
+            </tr>
+            <tr>
+                <td>Screen Size</td>
+                <td id="screenSize">-</td>
+            </tr>
+            <tr>
+                <td>Device Pixel Ratio</td>
+                <td id="pixelRatio">-</td>
+            </tr>
+            <tr>
+                <td>WebGL Version</td>
+                <td id="webglVersion">-</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="summary" id="summary">
+        <div class="summary-card">
+            <h3>Total Tests</h3>
+            <div class="value" id="totalTests">-</div>
+        </div>
+        <div class="summary-card success">
+            <h3>Passed</h3>
+            <div class="value" id="passedTests">-</div>
+        </div>
+        <div class="summary-card error">
+            <h3>Failed</h3>
+            <div class="value" id="failedTests">-</div>
+        </div>
+    </div>
+    
+    <div class="progress-bar">
+        <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
+    </div>
+    
+    <div id="testResults"></div>
+    
+    <div class="log-container" id="logContainer"></div>
+
+    <script src="/vite/framework/ai-test-framework.js"></script>
+    <script type="module">
+        const framework = window.AI_TEST_FRAMEWORK;
+        const testResults = document.getElementById('testResults');
+        const logContainer = document.getElementById('logContainer');
+        const progressBar = document.getElementById('progressBar');
+        
+        let currentSectionName = '';
+        let currentSection = null;
+        
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            if (framework) framework.log(message, type);
+        }
+        
+        function updateStats(summary) {
+            document.getElementById('totalTests').textContent = summary.total;
+            document.getElementById('passedTests').textContent = summary.passed;
+            document.getElementById('failedTests').textContent = summary.failed;
+            progressBar.style.width = `${summary.total > 0 ? (summary.passed + summary.failed) / summary.total * 100 : 0}%`;
+        }
+        
+        function recordTest(name, status, detail = '') {
+            if (framework) {
+                framework.recordTest(currentSectionName, name, status, detail);
+                updateStats(framework.getSummary());
+            }
+            
+            if (currentSection) {
+                currentSection.items.push({ name, status, detail });
+                if (status === 'pass') currentSection.passed++;
+                else currentSection.failed++;
+            }
+        }
+        
+        function startSection(name) {
+            if (currentSection) {
+                finishSection();
+            }
+            currentSectionName = name;
+            currentSection = { name, items: [], passed: 0, failed: 0 };
+            if (framework) framework.startSection(name);
+        }
+        
+        function finishSection() {
+            if (!currentSection) return;
+            if (framework) framework.finishSection();
+            
+            const section = document.createElement('div');
+            section.className = 'test-section';
+            
+            const statusClass = currentSection.failed > 0 ? 'error' : 'success';
+            
+            section.innerHTML = `
+                <div class="test-section-header">
+                    <span>${currentSection.name}</span>
+                    <span class="badge ${statusClass}">
+                        ${currentSection.passed}/${currentSection.items.length}
+                    </span>
+                </div>
+                <div class="test-section-content">
+                    ${currentSection.items.map(item => `
+                        <div class="test-item ${item.status}">
+                            <span class="test-name">${item.name}</span>
+                            ${item.detail ? `<span style="color:#888;margin-right:10px">${item.detail}</span>` : ''}
+                            <span class="test-status ${item.status}">${item.status.toUpperCase()}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            testResults.appendChild(section);
+            currentSection = null;
+        }
+        
+        function checkProperty(obj, name, expectedType) {
+            if (!(name in obj)) {
+                recordTest(name, 'fail', 'NOT FOUND');
+                return false;
+            }
+            const value = obj[name];
+            if (expectedType && typeof value !== expectedType && expectedType !== 'any') {
+                recordTest(name, 'fail', `expected ${expectedType}, got ${typeof value}`);
+                return false;
+            }
+            recordTest(name, 'pass', typeof value);
+            return true;
+        }
+        
+        function checkMethod(obj, name) {
+            return checkProperty(obj, name, 'function');
+        }
+        
+        function fillPlatformInfo(cc) {
+            const sys = cc.sys;
+            document.getElementById('platformName').textContent = sys.platform || '-';
+            document.getElementById('browserType').textContent = sys.browserType || '-';
+            document.getElementById('osName').textContent = sys.os || '-';
+            document.getElementById('language').textContent = sys.language || '-';
+            document.getElementById('networkType').textContent = sys.networkType || '-';
+            document.getElementById('screenSize').textContent = `${window.innerWidth}x${window.innerHeight}`;
+            document.getElementById('pixelRatio').textContent = window.devicePixelRatio || '-';
+            document.getElementById('webglVersion').textContent = sys.hasFeature ? 'WebGL' : 'Unknown';
+        }
+        
+        async function runTests() {
+            log('Starting platform tests...', 'info');
+            
+            let cc;
+            try {
+                const gameCanvas = document.createElement('canvas');
+                gameCanvas.id = 'GameCanvas';
+                gameCanvas.width = 800;
+                gameCanvas.height = 600;
+                gameCanvas.style.display = 'none';
+                document.body.appendChild(gameCanvas);
+                
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.type = 'module';
+                    script.src = '/bin/vite/web/prod/cc.js';
+                    script.onload = resolve;
+                    script.onerror = (e) => reject(new Error('Failed to load script'));
+                    document.head.appendChild(script);
+                });
+                
+                cc = window.cc;
+                
+                fillPlatformInfo(cc);
+                log('Engine loaded successfully', 'success');
+            } catch (e) {
+                log(`Failed to load engine: ${e.message}`, 'error');
+                return;
+            }
+            
+            // ==================== PAL: System Info ====================
+            startSection('📱 PAL: System Info');
+            
+            const sys = cc.sys;
+            if (sys) {
+                checkProperty(sys, 'platform', 'string');
+                checkProperty(sys, 'browserType', 'string');
+                checkProperty(sys, 'browserVersion', 'string');
+                checkProperty(sys, 'os', 'string');
+                checkProperty(sys, 'osVersion', 'string');
+                checkProperty(sys, 'osMajorVersion', 'number');
+                checkProperty(sys, 'language', 'string');
+                checkProperty(sys, 'networkType', 'string');
+                checkProperty(sys, 'isNative', 'boolean');
+                checkProperty(sys, 'isBrowser', 'boolean');
+                checkProperty(sys, 'isMobile', 'boolean');
+                checkProperty(sys, 'isLittleEndian', 'boolean');
+                checkProperty(sys, 'platform', 'string');
+                checkProperty(sys, 'pixelRatio', 'number');
+                
+                checkMethod(sys, 'isObjectSupported');
+                checkMethod(sys, 'isXRPlatform');
+            } else {
+                recordTest('cc.sys', 'fail', 'not found');
+            }
+            
+            finishSection();
+            
+            // ==================== PAL: Screen Adapter ====================
+            startSection('🖥️ PAL: Screen Adapter');
+            
+            const screenAdapter = cc.screenAdapter;
+            if (screenAdapter) {
+                checkProperty(screenAdapter, 'autoFullScreen', 'boolean');
+                checkProperty(screenAdapter, 'isFullScreen', 'boolean');
+                checkProperty(screenAdapter, 'orientation', 'string');
+                checkProperty(screenAdapter, 'resolutionScale', 'number');
+                
+                checkMethod(screenAdapter, 'setResolutionScale');
+                checkMethod(screenAdapter, 'setFrameSize');
+                checkMethod(screenAdapter, 'setFullScreen');
+            } else {
+                recordTest('cc.screenAdapter', 'fail', 'not found');
+            }
+            
+            finishSection();
+            
+            // ==================== PAL: Input ====================
+            startSection('🖱️ PAL: Input');
+            
+            const input = cc.input;
+            if (input) {
+                checkMethod(input, 'on');
+                checkMethod(input, 'off');
+                checkMethod(input, 'offAll');
+            } else {
+                recordTest('cc.input', 'fail', 'not found');
+            }
+            
+            checkProperty(cc, 'EventMouse', 'function');
+            checkProperty(cc, 'EventTouch', 'function');
+            checkProperty(cc, 'EventKeyboard', 'function');
+            checkProperty(cc, 'EventAcceleration', 'function');
+            
+            finishSection();
+            
+            // ==================== PAL: Audio ====================
+            startSection('🔊 PAL: Audio');
+            
+            const audio = cc.audioEngine;
+            if (audio) {
+                checkMethod(audio, 'play');
+                checkMethod(audio, 'pause');
+                checkMethod(audio, 'resume');
+                checkMethod(audio, 'stop');
+                checkMethod(audio, 'setVolume');
+                checkMethod(audio, 'getVolume');
+                checkMethod(audio, 'setLoop');
+                checkMethod(audio, 'isLoop');
+                checkMethod(audio, 'getState');
+                checkMethod(audio, 'stopAll');
+                checkMethod(audio, 'pauseAll');
+                checkMethod(audio, 'resumeAll');
+            } else {
+                recordTest('cc.audioEngine', 'fail', 'not found');
+            }
+            
+            finishSection();
+            
+            // ==================== PAL: Storage ====================
+            startSection('💾 PAL: Storage');
+            
+            const storage = sys.localStorage;
+            if (storage) {
+                try {
+                    storage.setItem('test_key', 'test_value');
+                    const value = storage.getItem('test_key');
+                    if (value === 'test_value') {
+                        recordTest('localStorage.setItem/getItem', 'pass');
+                    } else {
+                        recordTest('localStorage.setItem/getItem', 'fail', 'value mismatch');
+                    }
+                    storage.removeItem('test_key');
+                    recordTest('localStorage.removeItem', 'pass');
+                } catch (e) {
+                    recordTest('localStorage', 'fail', e.message);
+                }
+            } else {
+                recordTest('localStorage', 'fail', 'not supported');
+            }
+            
+            finishSection();
+            
+            // ==================== PAL: Network ====================
+            startSection('🌐 PAL: Network');
+            
+            checkProperty(sys, 'networkType', 'string');
+            checkProperty(sys, 'isNetworkReachable', 'boolean');
+            
+            finishSection();
+            
+            // ==================== PAL: Device ====================
+            startSection('📱 PAL: Device');
+            
+            checkProperty(sys, 'isNative', 'boolean');
+            checkProperty(sys, 'isBrowser', 'boolean');
+            checkProperty(sys, 'isMobile', 'boolean');
+            
+            finishSection();
+            
+            // ==================== GFX Device ====================
+            startSection('🎮 GFX Device');
+            
+            const gfx = cc.gfx;
+            if (gfx) {
+                checkProperty(gfx, 'Format', 'object');
+                checkProperty(gfx, 'BufferUsageBit', 'object');
+                checkProperty(gfx, 'MemoryUsageBit', 'object');
+                checkProperty(gfx, 'Feature', 'object');
+                checkProperty(gfx, 'PrimitiveMode', 'object');
+                checkProperty(gfx, 'Type', 'object');
+                checkProperty(gfx, 'SamplerFilter', 'object');
+                checkProperty(gfx, 'SamplerAddressMode', 'object');
+                
+                checkMethod(gfx, 'Device');
+                checkMethod(gfx, 'Buffer');
+                checkMethod(gfx, 'Texture');
+                checkMethod(gfx, 'Shader');
+                checkMethod(gfx, 'InputAssembler');
+            } else {
+                recordTest('cc.gfx', 'fail', 'not found');
+            }
+            
+            finishSection();
+            
+            // ==================== Platform-Specific APIs ====================
+            startSection('🔧 Platform-Specific APIs');
+            
+            // Web platform specific
+            if (sys.isBrowser) {
+                recordTest('Browser platform detected', 'pass');
+                
+                const isMinigame = typeof wx !== 'undefined' || 
+                                  typeof my !== 'undefined' || 
+                                  typeof swan !== 'undefined' ||
+                                  typeof tt !== 'undefined';
+                
+                if (isMinigame) {
+                    recordTest('Minigame environment', 'pass');
+                } else {
+                    recordTest('Standard web environment', 'pass');
+                }
+            } else {
+                recordTest('Non-browser platform', 'pass', sys.platform);
+            }
+            
+            finishSection();
+            
+            framework.markComplete();
+            const summary = framework.getSummary();
+            
+            log(`\n=== Platform Test Complete ===`, 'success');
+            log(`Total: ${summary.total}, Passed: ${summary.passed}, Failed: ${summary.failed}`, 'info');
+            
+            if (summary.failed === 0) {
+                log('✅ All platform tests passed!', 'success');
+            } else {
+                log('⚠️ Some tests failed - Check console output for AI repair report', 'error');
+            }
+        }
+        
+        runTests().catch(e => {
+            log(`Fatal error: ${e.message}`, 'error');
+            console.error(e);
+        });
+    </script>
+</body>
+</html>

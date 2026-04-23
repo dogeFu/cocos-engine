@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cocos Engine Behavior Test</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        h1 { color: #fff; border-bottom: 2px solid #4a9eff; padding-bottom: 10px; }
+        h2 { color: #4a9eff; margin-top: 30px; }
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .summary-card {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .summary-card h3 { margin: 0 0 10px 0; font-size: 14px; color: #888; }
+        .summary-card .value { font-size: 28px; font-weight: bold; }
+        .summary-card.success .value { color: #4caf50; }
+        .summary-card.error .value { color: #f44336; }
+        .summary-card.warning .value { color: #ff9800; }
+        .test-section {
+            background: #2a2a2a;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .test-section-header {
+            background: #333;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .test-section-content { padding: 15px 20px; }
+        .test-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 4px 0;
+            background: #222;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+        }
+        .test-item.pass { border-left: 3px solid #4caf50; }
+        .test-item.fail { border-left: 3px solid #f44336; }
+        .test-name { flex: 1; }
+        .test-status { font-weight: bold; margin-left: 10px; }
+        .test-status.pass { color: #4caf50; }
+        .test-status.fail { color: #f44336; }
+        .log-container {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+        }
+        .log-entry { margin: 3px 0; padding: 3px 8px; border-radius: 3px; }
+        .log-entry.info { color: #2196f3; }
+        .log-entry.success { color: #4caf50; }
+        .log-entry.error { color: #f44336; }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .badge.success { background: #4caf50; color: #fff; }
+        .badge.error { background: #f44336; color: #fff; }
+        .progress-bar {
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #4a9eff;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Cocos Engine Behavior Test</h1>
+    
+    <div class="summary" id="summary">
+        <div class="summary-card">
+            <h3>Total Tests</h3>
+            <div class="value" id="totalTests">-</div>
+        </div>
+        <div class="summary-card success">
+            <h3>Passed</h3>
+            <div class="value" id="passedTests">-</div>
+        </div>
+        <div class="summary-card error">
+            <h3>Failed</h3>
+            <div class="value" id="failedTests">-</div>
+        </div>
+    </div>
+    
+    <div class="progress-bar">
+        <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
+    </div>
+    
+    <div id="testResults"></div>
+    
+    <div class="log-container" id="logContainer"></div>
+
+    <script src="/vite/framework/ai-test-framework.js"></script>
+    <script type="module">
+        const framework = window.AI_TEST_FRAMEWORK;
+        const testResults = document.getElementById('testResults');
+        const logContainer = document.getElementById('logContainer');
+        const progressBar = document.getElementById('progressBar');
+        
+        let currentSectionName = '';
+        let currentSection = null;
+        
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            if (framework) framework.log(message, type);
+        }
+        
+        function updateStats(summary) {
+            document.getElementById('totalTests').textContent = summary.total;
+            document.getElementById('passedTests').textContent = summary.passed;
+            document.getElementById('failedTests').textContent = summary.failed;
+            progressBar.style.width = `${summary.total > 0 ? (summary.passed + summary.failed) / summary.total * 100 : 0}%`;
+        }
+        
+        function recordTest(name, status, detail = '') {
+            if (framework) {
+                framework.recordTest(currentSectionName, name, status, detail);
+                updateStats(framework.getSummary());
+            }
+            
+            if (currentSection) {
+                currentSection.items.push({ name, status, detail });
+                if (status === 'pass') currentSection.passed++;
+                else currentSection.failed++;
+            }
+        }
+        
+        function startSection(name) {
+            if (currentSection) {
+                finishSection();
+            }
+            currentSectionName = name;
+            currentSection = { name, items: [], passed: 0, failed: 0 };
+            if (framework) framework.startSection(name);
+        }
+        
+        function finishSection() {
+            if (!currentSection) return;
+            if (framework) framework.finishSection();
+            
+            const section = document.createElement('div');
+            section.className = 'test-section';
+            
+            const statusClass = currentSection.failed > 0 ? 'error' : 'success';
+            
+            section.innerHTML = `
+                <div class="test-section-header">
+                    <span>${currentSection.name}</span>
+                    <span class="badge ${statusClass}">
+                        ${currentSection.passed}/${currentSection.items.length}
+                    </span>
+                </div>
+                <div class="test-section-content">
+                    ${currentSection.items.map(item => `
+                        <div class="test-item ${item.status}">
+                            <span class="test-name">${item.name}</span>
+                            ${item.detail ? `<span style="color:#888;margin-right:10px">${item.detail}</span>` : ''}
+                            <span class="test-status ${item.status}">${item.status.toUpperCase()}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            testResults.appendChild(section);
+            currentSection = null;
+        }
+        
+        async function runTests() {
+            log('Starting behavior tests...', 'info');
+            
+            let cc;
+            try {
+                const gameCanvas = document.createElement('canvas');
+                gameCanvas.id = 'GameCanvas';
+                gameCanvas.width = 800;
+                gameCanvas.height = 600;
+                gameCanvas.style.display = 'none';
+                document.body.appendChild(gameCanvas);
+                
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.type = 'module';
+                    script.src = '/bin/vite/web/prod/cc.js';
+                    script.onload = resolve;
+                    script.onerror = (e) => reject(new Error('Failed to load script'));
+                    document.head.appendChild(script);
+                });
+                
+                cc = window.cc;
+                log('Engine loaded successfully', 'success');
+            } catch (e) {
+                log(`Failed to load engine: ${e.message}`, 'error');
+                return;
+            }
+            
+            // ==================== Math Behavior ====================
+            startSection('📐 Math Behavior Tests');
+            
+            // Vec3
+            try {
+                const Vec3 = cc.Vec3;
+                
+                // Test cross product
+                const a = new Vec3(1, 0, 0);
+                const b = new Vec3(0, 1, 0);
+                const c = Vec3.cross(new Vec3(), a, b);
+                if (Math.abs(c.x) < 0.001 && Math.abs(c.y) < 0.001 && Math.abs(c.z - 1) < 0.001) {
+                    recordTest('Vec3.cross()', 'pass');
+                } else {
+                    recordTest('Vec3.cross()', 'fail', `Expected (0,0,1), got (${c.x},${c.y},${c.z})`);
+                }
+            } catch (e) {
+                recordTest('Vec3.cross()', 'fail', e.message);
+            }
+            
+            try {
+                const Vec3 = cc.Vec3;
+                
+                // Test dot product
+                const a = new Vec3(1, 2, 3);
+                const b = new Vec3(4, 5, 6);
+                const dot = Vec3.dot(a, b);
+                const expected = 1 * 4 + 2 * 5 + 3 * 6;
+                if (Math.abs(dot - expected) < 0.001) {
+                    recordTest('Vec3.dot()', 'pass');
+                } else {
+                    recordTest('Vec3.dot()', 'fail', `Expected ${expected}, got ${dot}`);
+                }
+            } catch (e) {
+                recordTest('Vec3.dot()', 'fail', e.message);
+            }
+            
+            try {
+                const Vec3 = cc.Vec3;
+                
+                // Test normalize
+                const a = new Vec3(3, 4, 0);
+                const b = Vec3.normalize(new Vec3(), a);
+                if (Math.abs(b.x - 0.6) < 0.001 && Math.abs(b.y - 0.8) < 0.001) {
+                    recordTest('Vec3.normalize()', 'pass');
+                } else {
+                    recordTest('Vec3.normalize()', 'fail', `Expected (0.6,0.8,0), got (${b.x},${b.y},${b.z})`);
+                }
+            } catch (e) {
+                recordTest('Vec3.normalize()', 'fail', e.message);
+            }
+            
+            try {
+                const Vec3 = cc.Vec3;
+                
+                // Test lerp
+                const a = new Vec3(0, 0, 0);
+                const b = new Vec3(10, 10, 10);
+                const c = Vec3.lerp(new Vec3(), a, b, 0.5);
+                if (Math.abs(c.x - 5) < 0.001 && Math.abs(c.y - 5) < 0.001) {
+                    recordTest('Vec3.lerp()', 'pass');
+                } else {
+                    recordTest('Vec3.lerp()', 'fail', `Expected (5,5,5), got (${c.x},${c.y},${c.z})`);
+                }
+            } catch (e) {
+                recordTest('Vec3.lerp()', 'fail', e.message);
+            }
+            
+            finishSection();
+            
+            // ==================== Mat4 Behavior ====================
+            startSection('📐 Mat4 Behavior Tests');
+            
+            try {
+                const Mat4 = cc.Mat4;
+                const Vec3 = cc.Vec3;
+                
+                // Test identity
+                const m = new Mat4();
+                Mat4.identity(m);
+                
+                const expected = [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
+                let pass = true;
+                for (let i = 0; i < 16; i++) {
+                    if (Math.abs(m.m[i] - expected[i]) > 0.001) {
+                        pass = false;
+                        break;
+                    }
+                }
+                if (pass) {
+                    recordTest('Mat4.identity()', 'pass');
+                } else {
+                    recordTest('Mat4.identity()', 'fail', 'Matrix not identity');
+                }
+            } catch (e) {
+                recordTest('Mat4.identity()', 'fail', e.message);
+            }
+            
+            try {
+                const Mat4 = cc.Mat4;
+                const Vec3 = cc.Vec3;
+                
+                // Test translation
+                const m = new Mat4();
+                Mat4.identity(m);
+                Mat4.translate(m, m, new Vec3(10, 20, 30));
+                
+                const pos = new Vec3();
+                Mat4.getTranslation(pos, m);
+                
+                if (Math.abs(pos.x - 10) < 0.001 && Math.abs(pos.y - 20) < 0.001 && Math.abs(pos.z - 30) < 0.001) {
+                    recordTest('Mat4.translate()/getTranslation()', 'pass');
+                } else {
+                    recordTest('Mat4.translate()/getTranslation()', 'fail', `Expected (10,20,30), got (${pos.x},${pos.y},${pos.z})`);
+                }
+            } catch (e) {
+                recordTest('Mat4.translate()/getTranslation()', 'fail', e.message);
+            }
+            
+            try {
+                const Mat4 = cc.Mat4;
+                
+                // Test perspective
+                const m = new Mat4();
+                Mat4.perspective(m, Math.PI / 4, 16 / 9, 0.1, 100);
+                
+                // Check that the matrix was modified (not identity)
+                const identity = [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
+                let pass = false;
+                for (let i = 0; i < 16; i++) {
+                    if (Math.abs(m.m[i] - identity[i]) > 0.001) {
+                        pass = true;
+                        break;
+                    }
+                }
+                if (pass) {
+                    recordTest('Mat4.perspective()', 'pass');
+                } else {
+                    recordTest('Mat4.perspective()', 'fail', 'Matrix not modified');
+                }
+            } catch (e) {
+                recordTest('Mat4.perspective()', 'fail', e.message);
+            }
+            
+            finishSection();
+            
+            // ==================== Quat Behavior ====================
+            startSection('🔄 Quat Behavior Tests');
+            
+            try {
+                const Quat = cc.Quat;
+                
+                // Test from euler
+                const q = new Quat();
+                Quat.fromEuler(q, 0, 90, 0);
+                
+                // Check that the quaternion is valid (not all zeros)
+                if (q.x !== 0 || q.y !== 0 || q.z !== 0 || q.w !== 0) {
+                    recordTest('Quat.fromEuler()', 'pass');
+                } else {
+                    recordTest('Quat.fromEuler()', 'fail', 'Quaternion is zero');
+                }
+            } catch (e) {
+                recordTest('Quat.fromEuler()', 'fail', e.message);
+            }
+            
+            try {
+                const Quat = cc.Quat;
+                
+                // Test identity
+                const q = new Quat();
+                Quat.identity(q);
+                
+                if (Math.abs(q.w - 1) < 0.001 && q.x === 0 && q.y === 0 && q.z === 0) {
+                    recordTest('Quat.identity()', 'pass');
+                } else {
+                    recordTest('Quat.identity()', 'fail', `Expected (0,0,0,1), got (${q.x},${q.y},${q.z},${q.w})`);
+                }
+            } catch (e) {
+                recordTest('Quat.identity()', 'fail', e.message);
+            }
+            
+            finishSection();
+            
+            // ==================== Color Behavior ====================
+            startSection('🎨 Color Behavior Tests');
+            
+            try {
+                const Color = cc.Color;
+                
+                // Test constructor
+                const c = new Color(255, 128, 64, 255);
+                if (c.r === 255 && c.g === 128 && c.b === 64 && c.a === 255) {
+                    recordTest('Color constructor', 'pass');
+                } else {
+                    recordTest('Color constructor', 'fail', `Values incorrect`);
+                }
+            } catch (e) {
+                recordTest('Color constructor', 'fail', e.message);
+            }
+            
+            try {
+                const Color = cc.Color;
+                
+                // Test toHEX
+                const c = new Color(255, 128, 64);
+                const hex = c.toHEX();
+                if (hex && hex.length > 0 && hex.startsWith('#')) {
+                    recordTest('Color.toHEX()', 'pass', hex);
+                } else {
+                    recordTest('Color.toHEX()', 'fail', 'Invalid hex value');
+                }
+            } catch (e) {
+                recordTest('Color.toHEX()', 'fail', e.message);
+            }
+            
+            finishSection();
+            
+            // ==================== Tween Behavior ====================
+            startSection('🔄 Tween Behavior Tests');
+            
+            try {
+                const tween = cc.tween;
+                if (typeof tween === 'function') {
+                    recordTest('tween function exists', 'pass');
+                } else {
+                    recordTest('tween function exists', 'fail', 'tween is not a function');
+                }
+            } catch (e) {
+                recordTest('tween function exists', 'fail', e.message);
+            }
+            
+            finishSection();
+            
+            // ==================== Event System ====================
+            startSection('📡 Event System Tests');
+            
+            try {
+                const EventTarget = cc.EventTarget;
+                const et = new EventTarget();
+                
+                let called = false;
+                et.on('test', () => { called = true; });
+                et.emit('test');
+                
+                if (called) {
+                    recordTest('EventTarget.on/emit()', 'pass');
+                } else {
+                    recordTest('EventTarget.on/emit()', 'fail', 'Event not emitted');
+                }
+            } catch (e) {
+                recordTest('EventTarget.on/emit()', 'fail', e.message);
+            }
+            
+            try {
+                const EventTarget = cc.EventTarget;
+                const et = new EventTarget();
+                
+                let called = false;
+                et.on('test', () => { called = true; });
+                et.off('test');
+                et.emit('test');
+                
+                if (!called) {
+                    recordTest('EventTarget.off()', 'pass');
+                } else {
+                    recordTest('EventTarget.off()', 'fail', 'Event still emitted after off');
+                }
+            } catch (e) {
+                recordTest('EventTarget.off()', 'fail', e.message);
+            }
+            
+            finishSection();
+            
+            // ==================== Node Behavior ====================
+            startSection('🌳 Node Behavior Tests');
+            
+            try {
+                const Node = cc.Node;
+                const node = new Node('TestNode');
+                
+                if (node.name === 'TestNode') {
+                    recordTest('Node constructor', 'pass');
+                } else {
+                    recordTest('Node constructor', 'fail', `Expected 'TestNode', got '${node.name}'`);
+                }
+            } catch (e) {
+                recordTest('Node constructor', 'fail', e.message);
+            }
+            
+            try {
+                const Node = cc.Node;
+                const node = new Node('TestNode');
+                node.setPosition(100, 200, 0);
+                
+                const pos = node.position;
+                if (Math.abs(pos.x - 100) < 0.001 && Math.abs(pos.y - 200) < 0.001) {
+                    recordTest('Node.setPosition/getPosition()', 'pass');
+                } else {
+                    recordTest('Node.setPosition/getPosition()', 'fail', `Expected (100,200), got (${pos.x},${pos.y})`);
+                }
+            } catch (e) {
+                recordTest('Node.setPosition/getPosition()', 'fail', e.message);
+            }
+            
+            finishSection();
+            
+            // ==================== Serialization ====================
+            startSection('📝 Serialization Tests');
+            
+            try {
+                const deserialize = cc.deserialize;
+                const instantiate = cc.instantiate;
+                
+                if (typeof deserialize === 'function' && typeof instantiate === 'function') {
+                    recordTest('deserialize/instantiate functions exist', 'pass');
+                } else {
+                    recordTest('deserialize/instantiate functions exist', 'fail', 'One or both functions missing');
+                }
+            } catch (e) {
+                recordTest('deserialize/instantiate functions exist', 'fail', e.message);
+            }
+            
+            finishSection();
+            
+            framework.markComplete();
+            const summary = framework.getSummary();
+            
+            log(`\n=== Behavior Test Complete ===`, 'success');
+            log(`Total: ${summary.total}, Passed: ${summary.passed}, Failed: ${summary.failed}`, 'info');
+            
+            if (summary.failed === 0) {
+                log('✅ All behavior tests passed!', 'success');
+            } else {
+                log('⚠️ Some tests failed - Check console output for AI repair report', 'error');
+            }
+        }
+        
+        runTests().catch(e => {
+            log(`Fatal error: ${e.message}`, 'error');
+            console.error(e);
+        });
+    </script>
+</body>
+</html>

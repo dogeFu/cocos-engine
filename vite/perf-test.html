@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cocos Engine Loading Performance Test</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        h1 { color: #fff; border-bottom: 2px solid #4a9eff; padding-bottom: 10px; }
+        h2 { color: #4a9eff; margin-top: 30px; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { background: #2a2a2a; border-radius: 8px; padding: 20px; }
+        .card h3 { margin-top: 0; }
+        .card.new h3 { color: #4caf50; }
+        .card.old h3 { color: #2196f3; }
+        .metric { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #444; }
+        .metric:last-child { border-bottom: none; }
+        .metric-label { color: #888; }
+        .metric-value { font-weight: bold; font-family: 'Monaco', 'Menlo', monospace; }
+        .progress { height: 8px; background: #333; border-radius: 4px; margin-top: 10px; overflow: hidden; }
+        .progress-bar { height: 100%; transition: width 0.3s ease; }
+        .progress-bar.new { background: #4caf50; }
+        .progress-bar.old { background: #2196f3; }
+        .button { background: #4a9eff; color: #fff; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; margin: 10px 5px; }
+        .button:hover { background: #3a8eef; }
+        .button:disabled { background: #666; cursor: not-allowed; }
+        .summary { background: #2a2a2a; border-radius: 8px; padding: 20px; margin-top: 20px; }
+        .summary h3 { margin-top: 0; color: #ff9800; }
+        .improvement { font-size: 20px; font-weight: bold; color: #4caf50; }
+        .log { background: #1e1e1e; border-radius: 8px; padding: 15px; margin-top: 20px; max-height: 300px; overflow-y: auto; font-family: 'Monaco', 'Menlo', monospace; font-size: 12px; }
+        .log-entry { margin: 3px 0; padding: 3px 8px; border-radius: 3px; }
+        .log-entry.info { color: #2196f3; }
+        .log-entry.success { color: #4caf50; }
+        .log-entry.error { color: #f44336; }
+        .log-entry.warn { color: #ff9800; }
+        .note { background: #2a2a2a; border-radius: 8px; padding: 15px; margin-top: 20px; border-left: 4px solid #ff9800; }
+        .note h3 { margin-top: 0; color: #ff9800; }
+        .warning { background: #3a2a2a; border-left: 4px solid #f44336; }
+        .warning h3 { color: #f44336; }
+        .module-list { font-size: 12px; color: #888; margin-top: 10px; }
+        .module-list span { display: inline-block; background: #333; padding: 2px 8px; border-radius: 4px; margin: 2px; }
+        .module-list span.enabled { background: #2e5a2e; color: #8f8; }
+        .module-list span.disabled { background: #5a2e2e; color: #f88; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #444; }
+        th { background: #333; color: #4a9eff; }
+        .highlight { color: #4caf50; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>⚡ Cocos Engine Loading Performance Test</h1>
+    
+    <div class="note">
+        <h3>📋 测试说明</h3>
+        <p><strong>新构建 (Vite):</strong> <code>/bin/vite/web/prod/cc.js</code></p>
+        <p><strong>老构建:</strong> <code>/project-build/cocos-js/</code></p>
+        <p><strong>注意:</strong> 老构建包含物理引擎，新构建默认不包含。测试会分别展示公平对比和完整对比。</p>
+    </div>
+    
+    <div class="note warning" id="warningBox" style="display: none;">
+        <h3>⚠️ 路径问题</h3>
+        <p id="warningText"></p>
+    </div>
+    
+    <div style="text-align: center;">
+        <button class="button" id="runTest">Run Test</button>
+    </div>
+    
+    <h2>📊 文件大小对比</h2>
+    
+    <div class="cards">
+        <div class="card new">
+            <h3>🚀 New Build (Vite)</h3>
+            <div class="metric">
+                <span class="metric-label">Total Size</span>
+                <span class="metric-value" id="newSize">-</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">gzip Size</span>
+                <span class="metric-value" id="newGzipSize">~404 KB</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">File Count</span>
+                <span class="metric-value">1 file</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Download Time</span>
+                <span class="metric-value" id="newLoadTime">-</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar new" id="newProgress" style="width: 0%"></div>
+            </div>
+            <div class="module-list" id="newModules"></div>
+        </div>
+        
+        <div class="card old">
+            <h3>📦 Old Build (Production)</h3>
+            <div class="metric">
+                <span class="metric-label">Total Size</span>
+                <span class="metric-value" id="oldSize">-</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Core Only (no physics)</span>
+                <span class="metric-value" id="oldCoreSize">-</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">File Count</span>
+                <span class="metric-value" id="oldFileCount">-</span>
+            </div>
+            <div class="metric">
+                <span class="metric-label">Download Time</span>
+                <span class="metric-value" id="oldLoadTime">-</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar old" id="oldProgress" style="width: 0%"></div>
+            </div>
+            <div class="module-list" id="oldModules"></div>
+        </div>
+    </div>
+    
+    <h2>📈 性能对比结果</h2>
+    
+    <div class="summary" id="summary" style="display: none;">
+        <h3>公平对比 (相同功能模块)</h3>
+        <table>
+            <tr>
+                <th>指标</th>
+                <th>老构建</th>
+                <th>新构建</th>
+                <th>改进</th>
+            </tr>
+            <tr>
+                <td>文件大小 (不含物理)</td>
+                <td id="oldCoreSizeRow">-</td>
+                <td id="newSizeRow">-</td>
+                <td id="sizeImprovement" class="highlight">-</td>
+            </tr>
+            <tr>
+                <td>文件数量</td>
+                <td id="oldFileCountRow">-</td>
+                <td>1</td>
+                <td class="highlight">更少请求</td>
+            </tr>
+            <tr>
+                <td>下载时间</td>
+                <td id="oldLoadTimeRow">-</td>
+                <td id="newLoadTimeRow">-</td>
+                <td id="loadImprovement" class="highlight">-</td>
+            </tr>
+        </table>
+        
+        <h3 style="margin-top: 20px;">完整对比 (包含所有模块)</h3>
+        <table>
+            <tr>
+                <th>指标</th>
+                <th>老构建</th>
+                <th>新构建</th>
+            </tr>
+            <tr>
+                <td>总文件大小</td>
+                <td id="oldTotalSizeRow">-</td>
+                <td id="newTotalSizeRow">-</td>
+            </tr>
+            <tr>
+                <td>包含物理引擎</td>
+                <td>✓ (~945 KB)</td>
+                <td>✗ (未启用)</td>
+            </tr>
+            <tr>
+                <td>包含 Spine</td>
+                <td>✓ (~400 KB)</td>
+                <td>✓</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="log" id="logContainer"></div>
+
+    <script>
+        var logContainer = document.getElementById('logContainer');
+        
+        function log(message, type) {
+            type = type || 'info';
+            var entry = document.createElement('div');
+            entry.className = 'log-entry ' + type;
+            entry.textContent = '[' + new Date().toLocaleTimeString() + '] ' + message;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+        
+        function formatTime(ms) {
+            if (ms < 1000) return ms.toFixed(2) + ' ms';
+            return (ms / 1000).toFixed(2) + ' s';
+        }
+        
+        function testNewBuild() {
+            log('Testing new build (Vite)...', 'info');
+            
+            var url = '/bin/vite/web/prod/cc.js';
+            var startTime = performance.now();
+            
+            return fetch(url + '?t=' + Date.now())
+                .then(function(response) {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    var downloadEnd = performance.now();
+                    var downloadTime = downloadEnd - startTime;
+                    var size = parseInt(response.headers.get('content-length'), 10) || 0;
+                    
+                    document.getElementById('newSize').textContent = formatBytes(size);
+                    document.getElementById('newLoadTime').textContent = formatTime(downloadTime);
+                    document.getElementById('newProgress').style.width = '100%';
+                    
+                    document.getElementById('newModules').innerHTML = 
+                        '<span class="enabled">base</span>' +
+                        '<span class="enabled">2d</span>' +
+                        '<span class="enabled">3d</span>' +
+                        '<span class="enabled">animation</span>' +
+                        '<span class="enabled">audio</span>' +
+                        '<span class="enabled">gfx-webgl</span>' +
+                        '<span class="enabled">gfx-webgl2</span>' +
+                        '<span class="enabled">tween</span>' +
+                        '<span class="enabled">ui</span>' +
+                        '<span class="enabled">spine-4.2</span>' +
+                        '<span class="disabled">physics</span>' +
+                        '<span class="disabled">dragon-bones</span>';
+                    
+                    log('New build: ' + formatBytes(size), 'success');
+                    return { size: size, downloadTime: downloadTime };
+                });
+        }
+        
+        function testOldBuild() {
+            log('Testing old build...', 'info');
+            
+            var baseUrl = '/project-build/cocos-js/';
+            
+            return fetch(baseUrl + '_virtual_cc-CArsJ5Rl.js?t=' + Date.now())
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Old build path not found. Run: ln -s /Users/kay/Creator/NewProject/build/web-desktop project-build');
+                    }
+                    return response.text();
+                })
+                .then(function() {
+                    var files = [
+                        '_virtual_cc-CArsJ5Rl.js',
+                        'cc.js',
+                        'bullet.release.asm-D_68nJYa.js',
+                        'bullet.release.wasm-BOgvux-R.js',
+                        'bullet.release.wasm-mT4aJDLq.js',
+                        'spine-BGFFnNyc.js',
+                        'spine.asm-BCCB8IGt.js',
+                        'spine.js-CPHn08RU.js',
+                        'spine.wasm-D2KkhhGP.js'
+                    ];
+                    
+                    log('Found ' + files.length + ' JS files', 'info');
+                    
+                    var totalSize = 0;
+                    var coreSize = 0;
+                    var physicsSize = 0;
+                    var spineSize = 0;
+                    var fileCount = 0;
+                    var startTime = performance.now();
+                    
+                    var promises = files.map(function(file) {
+                        return fetch(baseUrl + file + '?t=' + Date.now())
+                            .then(function(response) {
+                                if (!response.ok) return 0;
+                                var size = parseInt(response.headers.get('content-length'), 10) || 0;
+                                totalSize += size;
+                                fileCount++;
+                                
+                                if (file.indexOf('bullet') >= 0 || file.indexOf('physics') >= 0) {
+                                    physicsSize += size;
+                                } else if (file.indexOf('spine') >= 0) {
+                                    spineSize += size;
+                                } else {
+                                    coreSize += size;
+                                }
+                                
+                                return response.text();
+                            })
+                            .catch(function() { return 0; });
+                    });
+                    
+                    return Promise.all(promises).then(function() {
+                        var endTime = performance.now();
+                        var downloadTime = endTime - startTime;
+                        
+                        document.getElementById('oldSize').textContent = formatBytes(totalSize);
+                        document.getElementById('oldCoreSize').textContent = formatBytes(coreSize + spineSize);
+                        document.getElementById('oldFileCount').textContent = fileCount + ' files';
+                        document.getElementById('oldLoadTime').textContent = formatTime(downloadTime);
+                        document.getElementById('oldProgress').style.width = '100%';
+                        
+                        document.getElementById('oldModules').innerHTML = 
+                            '<span class="enabled">core</span>' +
+                            '<span class="enabled">spine (~' + formatBytes(spineSize) + ')</span>' +
+                            '<span class="enabled">physics (~' + formatBytes(physicsSize) + ')</span>';
+                        
+                        log('Old build: ' + formatBytes(totalSize) + ' (core: ' + formatBytes(coreSize) + ', physics: ' + formatBytes(physicsSize) + ', spine: ' + formatBytes(spineSize) + ')', 'success');
+                        
+                        return { 
+                            totalSize: totalSize, 
+                            coreSize: coreSize + spineSize,
+                            physicsSize: physicsSize,
+                            spineSize: spineSize,
+                            downloadTime: downloadTime,
+                            fileCount: fileCount
+                        };
+                    });
+                });
+        }
+        
+        function runTest() {
+            var btn = document.getElementById('runTest');
+            btn.disabled = true;
+            
+            logContainer.innerHTML = '';
+            document.getElementById('newProgress').style.width = '0%';
+            document.getElementById('oldProgress').style.width = '0%';
+            document.getElementById('summary').style.display = 'none';
+            document.getElementById('warningBox').style.display = 'none';
+            
+            log('Starting performance test...', 'info');
+            
+            var newResult, oldResult;
+            
+            testNewBuild()
+                .then(function(result) {
+                    newResult = result;
+                    return testOldBuild();
+                })
+                .then(function(result) {
+                    oldResult = result;
+                    
+                    document.getElementById('summary').style.display = 'block';
+                    
+                    var sizeReduction = ((oldResult.coreSize - newResult.size) / oldResult.coreSize * 100).toFixed(1);
+                    var loadImprovement = ((oldResult.downloadTime - newResult.downloadTime) / oldResult.downloadTime * 100).toFixed(1);
+                    
+                    document.getElementById('oldCoreSizeRow').textContent = formatBytes(oldResult.coreSize);
+                    document.getElementById('newSizeRow').textContent = formatBytes(newResult.size);
+                    document.getElementById('sizeImprovement').textContent = '-' + sizeReduction + '%';
+                    
+                    document.getElementById('oldFileCountRow').textContent = oldResult.fileCount + ' files';
+                    
+                    document.getElementById('oldLoadTimeRow').textContent = formatTime(oldResult.downloadTime);
+                    document.getElementById('newLoadTimeRow').textContent = formatTime(newResult.downloadTime);
+                    document.getElementById('loadImprovement').textContent = loadImprovement > 0 ? '-' + loadImprovement + '%' : '+' + Math.abs(loadImprovement) + '%';
+                    
+                    document.getElementById('oldTotalSizeRow').textContent = formatBytes(oldResult.totalSize);
+                    document.getElementById('newTotalSizeRow').textContent = formatBytes(newResult.size) + ' (不含物理)';
+                    
+                    log('=== Test Complete ===', 'success');
+                    log('File size reduction: ' + sizeReduction + '%', 'success');
+                })
+                .catch(function(e) {
+                    log('Test failed: ' + e.message, 'error');
+                    document.getElementById('warningBox').style.display = 'block';
+                    document.getElementById('warningText').textContent = e.message;
+                })
+                .finally(function() {
+                    btn.disabled = false;
+                });
+        }
+        
+        document.getElementById('runTest').addEventListener('click', runTest);
+    </script>
+</body>
+</html>
