@@ -1,6 +1,7 @@
 import type { Plugin } from "vite";
 import * as fs from "fs";
 import * as path from "path";
+import { featuresToConstants } from "../utils/constants";
 
 export interface CocosModulesOptions {
     configPath?: string;
@@ -178,10 +179,12 @@ function featuresToModules(features: CocosModulesOptions["features"]): {
     return { enabled, disabled };
 }
 
-function featuresToConstants(
+function createBuildConstants(
     features: CocosModulesOptions["features"],
     platform: string,
 ): Record<string, boolean> {
+    const featureConstants = featuresToConstants(features);
+
     const constants: Record<string, boolean> = {
         HTML5:
             platform === "web" ||
@@ -196,11 +199,7 @@ function featuresToConstants(
         USE_3D: true,
         USE_UI_SKEW: false,
         USE_SORTING_2D: false,
-        SPINE_3_8:
-            (features?.spine && features?.spineVersion === "3.8") || false,
-        SPINE_4_2:
-            (features?.spine && features?.spineVersion === "4.2") || false,
-        MARIONETTE: features?.marionette || false,
+        ...featureConstants,
         PROCEDURAL_ANIMATION: false,
         USE_VENDOR_GOOGLE: false,
     };
@@ -225,7 +224,7 @@ export function cocosModules(options: CocosModulesOptions = {}): Plugin {
                 config = {
                     enabledModules: enabled,
                     disabledModules: disabled,
-                    buildConstants: featuresToConstants(features, platform),
+                    buildConstants: createBuildConstants(features, platform),
                 };
             } else if (configPath && fs.existsSync(configPath)) {
                 const configContent = fs.readFileSync(configPath, "utf-8");
@@ -244,7 +243,7 @@ export function cocosModules(options: CocosModulesOptions = {}): Plugin {
                         "ui",
                     ],
                     disabledModules: [],
-                    buildConstants: featuresToConstants(null, platform),
+                    buildConstants: createBuildConstants(null, platform),
                 };
             }
 

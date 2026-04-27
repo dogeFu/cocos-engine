@@ -1,6 +1,7 @@
 import type { AliasOptions } from "vite";
 import { resolve } from "path";
 import { createRequire } from "module";
+import { featuresToConstants } from "../utils/constants";
 
 const require = createRequire(import.meta.url);
 const jiti = require("jiti")(__filename);
@@ -119,16 +120,6 @@ export function mergeConfig(
         output,
         build,
         jsbReplacements: platformConfig.jsbReplacements,
-    };
-}
-
-function featuresToConstants(
-    features: UserConfig["features"],
-): Record<string, boolean> {
-    return {
-        SPINE_3_8: features.spine && features.spineVersion === "3.8",
-        SPINE_4_2: features.spine && features.spineVersion === "4.2",
-        MARIONETTE: features.marionette,
     };
 }
 

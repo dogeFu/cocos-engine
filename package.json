@@ -47,6 +47,7 @@
     "vite:build:baidu": "cross-env VITE_PLATFORM=baidu vite build --config vite/config/vite.config.ts --mode production",
     "vite:dev:native": "cross-env VITE_PLATFORM=native vite build --config vite/config/vite.config.ts --mode development",
     "vite:build:native": "cross-env VITE_PLATFORM=native vite build --config vite/config/vite.config.ts --mode production",
+    "vite:build:cli": "cross-env VITE_MODULE_CULLING=false VITE_PLATFORM=cli vite build --config vite/config/vite.config.ts --mode production",
     "vite:build:all": "npm run vite:build:web && npm run vite:build:wechat && npm run vite:build:xiaomi && npm run vite:build:alipay && npm run vite:build:bytedance && npm run vite:build:baidu",
     "vite:clean": "rimraf bin/vite",
     "vite:clean:cache": "rimraf node_modules/.vite",

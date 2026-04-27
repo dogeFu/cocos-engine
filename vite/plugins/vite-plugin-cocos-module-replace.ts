@@ -32,7 +32,7 @@ export function cocosModuleReplace(options: CocosModuleReplaceOptions): Plugin {
   
   let replacements: [string, string][] = [];
   
-  if (platform === 'web' || platform === 'wechat' || platform.startsWith('minigame')) {
+  if (platform === 'web' || platform === 'wechat' || platform === 'cli' || platform.startsWith('minigame')) {
     replacements = [...WEB_REPLACEMENTS];
   }
   
