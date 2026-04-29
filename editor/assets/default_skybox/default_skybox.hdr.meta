@@ -1,11 +1,11 @@
 {
-  "ver": "1.0.27",
+  "ver": "1.0.29",
   "importer": "image",
   "imported": true,
   "uuid": "d032ac98-05e1-4090-88bb-eb640dcb5fc1",
   "files": [
-    ".json",
-    ".png"
+    ".hdr",
+    ".json"
   ],
   "subMetas": {
     "b47c0": {

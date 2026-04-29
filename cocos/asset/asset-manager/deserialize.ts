@@ -96,6 +96,7 @@ export default function deserializeAsset (json: Record<string, any>, options: Re
     // non-native deps
     dependMap.set(asset, depends);
     // native dep
+    console.log('[DEBUG deserializeAsset] asset:', asset, '_native:', asset._native, 'uuid:', asset._uuid, 'constructor:', asset.constructor.name, 'has _deserialize:', typeof (asset as any)._deserialize);
     if (asset._native) {
         nativeDependMap.add(asset);
     }

@@ -741,6 +741,7 @@ export class ImageAsset extends Asset {
             this._height = data.h;
             fmtStr = data.fmt;
         }
+        console.log('[DEBUG ImageAsset._deserialize] fmtStr:', fmtStr, 'w:', this._width, 'h:', this._height);
         const device = _getGlobalDevice();
         const extensionIDs = fmtStr.split('_');
 
