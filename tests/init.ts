@@ -84,12 +84,71 @@ jest.mock(
     'external:emscripten/box2d/box2d.release.wasm.wasm',
     'external:emscripten/meshopt/meshopt_decoder.wasm.wasm',
 ].forEach(mockModuleId => {
-    jest.mock(mockModuleId, 
+    jest.mock(mockModuleId,
         () => ({
             __esModule: true,
             default: mockModuleId,
         }),
         { virtual: true, },
+    );
+});
+
+// Mock Emscripten glue code (.wasm.js / .asm.js).
+// These files use ESM export default syntax which Jest's CJS mode cannot parse.
+// We strip the export and execute the code in a vm sandbox to extract the factory.
+// NOTE: jest.mock factories must be inline — no out-of-scope variable references.
+jest.mock('external:emscripten/spine/3.8/spine.wasm.js',
+    () => {
+        const fs = require('fs');
+        const path = require('path');
+        const vm = require('vm');
+        const fullPath = path.resolve(__dirname, '..', 'native/external/emscripten/spine/3.8/spine.wasm.js');
+        let code = fs.readFileSync(fullPath, 'utf-8');
+        code = code.replace(/export\s+default\s+\w+\s*;/, '__captured__ = spineWasm;');
+        const sandbox: any = { __captured__: undefined, module: { exports: {} }, console, WebAssembly, setTimeout, clearInterval, setInterval, globalThis: global };
+        vm.runInNewContext(code, sandbox);
+        return { __esModule: true, default: sandbox.__captured__ };
+    },
+    { virtual: true },
+);
+jest.mock('external:emscripten/spine/4.2/spine.wasm.js',
+    () => {
+        const fs = require('fs'); const path = require('path'); const vm = require('vm');
+        const fullPath = path.resolve(__dirname, '..', 'native/external/emscripten/spine/4.2/spine.wasm.js');
+        let code = fs.readFileSync(fullPath, 'utf-8');
+        code = code.replace(/export\s+default\s+\w+\s*;/, '__captured__ = spineWasm;');
+        const sandbox: any = { __captured__: undefined, module: { exports: {} }, console, WebAssembly, setTimeout, clearInterval, setInterval, globalThis: global };
+        vm.runInNewContext(code, sandbox);
+        return { __esModule: true, default: sandbox.__captured__ };
+    },
+    { virtual: true },
+);
+
+jest.mock('external:emscripten/spine/3.8/spine.asm.js',
+    () => {
+        const fs = require('fs'); const path = require('path'); const vm = require('vm');
+        const fullPath = path.resolve(__dirname, '..', 'native/external/emscripten/spine/3.8/spine.asm.js');
+        let code = fs.readFileSync(fullPath, 'utf-8');
+        code = code.replace(/export\s+default\s+\w+\s*;/, '__captured__ = spineWasm;');
+        const sandbox: any = { __captured__: undefined, module: { exports: {} }, console, WebAssembly, setTimeout, clearInterval, setInterval, globalThis: global };
+        vm.runInNewContext(code, sandbox);
+        return { __esModule: true, default: sandbox.__captured__ };
+    },
+    { virtual: true },
+);
+
+// Mock .js.mem files — binary memory initializer files, return module ID as string
+// so pal-wasm-testing.ts's fetchBuffer can resolve the path
+[
+    'external:emscripten/spine/3.8/spine.js.mem',
+    'external:emscripten/spine/4.2/spine.js.mem',
+].forEach(mockModuleId => {
+    jest.mock(mockModuleId,
+        () => ({
+            __esModule: true,
+            default: mockModuleId,
+        }),
+        { virtual: true },
     );
 });
 
