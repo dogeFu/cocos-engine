@@ -136,6 +136,51 @@ export function getEngineRoot(): string {
 }
 
 export function loadUserConfig(): UserConfig {
+    // Check if config is provided via environment variables (for CLI integration)
+    const envFeatures = process.env.VITE_ENGINE_FEATURES;
+    const envBuild = process.env.VITE_ENGINE_BUILD;
+
+    if (envFeatures || envBuild) {
+        const defaultConfig: UserConfig = {
+            platform: process.env.VITE_PLATFORM || "web",
+            features: {
+                spine: false,
+                spineVersion: "3.8",
+                dragonBones: false,
+                marionette: true,
+                physics: false,
+                physics2D: false,
+                skeletalAnimation: true,
+            },
+            build: {
+                debug: false,
+                sourceMap: true,
+                minify: false,
+            },
+        };
+
+        if (envFeatures) {
+            try {
+                const features = JSON.parse(envFeatures);
+                defaultConfig.features = { ...defaultConfig.features, ...features };
+            } catch (e) {
+                console.warn('[cocos-engine] Failed to parse VITE_ENGINE_FEATURES:', e);
+            }
+        }
+
+        if (envBuild) {
+            try {
+                const build = JSON.parse(envBuild);
+                defaultConfig.build = { ...defaultConfig.build, ...build };
+            } catch (e) {
+                console.warn('[cocos-engine] Failed to parse VITE_ENGINE_BUILD:', e);
+            }
+        }
+
+        return defaultConfig;
+    }
+
+    // Fall back to user.config.ts file
     const userConfigPath = resolve(engineRoot, "vite/user.config.ts");
 
     try {

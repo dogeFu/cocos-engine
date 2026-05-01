@@ -46,7 +46,7 @@ export default definePlatformConfig({
       WEBGPU: false,
       NATIVE_CODE_BUNDLE_MODE: 2,
       WASM_SUBPACKAGE: false,
-      CULL_MESHOPT: true,
+      CULL_MESHOPT: false,
       LOAD_SPINE_MANUALLY: false,
       LOAD_BOX2D_MANUALLY: false,
       USE_3D: true,

@@ -13,15 +13,17 @@ const engineRoot = getEngineRoot();
 
 export default defineConfig(({ mode }): UserConfig => {
   const platform = process.env.VITE_PLATFORM || 'web';
-  
+
   const userConfig = loadUserConfig();
   userConfig.platform = platform;
-  
+
   const platformConfig = loadPlatformConfig(platform);
   const finalConfig = mergeConfig(userConfig, platformConfig);
-  
+
   const isProduction = mode === 'production';
-  const outputDir = resolve(engineRoot, 'bin/vite', platform, isProduction ? 'prod' : 'dev');
+  // Allow custom output directory via environment variable
+  const customOutputDir = process.env.VITE_ENGINE_OUTPUT_DIR;
+  const outputDir = customOutputDir || resolve(engineRoot, 'bin/vite', platform, isProduction ? 'prod' : 'dev');
   
   const isNative = platform === 'native';
   const preserveModules = finalConfig.output.preserveModules ?? false;
@@ -47,10 +49,30 @@ export default defineConfig(({ mode }): UserConfig => {
         features: finalConfig.features,
         platform: platform,
       })] : []),
-      cocosVirtualModules({ 
+      cocosVirtualModules({
         constants: finalConfig.constants,
         platform: platform,
       }),
+      {
+        name: 'cocos-internal-bridge',
+        transform(code, id) {
+          // In global-exports.ts, right after `cclegacy.internal = {}`, inject code
+          // that captures the internal namespace to a global variable. This runs inside
+          // the IIFE body, so when modules later populate cclegacy.internal.X = X,
+          // window._ccInternal will point to the same object.
+          // The footer then restores window.cc.internal from window._ccInternal.
+          if (id.endsWith('global-exports.ts')) {
+            const marker = 'cclegacy.internal = {};';
+            const idx = code.indexOf(marker);
+            if (idx !== -1) {
+              const insertPos = idx + marker.length;
+              const injection = '\nif (typeof window !== "undefined") { window._ccInternal = cclegacy.internal; }';
+              return code.slice(0, insertPos) + injection + code.slice(insertPos);
+            }
+          }
+          return null;
+        },
+      },
       cocosDelayStaticInit(),
       cocosModuleReplace({
         platform: platform,
@@ -89,7 +111,7 @@ export default defineConfig(({ mode }): UserConfig => {
           chunkFileNames: 'cc-[hash].js',
           assetFileNames: '[name].[ext]',
           globals: {},
-          footer: '// Merge Rollup exports into window.cc (legacyCC)\nif (typeof window !== "undefined" && window.cc) { Object.getOwnPropertyNames(cc).forEach(function(k) { try { if (!(k in window.cc)) window.cc[k] = cc[k]; } catch(e) {} }); } else { window.cc = cc; }\n',
+          footer: '// Merge Rollup exports into window.cc (legacyCC)\nif (typeof window !== "undefined" && window.cc) { Object.getOwnPropertyNames(cc).forEach(function(k) { try { if (!(k in window.cc)) window.cc[k] = cc[k]; } catch(e) {} }); } else { window.cc = cc; }\n// Restore cc.internal from captured reference\nif (typeof window !== "undefined" && window._ccInternal && window.cc && !window.cc.internal) { window.cc.internal = window._ccInternal; }\n',
         },
         preserveEntrySignatures: 'allow-extension',
         treeshake: {

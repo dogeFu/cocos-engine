@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cocos Engine Build Parity Tests</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'SF Mono', 'Menlo', 'Monaco', monospace; background: #1a1a2e; color: #e0e0e0; padding: 20px; }
+        h1 { color: #00d4ff; font-size: 18px; margin-bottom: 16px; }
+        #status { color: #ffd700; font-size: 14px; margin-bottom: 12px; }
+        #summary { background: #16213e; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; line-height: 1.8; }
+        #summary .pass { color: #00ff88; }
+        #summary .fail { color: #ff4444; }
+        .module { background: #0f3460; margin-bottom: 8px; border-radius: 4px; overflow: hidden; }
+        .module-header { padding: 8px 12px; background: #162447; font-weight: bold; font-size: 13px; display: flex; justify-content: space-between; }
+        .module-header.ok { color: #00ff88; }
+        .module-header.fail { color: #ff4444; }
+        .test { padding: 4px 12px 4px 24px; font-size: 12px; line-height: 1.6; }
+        .test.pass { color: #00ff88; }
+        .test.pass::before { content: '+ '; }
+        .test.fail { color: #ff4444; }
+        .test.fail::before { content: 'X '; }
+        .detail { color: #aaa; font-size: 11px; }
+        #raw { display: none; }
+    </style>
+</head>
+<body>
+    <h1>Cocos Engine Build Parity Tests</h1>
+    <div id="status">Waiting for engine...</div>
+    <div id="summary"></div>
+    <div id="results"></div>
+    <div id="raw"></div>
+
+    <!-- Engine requires these DOM elements for initialization -->
+    <div id="GameDiv">
+        <canvas id="GameCanvas" width="960" height="640"></canvas>
+    </div>
+
+    <!-- Load Vite-built engine -->
+    <script src="../../../bin/vite/web/dev/cc.js"></script>
+
+    <!-- Test bundle (built by build-tests.mjs) -->
+    <script src="./dist/parity-tests.js"></script>
+
+    <script>
+        // Export results to window for Playwright extraction
+        window.__PARITY_DONE__ = false;
+        window.__PARITY_REPORT__ = null;
+
+        function renderReport(report) {
+            window.__PARITY_REPORT__ = report;
+            window.__PARITY_DONE__ = true;
+
+            const s = report.summary;
+            document.getElementById('status').textContent = 'Complete';
+            document.getElementById('summary').innerHTML =
+                `Total: ${s.total} | <span class="pass">Passed: ${s.passed}</span> | ` +
+                `<span class="fail">Failed: ${s.failed}</span>`;
+
+            const container = document.getElementById('results');
+            for (const mod of report.modules) {
+                const div = document.createElement('div');
+                div.className = 'module';
+                const icon = mod.failed > 0 ? 'fail' : 'ok';
+                div.innerHTML =
+                    `<div class="module-header ${icon}">` +
+                    `<span>${mod.name}</span><span>${mod.passed}/${mod.tests.length}</span></div>` +
+                    mod.tests.map(t => {
+                        const cls = t.status;
+                        const detail = t.detail ? ` <span class="detail">— ${t.detail}</span>` : '';
+                        return `<div class="test ${cls}">${t.name}${detail}</div>`;
+                    }).join('');
+                container.appendChild(div);
+            }
+
+            // Also log to console for Playwright capture
+            console.log('PARITY_REPORT_JSON:' + JSON.stringify(report));
+        }
+
+        // Wait for cc to be available, then run tests
+        function waitForCC(retries) {
+            if (window.cc && window.cc.Vec3) {
+                document.getElementById('status').textContent = 'Initializing game...';
+                try {
+                    // game.init() triggers WASM loading (spine, etc.)
+                    window.cc.game.init({ renderMode: 3 }); // headless
+                } catch (e) {
+                    console.warn('[parity] game.init() error (non-fatal):', e.message);
+                }
+                // Wait for WASM modules to load after game.init()
+                setTimeout(() => {
+                    document.getElementById('status').textContent = 'Running tests...';
+                    try {
+                        const report = window.runAllParityTests(window.cc);
+                        renderReport(report);
+                    } catch (e) {
+                        document.getElementById('status').textContent = 'Error: ' + e.message;
+                        console.error('Parity test error:', e);
+                    }
+                }, 2000);
+            } else if (retries > 0) {
+                setTimeout(() => waitForCC(retries - 1), 200);
+            } else {
+                document.getElementById('status').textContent = 'Error: cc not available after 10s';
+            }
+        }
+
+        waitForCC(50);
+    </script>
+</body>
+</html>

@@ -56,6 +56,7 @@ const MODULE_EXPORTS: Record<string, string[]> = {
     ],
     "physics-2d-builtin": ["export * from '../../exports/physics-2d-builtin';"],
     "physics-2d-box2d": ["export * from '../../exports/physics-2d-box2d';"],
+    "physics-2d-box2d-wasm": ["export * from '../../exports/physics-2d-box2d-wasm';"],
     "spine-3.8": ["export * from '../../exports/spine';"],
     "spine-4.2": ["export * from '../../exports/spine';"],
     "dragon-bones": ["export * from '../../exports/dragon-bones';"],
@@ -80,6 +81,7 @@ const MODULE_DEPENDENCIES: Record<string, string[]> = {
     "physics-2d-framework": ["base"],
     "physics-2d-builtin": ["physics-2d-framework"],
     "physics-2d-box2d": ["physics-2d-framework"],
+    "physics-2d-box2d-wasm": ["physics-2d-framework"],
     "tiled-map": ["2d"],
     graphics: ["2d"],
     mask: ["2d"],
@@ -165,12 +167,13 @@ function featuresToModules(features: CocosModulesOptions["features"]): {
     }
 
     if (features.physics2D) {
-        enabled.push("physics-2d-framework", "physics-2d-builtin");
+        enabled.push("physics-2d-framework", "physics-2d-builtin", "physics-2d-box2d", "physics-2d-box2d-wasm");
     } else {
         disabled.push(
             "physics-2d-framework",
             "physics-2d-builtin",
             "physics-2d-box2d",
+            "physics-2d-box2d-wasm",
         );
     }
 

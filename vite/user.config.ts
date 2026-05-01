@@ -9,7 +9,7 @@ export default defineUserConfig({
         dragonBones: false,
         marionette: true,
         physics: false,
-        physics2D: false,
+        physics2D: true,
         skeletalAnimation: true,
     },
 

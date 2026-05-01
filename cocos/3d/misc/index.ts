@@ -27,3 +27,4 @@ export { toPPM } from './ppm';
 export { readMesh } from './read-mesh';
 export { createMesh, MeshUtils } from './create-mesh';
 export { readBuffer, writeBuffer, mapBuffer } from './buffer';
+export { MeshoptDecoder, InitDecoder } from './mesh-codec';
