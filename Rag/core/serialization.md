@@ -330,3 +330,170 @@ function instantiatePrefab(parent) {
 11. **`optimizationPolicy` 的选择** — 如果预制体只实例化一次（如场景中的唯一对象），使用 `SINGLE`；如果多次实例化（如敌人），使用 `MULTI`。
 12. **JIT 代码缓存在预制体上** — 生成的 JIT 代码与预制体关联，预制体释放后 JIT 代码也被释放。
 13. **组件的 `_dt` 等内部属性不序列化** — 只有标记了 `@serializable` 的属性才会被序列化和克隆。
+
+---
+
+## 9. UUID 压缩算法
+
+### 9.1 两种 UUID 格式
+
+| 格式 | 来源 | 长度 | 示例 |
+|------|------|------|------|
+| file UUID (hex) | `.meta` 文件 `"uuid"` 字段 | 36 字符 | `fc991dd7-0033-4b80-9d41-c8a86a702e59` |
+| class UUID (compressed) | scene JSON `__type__` 字段 | 23 字符 | `fc9913XADNLgJ1ByKhqcC5Z` |
+
+### 9.2 compressUUID 算法
+
+`compressUUID(uuid, min)` 定义在 `cocos/core/utils/decode-uuid.ts`：
+
+- 保留前 N 个 hex 字符（`min=false` 时 N=5，`min=true` 时 N=2）
+- 剩余 hex 字符按 3 hex → 2 base64 压缩
+
+```
+算法（min=false）: 5 hex 保留 + (27 hex / 3 × 2 base64) = 5 + 18 = 23 chars
+
+输入:  fc991dd7-0033-4b80-9d41-c8a86a702e59
+      └─5hex─┘ └────────── 27 hex → 18 base64 ───────────┘
+输出:  fc991    3XADNLgJ1ByKhqcC5Z  →  fc9913XADNLgJ1ByKhqcC5Z
+```
+
+Scene JSON 中的 `__type__` 使用 `compressUUID(uuid, false)`（23 字符）。
+
+### 9.3 映射关系（确定性）
+
+```
+file UUID (from .meta) ──→ compressUUID(uuid, false) ──→ class UUID (scene JSON __type__)
+```
+
+编译管线中的映射链路：
+
+```
+PackerDriver.applyAssetChanges()
+  → _modLo.setUUID(scriptUrl, fileUuid)
+  → ModLo.transform()
+    → compressUUID(fileUuid, false)
+    → babel-plugin-cc-module-meta 注入:
+      _cclegacy._RF.push({}, "<compressedUUID>", "<baseName>", import.meta)
+
+引擎运行时:
+  cc.class() → _RF.peek() → _setClassId(compressedUUID, cls)
+  cls.prototype.__scriptUuid = decompressUUID(compressedUUID)
+```
+
+### 9.4 ⚠️ 常见错误
+
+`fullUuidToCompressed()`（全 base64, 22 chars）是**错误算法**，输出与 `compressUUID()` 完全不同，不可混用。
+
+---
+
+## 10. 反序列化 Details 与 assignAssetsBy()
+
+### 10.1 __uuid__ 引用：只收集不解析
+
+`cc.deserialize()` 遇到 `{"__uuid__": "..."}` 时调用 `details.push(uuid, obj, prop, type)` 记录引用关系，但属性保持为 `null`。资源引用需要后续通过 `Details.assignAssetsBy()` 或引擎的 `assetManager` 解析。
+
+### 10.2 Details.assignAssetsBy()
+
+**仅在 `EDITOR || TEST` 模式下可用**（`cocos/serialization/deserialize.ts`）：
+
+```typescript
+Details.prototype.assignAssetsBy = function (getter) {
+    for (let i = 0; i < this.uuidList.length; i++) {
+        const obj = this.uuidObjList[i];
+        const prop = this.uuidPropList[i];
+        const uuid = this.uuidList[i];
+        obj[prop] = getter(uuid);
+    }
+};
+```
+
+**这是迁移流程中解析 Prefab 嵌套引用的唯一正确方式**。必须显式创建 Details 并传入：
+
+```typescript
+const details = new Details();
+const scene = cc.deserialize(jsonArray, details);
+details.assignAssetsBy(uuid => loadFromLibrary(uuid));
+```
+
+---
+
+## 11. Prefab 嵌套展开机制
+
+`expandNestedPrefabInstanceNode()`（`cocos/scene-graph/prefab/utils.ts`）：
+
+```
+遍历所有 PrefabInstance 根节点:
+  → createNodeWithPrefab(node)
+    → prefabInfo.asset._doInstantiate(node)  // 克隆 Prefab 节点树
+  → 应用 mountedChildren + propertyOverrides
+  → 标记 expanded = true
+```
+
+`prefabInfo.asset` 必须不为 null 才能展开（否则报 errorID 3701）。
+
+---
+
+## 12. 运行时可查询的装饰器元数据
+
+`@ccclass` 处理完成后，每个组件构造函数上有两个关键字段：
+
+| 字段 | 内容 | 用途 |
+|------|------|------|
+| `ctor.__values__` | 可序列化属性名列表 (string[]) | 过滤了 `serializable: false` 的属性 |
+| `ctor.__attrs__` | 属性元数据 (flat key-value) | `propName$_$type`, `propName$_$default`, `propName$_$editorOnly` 等 |
+
+通过这些元数据可以在运行时动态获取组件的序列化信息：
+
+```typescript
+comp.constructor.name          // 组件类名 (如 "Camera", "BoxCollider")
+comp.constructor.__values__    // 应序列化的属性列表
+comp.constructor.__attrs__     // 每个属性的详细元数据
+```
+
+---
+
+## 13. EditorExtends 序列化
+
+### 13.1 serialize() 行为
+
+`EditorExtends.serialize(comp)` 调用链：
+
+```
+Parser.parse(obj)
+  → enumerateClass(owner, ccclass)
+    → 遍历 ccclass.__values__
+    → 查 __attrs__ 获取 formerlySerializedAs, default, editorOnly
+    → 跳过 editorOnly 属性
+    → 递归处理 ValueType / Array / Dict / Asset 引用
+  → DynamicBuilder.dump() → JSON 字符串
+```
+
+### 13.2 浏览器环境 vs 无头引擎
+
+| 特性 | 浏览器 (Combo renderer) | Node.js 无头引擎 |
+|------|------------------------|-------------------|
+| EditorExtends 来源 | 引擎自带 | 从 cocos-cli 移植到 `editor-extends/` |
+| serialize() 初始化 | 引擎加载时已完整 | 需要 `init()` 延迟升级 |
+| `__values__` 完整性 | 完整 | 可能不完整 |
+
+---
+
+## 14. 引擎构建模式与序列化
+
+| 配置 | 文件 | EDITOR | 用途 |
+|------|------|--------|------|
+| CLI | `vite/platforms/cli/platform.config.ts` | `true` | 编辑器工具、迁移——保留 `_serialize()` 方法体 |
+| Web | `vite/platforms/web/platform.config.ts` | `false` | 游戏运行时——tree-shake 掉编辑器代码 |
+
+迁移**必须使用 CLI 构建**（`EDITOR=true`）的引擎包，否则 `Details.assignAssetsBy()` 和 `EditorExtends.serialize()` 不可用。
+
+---
+
+## 15. Library 目录结构
+
+```
+library/
+  <XX>/              ← UUID 前 2 位 hex
+    <uuid>.json      ← 资产序列化数据（cc.deserialize() 兼容格式）
+    <uuid>.<ext>     ← 原始文件（贴图、音频等）
+```

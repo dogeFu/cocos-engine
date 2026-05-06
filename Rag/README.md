@@ -9,15 +9,16 @@
 ```
 Rag/
 ├── core/           # 核心引擎 — 生命周期、场景图、工具、装饰器、序列化、资源、输入
-├── rendering/      # 渲染系统 — 渲染数据层、渲染管线
+├── rendering/      # 渲染系统 — 渲染数据层、渲染管线、Render Graph、渲染白话
 ├── 2d/             # 2D 系统 — Sprite/Label/UI/TiledMap/粒子
 ├── 3d/             # 3D 系统 — 模型/灯光/相机/粒子/光照探针
 ├── physics/        # 物理系统 — 3D/2D 物理
 ├── animation/      # 动画与音频 — 动画系统、音频、缓动
 ├── platform/       # 平台适配 — 小游戏、原生平台
 │   └── native/     #   原生平台 — PAL/JSB/C++/CMake
-├── build/          # 构建体系 — Vite/Babel/宏配置/模块裁剪
+├── build/          # 构建体系 — 引擎编译流程、Vite/Babel/宏配置/模块裁剪
 ├── extensions/     # 扩展模块 — Spine/DragonBones/杂项
+├── aicocos/        # AiCocos 项目 — 引擎集成、CLI、运行时、迁移
 └── README.md       # 本文件
 ```
 
@@ -31,7 +32,7 @@ Rag/
 | [scene-graph-detail.md](core/scene-graph-detail.md) | `director`、`node-activator`、`component-scheduler`、`class` | Director 生命周期、NodeActivator、ComponentScheduler、CCClass 属性存储、Node 变换系统 |
 | [utilities.md](core/utilities.md) | `memop`、`curves`、`geometry`、`math`、`scheduler`、`system`、`settings`、`debug`、`event` | 内存池、曲线系统、几何模块、值类型、调度器、System 基类、Settings、错误系统、事件系统 |
 | [decorators.md](core/decorators.md) | `cc.decorator` | 30 个装饰器完整参考、@property 选项、类型推断、序列化行为、编辑器显示 |
-| [serialization.md](core/serialization.md) | `serialization` | CCON 格式、反序列化、instantiate 深拷贝、JIT 预制体优化 |
+| [serialization.md](core/serialization.md) | `serialization` | CCON 格式、反序列化、instantiate 深拷贝、JIT 预制体优化、UUID 压缩算法、Details.assignAssetsBy()、EditorExtends 序列化 |
 | [asset.md](core/asset.md) | `asset` | 资源加载/释放、Bundle、SpriteFrame、Material、EffectAsset、引用计数 |
 | [input.md](core/input.md) | `input` | 触摸/鼠标/键盘事件、EventTouch/EventMouse、输入分发机制 |
 
@@ -41,6 +42,8 @@ Rag/
 |------|---------|------|
 | [render-scene.md](rendering/render-scene.md) | `render-scene`、`effect`、`shader`、`pass`、`root` | 渲染场景数据层、Effect/Shader 系统、Pass 管线状态、ProgramLib、Root 帧循环、SceneGlobals |
 | [pipeline.md](rendering/pipeline.md) | `rendering`、`webgpu`、`gi`、`sorting` | 渲染管线（前向/延迟）、阴影系统、管线 UBO、光照探针、WebGPU 后端、SortingLayers |
+| [render-graph.md](rendering/render-graph.md) | `native/cocos/renderer/pipeline/custom/` | Render Graph 新一代渲染管线（C++ 层）、BasicPipeline/Pipeline 接口、RenderGraph/ResourceGraph/LayoutGraph 数据结构、PipelineBuilder、编译与执行 |
+| [rendering-plain.md](rendering/rendering-plain.md) | 渲染概念 | 渲染流程通俗解读、GFX/Rendering/Render Graph 概念类比、前向/延迟渲染对比 |
 
 ## 🖼️ 2d/ — 2D 系统
 
@@ -87,6 +90,7 @@ Rag/
 
 | 文档 | 覆盖模块 | 说明 |
 |------|---------|------|
+| [engine-build.md](build/engine-build.md) | 引擎编译流程 | Vite + Babel/Rollup 双构建体系、虚拟模块、路径别名、平台配置、编译流程 |
 | [vite-build.md](build/vite-build.md) | `vite`、`rollup`、`build`、`plugins` | Vite/Rollup 构建架构、插件体系、IIFE 输出格式、与 SystemJS 行为差异 |
 | [babel-systemjs-build.md](build/babel-systemjs-build.md) | `ccbuild`、`babel`、`systemjs` | Babel+SystemJS 原始构建体系、ccbuild API、15 个 Rollup 插件链、4 个 TS Transformer |
 | [macro-config.md](build/macro-config.md) | `constants`、`features` | 宏配置与条件编译体系、cc.config.json、internal:constants、运行时 macro |
@@ -99,9 +103,19 @@ Rag/
 | [spine-dragonbones.md](extensions/spine-dragonbones.md) | `spine`、`dragon-bones` | Spine/DragonBones 运行时、缓存模式、骨骼挂点、WASM 集成 |
 | [misc.md](extensions/misc.md) | `video`、`web-view`、`profiler`、`misc`、`renderer` | 视频/WebView、性能分析器、MissingScript、Renderer 三层材质体系 |
 
+## 🤖 aicocos/ — AiCocos 项目
+
+| 文档 | 覆盖模块 | 说明 |
+|------|---------|------|
+| [overview.md](aicocos/overview.md) | AiCocos 项目概览 | 项目目标、架构设计、模块划分 |
+| [engine-integration.md](aicocos/engine-integration.md) | 引擎集成 | Cocos 引擎集成方式、启动流程、模块适配 |
+| [cli-design.md](aicocos/cli-design.md) | CLI 设计 | 命令行工具架构、命令体系、插件机制 |
+| [runtime-design.md](aicocos/runtime-design.md) | 运行时设计 | 运行时架构、组件系统、渲染集成 |
+| [migration.md](aicocos/migration.md) | 迁移系统 | 项目迁移、资源迁移、组件映射 |
+
 ---
 
-**合计：27 篇文档，~13000 行，9 个分类目录，覆盖全部 31 个 `cocos/` 子模块。**
+**合计：35 篇文档，11 个分类目录，覆盖全部 31 个 `cocos/` 子模块及 AiCocos 项目。**
 
 ---
 
