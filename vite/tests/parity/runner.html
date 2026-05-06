@@ -22,7 +22,6 @@
         .test.fail { color: #ff4444; }
         .test.fail::before { content: 'X '; }
         .detail { color: #aaa; font-size: 11px; }
-        #raw { display: none; }
     </style>
 </head>
 <body>
@@ -30,20 +29,56 @@
     <div id="status">Waiting for engine...</div>
     <div id="summary"></div>
     <div id="results"></div>
-    <div id="raw"></div>
 
     <!-- Engine requires these DOM elements for initialization -->
     <div id="GameDiv">
         <canvas id="GameCanvas" width="960" height="640"></canvas>
     </div>
 
-    <!-- Load Vite-built engine -->
-    <script src="../../../bin/vite/web/dev/cc.js"></script>
+    <!-- Load Vite-built engine (configurable via ?engine= query param) -->
+    <script id="engine-script"></script>
 
     <!-- Test bundle (built by build-tests.mjs) -->
     <script src="./dist/parity-tests.js"></script>
 
     <script>
+        // Resolve engine script URL from query parameter or use default
+        // Engine URLs are relative to the server root (/) for param override,
+        // or relative to this page for hardcoded defaults.
+        function getEngineUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const engineOverride = params.get('engine');
+            if (engineOverride) {
+                // engine param is server-root-relative (e.g., /bin/vite/web/dev/cc.js)
+                return engineOverride;
+            }
+
+            // Detect build type from query, default to vite
+            const buildType = params.get('build') || 'vite';
+            if (buildType === 'vite') {
+                return '/bin/vite/web/dev/cc.js';
+            } else if (buildType === 'iife') {
+                return '/bin/test-iife/cc.js';
+            } else if (buildType === 'legacy') {
+                return '/bin/dev/cc/index.js';
+            }
+            return '/bin/vite/web/dev/cc.js';
+        }
+
+        // Parse features from query param (JSON) or use default
+        function getFeatures() {
+            const params = new URLSearchParams(window.location.search);
+            const featuresStr = params.get('features');
+            if (featuresStr) {
+                try {
+                    return JSON.parse(featuresStr);
+                } catch (e) {
+                    console.warn('[parity] Failed to parse features param:', e);
+                }
+            }
+            return undefined;
+        }
+
         // Export results to window for Playwright extraction
         window.__PARITY_DONE__ = false;
         window.__PARITY_REPORT__ = null;
@@ -74,7 +109,6 @@
                 container.appendChild(div);
             }
 
-            // Also log to console for Playwright capture
             console.log('PARITY_REPORT_JSON:' + JSON.stringify(report));
         }
 
@@ -83,16 +117,15 @@
             if (window.cc && window.cc.Vec3) {
                 document.getElementById('status').textContent = 'Initializing game...';
                 try {
-                    // game.init() triggers WASM loading (spine, etc.)
-                    window.cc.game.init({ renderMode: 3 }); // headless
+                    window.cc.game.init({ renderMode: 3 });
                 } catch (e) {
                     console.warn('[parity] game.init() error (non-fatal):', e.message);
                 }
-                // Wait for WASM modules to load after game.init()
                 setTimeout(() => {
                     document.getElementById('status').textContent = 'Running tests...';
                     try {
-                        const report = window.runAllParityTests(window.cc);
+                        const features = getFeatures();
+                        const report = window.runAllParityTests(window.cc, features);
                         renderReport(report);
                     } catch (e) {
                         document.getElementById('status').textContent = 'Error: ' + e.message;
@@ -103,10 +136,25 @@
                 setTimeout(() => waitForCC(retries - 1), 200);
             } else {
                 document.getElementById('status').textContent = 'Error: cc not available after 10s';
+                // Report failure even if cc never loaded
+                const failReport = {
+                    modules: [{
+                        name: 'Engine Load',
+                        tests: [{ module: 'Engine Load', name: 'cc loaded', status: 'fail', detail: 'cc not available after 10s', duration: 0 }],
+                        passed: 0, failed: 1, duration: 0
+                    }],
+                    summary: { total: 1, passed: 0, failed: 1 },
+                    timestamp: new Date().toISOString()
+                };
+                renderReport(failReport);
             }
         }
 
-        waitForCC(50);
+        // Load engine script then start polling for cc
+        const engineUrl = getEngineUrl();
+        document.getElementById('engine-script').src = engineUrl;
+        document.getElementById('status').textContent = 'Loading engine: ' + engineUrl;
+        setTimeout(() => waitForCC(50), 500);
     </script>
 </body>
 </html>

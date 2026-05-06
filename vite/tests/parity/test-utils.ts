@@ -7,6 +7,25 @@
 
 export type TestStatus = 'pass' | 'fail';
 
+/**
+ * Describes which engine features are expected to be present in the build.
+ * Each test module uses this to decide which assertions to run —
+ * tests only verify features that are explicitly expected to exist.
+ */
+export interface FeatureManifest {
+    spine: boolean;
+    spineVersion?: '3.8' | '4.2';
+    dragonBones: boolean;
+    marionette: boolean;
+    proceduralAnimation: boolean;
+    vendorGoogle: boolean;
+    physics: boolean;
+    physics2D: boolean;
+    particle: boolean;
+    particle2D: boolean;
+    skeletalAnimation: boolean;
+}
+
 export interface TestResult {
     module: string;
     name: string;

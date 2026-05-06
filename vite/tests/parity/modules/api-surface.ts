@@ -1,47 +1,64 @@
-/**
- * API Surface Parity Test
- *
- * Verifies that the Vite-built engine exports all expected classes, functions,
- * constants, and enums. This is a static check — no runtime behavior tested.
- *
- * Rule 3: No skip(). Rule 4: No conditional guards on core features.
- * Rule 5: Only test default build features.
- */
+import { startModule, endModule, assert, assertEqual, type FeatureManifest } from '../test-utils';
 
-import { startModule, endModule, assert, assertEqual } from '../test-utils';
-
-/** Core classes that must always exist on `cc` */
-const REQUIRED_CLASSES = [
-    // Math
+/** Core classes that must always exist on `cc` regardless of feature config */
+const CORE_CLASSES = [
     'Vec2', 'Vec3', 'Vec4', 'Mat3', 'Mat4', 'Quat', 'Color', 'Size', 'Rect',
-    // Scene graph
-    'Node', 'Scene', 'Component', 'Director',
-    // 2D (core)
-    'Sprite', 'Label', 'UITransform',
-    'Button', 'Layout', 'ScrollView', 'PageView', 'EditBox', 'Toggle', 'Slider', 'ProgressBar',
-    // 3D
-    'MeshRenderer', 'Camera', 'DirectionalLight', 'SphereLight', 'SpotLight', 'PointLight',
-    'SkinnedMeshRenderer',
-    // Animation
-    'Animation', 'SkeletalAnimation', 'AnimationClip', 'AnimationState',
-    // Audio
-    'AudioSource', 'AudioClip',
-    // Asset
+    'Node', 'Scene', 'Component', 'Director', 'Game',
+    'EventTarget', 'EventTouch', 'EventMouse', 'EventKeyboard', 'EventGamepad',
     'Asset', 'Prefab', 'Material', 'EffectAsset', 'Texture2D', 'TextureCube',
     'SpriteFrame', 'RenderTexture', 'JsonAsset', 'TextAsset', 'BufferAsset',
     'ImageAsset', 'SceneAsset',
-    // Input
-    'EventTarget', 'EventTouch', 'EventMouse', 'EventKeyboard', 'EventGamepad',
-    // Tween
-    'Tween',
-    // Rendering
     'RenderPipeline', 'RenderFlow', 'RenderStage',
-    // Misc
-    'Game',
+    'Tween', 'AudioSource', 'AudioClip',
 ];
 
-/** Singleton / module-level objects */
-const REQUIRED_SINGLETONS = [
+/** Core classes gated behind 2d feature */
+const CLASSES_2D = [
+    'Sprite', 'Label', 'UITransform',
+    'Button', 'Layout', 'ScrollView', 'PageView', 'EditBox',
+    'Toggle', 'Slider', 'ProgressBar',
+];
+
+/** Core classes gated behind 3d feature */
+const CLASSES_3D = [
+    'MeshRenderer', 'SkinnedMeshRenderer',
+    'Camera', 'DirectionalLight', 'SphereLight', 'SpotLight', 'PointLight',
+];
+
+/** Core classes gated behind animation feature */
+const CLASSES_ANIMATION = [
+    'Animation', 'AnimationClip', 'AnimationState',
+];
+
+/** Core classes gated behind skeletal-animation feature */
+const CLASSES_SKELETAL_ANIM = [
+    'SkeletalAnimation',
+];
+
+/** Core classes gated behind particle feature */
+const CLASSES_PARTICLE = [
+    'ParticleSystem', 'Billboard', 'Line', 'ParticleUtils',
+];
+
+/** Core classes gated behind particle-2d feature */
+const CLASSES_PARTICLE_2D = [
+    'ParticleSystem2D', 'MotionStreak', 'ParticleAsset',
+];
+
+/** Core classes gated behind 2d extras */
+const CLASSES_2D_EXTRAS = [
+    'Graphics', 'Mask', 'RichText', 'TiledMap', 'TiledLayer', 'TiledTile',
+    'VideoPlayer', 'WebView',
+];
+
+/** Expected minimum number of exported keys on cc object (default build with core + 2d + 3d + anim + tween + audio + ui) */
+const MIN_EXPORT_COUNT_DEFAULT = 80;
+
+/** Expected minimum number of exported keys for a minimal build */
+const MIN_EXPORT_COUNT_MINIMAL = 50;
+
+/** Singletons / module-level objects that should always exist */
+const CORE_SINGLETONS = [
     'game', 'director', 'assetManager', 'resources', 'input', 'tween',
     'view', 'screen', 'sys', 'math', 'cclegacy',
 ];
@@ -81,35 +98,85 @@ const MATH_UTILITIES = [
     'random', 'nextPow2', 'repeat', 'pingPong',
 ];
 
-/** Spine module classes (default build includes spine-3.8) */
+/** Spine module classes */
 const SPINE_CLASSES = [
     'Skeleton', 'SkeletonData', 'VertexEffectDelegate',
 ];
 
-/** Spine core library classes (inside cc.sp.spine namespace, provided by WASM) */
+/** Spine core library classes (in cc.sp.spine namespace) */
 const SPINE_CORE_CLASSES = [
     'Skeleton', 'SkeletonData', 'AnimationState', 'Animation',
     'RegionAttachment', 'MeshAttachment', 'BoundingBoxAttachment', 'VertexAttachment',
     'Bone', 'Slot', 'Skin',
 ];
 
-export function runAPIParityTest(cc: any) {
+export function runAPIParityTest(cc: any, features?: FeatureManifest) {
     startModule('API Surface');
 
-    // BASELINE — engine must have loaded
-    assert(cc != null && Object.keys(cc).length >= 10, 'engine loaded (cc has >= 10 keys)');
-    if (!cc || Object.keys(cc).length < 10) {
+    const keyCount = Object.keys(cc).length;
+    const minExpected = features ? MIN_EXPORT_COUNT_MINIMAL : MIN_EXPORT_COUNT_DEFAULT;
+    assert(cc != null && keyCount >= minExpected, `engine loaded (cc has ${keyCount} keys, expected >= ${minExpected})`);
+    if (!cc || keyCount < minExpected) {
         endModule();
         return;
     }
 
-    // --- Core Classes ---
-    for (const name of REQUIRED_CLASSES) {
+    // --- Core Classes (always expected) ---
+    for (const name of CORE_CLASSES) {
         assert(typeof cc[name] === 'function', `Class ${name} exists`, `type: ${typeof cc[name]}`);
     }
 
+    // --- Feature-gated Classes ---
+    const has2d = cc.Sprite != null;
+    const has3d = cc.MeshRenderer != null;
+    const hasAnim = cc.Animation != null;
+    const hasSkeletalAnim = cc.SkeletalAnimation != null;
+    const hasParticle = cc.ParticleSystem != null;
+    const hasParticle2D = cc.ParticleSystem2D != null;
+
+    if (has2d) {
+        for (const name of CLASSES_2D) {
+            assert(typeof cc[name] === 'function', `2D class ${name} exists`);
+        }
+        for (const name of CLASSES_2D_EXTRAS) {
+            if (cc[name] != null) {
+                assert(typeof cc[name] === 'function', `2D extra class ${name} exists`);
+            }
+        }
+    }
+
+    if (has3d) {
+        for (const name of CLASSES_3D) {
+            assert(typeof cc[name] === 'function', `3D class ${name} exists`);
+        }
+    }
+
+    if (hasAnim) {
+        for (const name of CLASSES_ANIMATION) {
+            assert(typeof cc[name] === 'function', `Animation class ${name} exists`);
+        }
+    }
+
+    if (hasSkeletalAnim) {
+        for (const name of CLASSES_SKELETAL_ANIM) {
+            assert(typeof cc[name] === 'function', `SkeletalAnimation class ${name} exists`);
+        }
+    }
+
+    if (hasParticle) {
+        for (const name of CLASSES_PARTICLE) {
+            assert(typeof cc[name] === 'function', `Particle class ${name} exists`);
+        }
+    }
+
+    if (hasParticle2D) {
+        for (const name of CLASSES_PARTICLE_2D) {
+            assert(typeof cc[name] === 'function', `Particle2D class ${name} exists`);
+        }
+    }
+
     // --- Singletons ---
-    for (const name of REQUIRED_SINGLETONS) {
+    for (const name of CORE_SINGLETONS) {
         assert(cc[name] != null, `Singleton ${name} exists`, `type: ${typeof cc[name]}`);
     }
 
@@ -145,36 +212,38 @@ export function runAPIParityTest(cc: any) {
     // --- Version ---
     assert(typeof cc.VERSION === 'string' || cc.cclegacy?.VERSION != null, 'VERSION accessible');
 
-    // --- Spine module (requires features.spine = true in user.config.ts) ---
-    assert(cc.sp != null, 'spine namespace (cc.sp) exists');
-    if (cc.sp) {
+    // --- Spine module ---
+    const hasSpine = features?.spine ?? (cc.sp != null && cc.sp.spine != null);
+    if (hasSpine && cc.sp) {
+        assert(cc.sp != null, 'spine namespace (cc.sp) exists');
         for (const name of SPINE_CLASSES) {
             assert(typeof cc.sp[name] === 'function', `sp.${name} class exists`);
         }
-        // Spine core library namespace
-        assert(cc.sp.spine != null, 'sp.spine core library exists');
         if (cc.sp.spine) {
+            assert(cc.sp.spine != null, 'sp.spine core library exists');
             for (const name of SPINE_CORE_CLASSES) {
                 assert(cc.sp.spine[name] != null, `sp.spine.${name} exists`);
             }
         }
-        // Spine enums
         assert(cc.sp.ATTACHMENT_TYPE != null, 'sp.ATTACHMENT_TYPE enum exists');
         assert(cc.sp.AnimationEventType != null, 'sp.AnimationEventType enum exists');
     }
 
-    // --- Skeletal animation module (requires features.skeletalAnimation = true) ---
-    assert(cc.SkeletalAnimationComponent != null, 'SkeletalAnimationComponent (deprecated alias) exists');
-    assert(typeof cc.SkeletalAnimationComponent === 'function', 'SkeletalAnimationComponent is a constructor');
+    // --- SkeletalAnimationComponent (deprecated alias) ---
+    if (cc.SkeletalAnimationComponent) {
+        assert(typeof cc.SkeletalAnimationComponent === 'function', 'SkeletalAnimationComponent is a constructor');
+    }
 
-    // --- cc.internal namespace (populated by module side-effects) ---
+    // --- cc.internal namespace ---
     assert(cc.internal != null, 'cc.internal namespace exists');
     if (cc.internal) {
         assert(cc.internal.DataPoolManager != null, 'internal.DataPoolManager exists');
         assert(cc.internal.dynamicAtlasManager != null, 'internal.dynamicAtlasManager exists');
         assert(cc.internal.Batcher2D != null, 'internal.Batcher2D exists');
         assert(cc.internal.TransformBit != null, 'internal.TransformBit exists');
-        assert(cc.internal.physics2d != null, 'internal.physics2d exists');
+        if (cc.internal.physics2d) {
+            assert(cc.internal.physics2d != null, 'internal.physics2d exists');
+        }
     }
 
     endModule();

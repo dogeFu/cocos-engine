@@ -1,8 +1,9 @@
+#!/usr/bin/env node
 /**
  * Playwright runner for Cocos Engine Build Parity Tests.
  *
  * Usage:
- *   node vite/tests/parity/run-parity.mjs [--headed]
+ *   node vite/tests/parity/run-parity.mjs [--headed] [--build <vite|iife|legacy>] [--features <json>]
  *
  * Steps:
  *   1. Build the test bundle (TS → JS)
@@ -10,6 +11,11 @@
  *   3. Launch Playwright Chromium, load runner.html
  *   4. Wait for tests to complete, extract report
  *   5. Print results and exit with appropriate code
+ *
+ * Options:
+ *   --headed       Run browser in headed mode (visible)
+ *   --build TYPE   Engine build to test: vite (default), iife, or legacy
+ *   --features JSON  JSON object describing expected features (e.g., '{"spine":true,"physics":false}')
  */
 
 import { chromium } from 'playwright';
@@ -23,6 +29,21 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ENGINE_ROOT = resolve(__dirname, '../../..');
 const HEADED = process.argv.includes('--headed');
 const TIMEOUT = 30_000;
+
+// Parse --build arg
+const buildIdx = process.argv.indexOf('--build');
+const BUILD_TYPE = buildIdx >= 0 && buildIdx < process.argv.length - 1 ? process.argv[buildIdx + 1] : 'vite';
+
+// Parse --features arg
+const featIdx = process.argv.indexOf('--features');
+const FEATURES_JSON = featIdx >= 0 && featIdx < process.argv.length - 1 ? process.argv[featIdx + 1] : null;
+
+// Build type to engine script URL mapping (server-root-relative)
+const ENGINE_URLS = {
+    vite: '/bin/vite/web/dev/cc.js',
+    iife: '/bin/test-iife/cc.js',
+    legacy: '/bin/dev/cc/index.js',
+};
 
 // ===== Minimal static file server =====
 const MIME = {
@@ -71,7 +92,16 @@ async function main() {
 
     console.log('[parity] Starting file server...');
     const { server, port } = await startFileServer(ENGINE_ROOT);
-    const url = `http://127.0.0.1:${port}/vite/tests/parity/runner.html`;
+
+    // Build URL with engine override and features
+    const engineUrl = ENGINE_URLS[BUILD_TYPE] || ENGINE_URLS.vite;
+    let url = `http://127.0.0.1:${port}/vite/tests/parity/runner.html?engine=${encodeURIComponent(engineUrl)}`;
+    const label = BUILD_TYPE === 'vite' ? 'Vite' : BUILD_TYPE === 'iife' ? 'Legacy IIFE' : 'Legacy';
+
+    if (FEATURES_JSON) {
+        url += `&features=${encodeURIComponent(FEATURES_JSON)}`;
+    }
+    console.log(`[parity] Testing build: ${label}`);
     console.log(`[parity] URL: ${url}`);
 
     const browser = await chromium.launch({
@@ -120,6 +150,7 @@ async function main() {
     // Print results
     const s = report.summary;
     console.log('\n=== Build Parity Test Report ===');
+    console.log(`Build: ${label}`);
     console.log(`Time: ${report.timestamp}`);
     console.log(`Total: ${s.total} | Passed: ${s.passed} | Failed: ${s.failed}`);
 
