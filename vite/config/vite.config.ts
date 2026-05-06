@@ -90,6 +90,7 @@ export default defineConfig(({ mode }): UserConfig => {
         platform: platform,
         nativeCodeBundleMode: finalConfig.constants.NATIVE_CODE_BUNDLE_MODE as number,
         engineRoot,
+        cullMeshopt: finalConfig.constants.CULL_MESHOPT as boolean,
       }),
     ],
     

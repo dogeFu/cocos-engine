@@ -71,14 +71,11 @@ const defaultEditorDecorators = [
 
 export function cocosDecoratorOptimizer(options: CocosDecoratorOptimizerOptions): Plugin {
   const {
-    optimize,
     removeEditorDecorators,
-    fieldDecorators = defaultFieldDecorators,
     editorDecorators = defaultEditorDecorators,
   } = options;
 
   const decoratorsToRemove = removeEditorDecorators ? editorDecorators : [];
-  const decoratorsToOptimize = optimize ? fieldDecorators : [];
 
   return {
     name: 'vite-plugin-cocos-decorator-optimizer',
@@ -90,16 +87,20 @@ export function cocosDecoratorOptimizer(options: CocosDecoratorOptimizerOptions)
         return null;
       }
 
-      if (decoratorsToRemove.length === 0 && decoratorsToOptimize.length === 0) {
+      if (decoratorsToRemove.length === 0) {
         return null;
       }
 
       let modified = false;
       let result = code;
 
+      // Strip editor-only decorators (e.g. @executeInEditMode, @menu)
+      // Match both single-line and multi-line decorator argument forms
+      // Field decorators (@property, @ccclass, etc.) are left untouched —
+      // esbuild handles them via experimentalDecorators + useDefineForClassFields: false
       for (const decorator of decoratorsToRemove) {
         const decoratorRegex = new RegExp(
-          `@\\s*${decorator}\\s*(?:\\([^)]*\\))?\\s*`,
+          `@\\s*${decorator}\\s*(?:\\([\\s\\S]*?\\))?\\s*`,
           'g'
         );
         if (decoratorRegex.test(result)) {

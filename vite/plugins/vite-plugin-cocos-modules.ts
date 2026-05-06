@@ -10,8 +10,12 @@ export interface CocosModulesOptions {
         spineVersion: "3.8" | "4.2";
         dragonBones: boolean;
         marionette: boolean;
+        proceduralAnimation: boolean;
+        vendorGoogle: boolean;
         physics: boolean;
         physics2D: boolean;
+        particle?: boolean;
+        particle2D?: boolean;
         skeletalAnimation?: boolean;
     };
     platform?: string;
@@ -60,6 +64,7 @@ const MODULE_EXPORTS: Record<string, string[]> = {
     "spine-3.8": ["export * from '../../exports/spine';"],
     "spine-4.2": ["export * from '../../exports/spine';"],
     "dragon-bones": ["export * from '../../exports/dragon-bones';"],
+    "vendor-google": ["export * from '../../exports/vendor-google';"],
     "skeletal-animation": ["export * from '../../exports/skeletal-animation';"],
     "gfx-webgl": ["export * from '../../exports/gfx-webgl';"],
     "gfx-webgl2": ["export * from '../../exports/gfx-webgl2';"],
@@ -160,6 +165,12 @@ function featuresToModules(features: CocosModulesOptions["features"]): {
         disabled.push("dragon-bones");
     }
 
+    if (features.vendorGoogle) {
+        enabled.push("vendor-google");
+    } else {
+        disabled.push("vendor-google");
+    }
+
     if (features.physics) {
         enabled.push("physics-framework", "physics-builtin");
     } else {
@@ -177,6 +188,18 @@ function featuresToModules(features: CocosModulesOptions["features"]): {
         );
     }
 
+    if (features.particle) {
+        enabled.push("particle");
+    } else {
+        disabled.push("particle");
+    }
+
+    if (features.particle2D) {
+        enabled.push("particle-2d");
+    } else {
+        disabled.push("particle-2d");
+    }
+
     if (features.skeletalAnimation) {
         enabled.push("skeletal-animation");
     }
@@ -190,7 +213,7 @@ function createBuildConstants(
 ): Record<string, boolean> {
     const featureConstants = featuresToConstants(features);
 
-    const constants: Record<string, boolean> = {
+    const constants: Record<string, boolean | number> = {
         HTML5:
             platform === "web" ||
             platform === "wechat" ||
@@ -204,9 +227,15 @@ function createBuildConstants(
         USE_3D: true,
         USE_UI_SKEW: false,
         USE_SORTING_2D: false,
+        SUPPORT_JIT: true,
         ...featureConstants,
-        PROCEDURAL_ANIMATION: false,
-        USE_VENDOR_GOOGLE: false,
+        MARIONETTE: features?.marionette ?? false,
+        PROCEDURAL_ANIMATION: features?.proceduralAnimation ?? false,
+        USE_VENDOR_GOOGLE: features?.vendorGoogle ?? false,
+        CULL_MESHOPT: false,
+        LOAD_SPINE_MANUALLY: false,
+        LOAD_BOX2D_MANUALLY: false,
+        WASM_SUBPACKAGE: false,
     };
 
     return constants;

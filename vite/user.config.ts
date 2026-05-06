@@ -8,8 +8,12 @@ export default defineUserConfig({
         spineVersion: "3.8",
         dragonBones: false,
         marionette: true,
+        proceduralAnimation: false,
+        vendorGoogle: false,
         physics: false,
         physics2D: true,
+        particle: true,
+        particle2D: true,
         skeletalAnimation: true,
     },
 

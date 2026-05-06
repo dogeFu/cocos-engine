@@ -6,6 +6,7 @@ export interface CocosExternalOptions {
   platform: string;
   nativeCodeBundleMode: number; // 0=ASMJS, 1=WASM, 2=BOTH
   engineRoot: string;
+  cullMeshopt?: boolean; // When true, meshopt decoder module is excluded from build
 }
 
 const VIRTUAL_PREFIX = '\0cocos-external:';
@@ -45,6 +46,16 @@ export function cocosExternalModules(options: CocosExternalOptions): Plugin {
       if (!id.startsWith(VIRTUAL_PREFIX)) return null;
 
       const realPath = id.slice(VIRTUAL_PREFIX.length);
+
+      // Cull meshopt decoder when CULL_MESHOPT is true
+      if (options.cullMeshopt && realPath.includes('meshopt')) {
+        if (realPath.endsWith('.wasm') || realPath.endsWith('.wasm.wasm') || realPath.endsWith('.js.mem')) {
+          return `export default '';`;
+        }
+        if (realPath.endsWith('.wasm.js') || realPath.endsWith('.asm.js')) {
+          return `export default function() { throw new Error('meshopt decoder disabled by CULL_MESHOPT'); };`;
+        }
+      }
 
       // .wasm / .wasm.wasm — WebAssembly binary
       if (realPath.endsWith('.wasm') || realPath.endsWith('.wasm.wasm')) {

@@ -14,8 +14,12 @@ export interface UserConfig {
         spineVersion: "3.8" | "4.2";
         dragonBones: boolean;
         marionette: boolean;
+        proceduralAnimation: boolean;
+        vendorGoogle: boolean;
         physics: boolean;
         physics2D: boolean;
+        particle: boolean;
+        particle2D: boolean;
         skeletalAnimation: boolean;
     };
 
@@ -148,8 +152,12 @@ export function loadUserConfig(): UserConfig {
                 spineVersion: "3.8",
                 dragonBones: false,
                 marionette: true,
+                proceduralAnimation: false,
+                vendorGoogle: false,
                 physics: false,
                 physics2D: false,
+                particle: true,
+                particle2D: true,
                 skeletalAnimation: true,
             },
             build: {
@@ -194,8 +202,13 @@ export function loadUserConfig(): UserConfig {
                 spineVersion: "3.8",
                 dragonBones: false,
                 marionette: true,
+                proceduralAnimation: false,
+                vendorGoogle: false,
                 physics: true,
                 physics2D: true,
+                particle: true,
+                particle2D: true,
+                skeletalAnimation: true,
             },
             build: {
                 debug: false,
