@@ -30,6 +30,26 @@ export function cocosExternalModules(options: CocosExternalOptions): Plugin {
     return nativeCodeBundleMode === 1; // WASM only
   }
 
+  // Emscripten IIFE glue code creates a global variable (e.g. BOX2D, PHYSX, Bullet)
+  // but does not export it as ES module default. Extract the name so we can
+  // append the correct export statement.
+  function extractEmscriptenGlobalName(source: string): string | null {
+    // Matches both: var NAME = (() => {  and  var NAME = (function () {
+    const match = source.match(/^var\s+(\w+)\s*=\s*\((?:\(\)\s*=>|function\s*\(\))\s*\{/m);
+    return match ? match[1] : null;
+  }
+
+  function ensureDefaultExport(source: string): string {
+    if (source.includes('export default')) {
+      return source;
+    }
+    const name = extractEmscriptenGlobalName(source);
+    if (name) {
+      return source + `\nexport default ${name};\n`;
+    }
+    return source;
+  }
+
   return {
     name: 'vite-plugin-cocos-external-modules',
     enforce: 'pre',
@@ -70,12 +90,14 @@ export function cocosExternalModules(options: CocosExternalOptions): Plugin {
         return `export default new URL(import.meta.ROLLUP_FILE_URL_${ref}, import.meta.url).href;`;
       }
 
-      // .wasm.js — Emscripten glue code (JS factory function with export default)
+      // .wasm.js — Emscripten glue code (JS factory function)
       if (realPath.endsWith('.wasm.js')) {
         if (shouldCullWasm()) {
           return `export default function() { throw new Error('WASM module disabled by NATIVE_CODE_BUNDLE_MODE'); };`;
         }
-        return readFileSync(realPath, 'utf-8');
+        // UMD-formatted emscripten files (box2d, physx, bullet) lack ES export.
+        // Spine and meshopt already include `export default <name>`.
+        return ensureDefaultExport(readFileSync(realPath, 'utf-8'));
       }
 
       // .asm.js — ASM.js fallback factory
@@ -83,7 +105,7 @@ export function cocosExternalModules(options: CocosExternalOptions): Plugin {
         if (shouldCullAsmJS()) {
           return `export default function() { throw new Error('ASMJS module disabled by NATIVE_CODE_BUNDLE_MODE'); };`;
         }
-        return readFileSync(realPath, 'utf-8');
+        return ensureDefaultExport(readFileSync(realPath, 'utf-8'));
       }
 
       // .js.mem — memory initializer file for ASM.js

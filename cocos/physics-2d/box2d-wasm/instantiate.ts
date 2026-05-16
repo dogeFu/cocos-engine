@@ -39,10 +39,11 @@ import { B2WheelJoint } from './joints/wheel-joint';
 import { B2HingeJoint } from './joints/hinge-joint';
 
 import { Game, game } from '../../game';
-import { waitForBox2dWasmInstantiation } from './instantiated';
+import { waitForBox2dWasmInstantiation, box2dWasmLoaded } from './instantiated';
 import { PhysicsSystem2D } from '../framework';
 
 game.once(Game.EVENT_PRE_SUBSYSTEM_INIT, () => {
+    if (!box2dWasmLoaded && !LOAD_BOX2D_MANUALLY) return;
     selector.register('box2d-wasm', {
         PhysicsWorld: B2PhysicsWorld,
         RigidBody: B2RigidBody2D,

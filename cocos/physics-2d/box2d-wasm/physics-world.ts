@@ -75,6 +75,9 @@ export class B2PhysicsWorld implements IPhysicsWorld {
     }
 
     constructor () {
+        if (!B2.World) {
+            throw new Error('[box2d]: Box2D WASM module did not load. B2.World is not available.');
+        }
         this._world = new B2.World({ x: 0, y: -10 });
         this._physicsGroundBody = this._world.CreateBody(new B2.BodyDef() as B2.BodyDef);
         PhysicsContactListener._BeginContact = this._onBeginContact;

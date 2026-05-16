@@ -95,3 +95,4 @@ cclegacy.ConstantForce = ConstantForce;
 export * from './physics-interface';
 export * from './physics-config';
 export * from './physics-enum';
+export * from './deprecated';

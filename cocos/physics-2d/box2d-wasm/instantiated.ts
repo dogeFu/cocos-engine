@@ -32,6 +32,8 @@ import { NativeCodeBundleMode } from '../../misc/webassembly-support';
 // eslint-disable-next-line import/no-mutable-exports
 export let B2 = {} as any;
 
+export let box2dWasmLoaded = false;
+
 export function getImplPtr (wasmObject: any): number {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     if (!wasmObject) return 0;
@@ -137,6 +139,10 @@ export function b2Mul (T: any, v: IVec2Like, out: IVec2Like): void {
 function initWasm (wasmFactory, wasmUrl: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         const errorMessage = (err: any): string => `[box2d]: box2d wasm lib load failed: ${err}`;
+        if (typeof wasmFactory !== 'function') {
+            reject(new Error(errorMessage(`wasmFactory is not a function (got ${typeof wasmFactory})`)));
+            return;
+        }
         wasmFactory({
             instantiateWasm (
                 importObject: WebAssembly.Imports,
@@ -150,6 +156,7 @@ function initWasm (wasmFactory, wasmUrl: string): Promise<void> {
         }).then((Instance: any) => {
             log('[box2d]:box2d wasm lib loaded.');
             B2 = Instance;
+            box2dWasmLoaded = true;
         }).then(resolve).catch((err: any) => reject(errorMessage(err)));
     });
 }
@@ -157,9 +164,14 @@ function initWasm (wasmFactory, wasmUrl: string): Promise<void> {
 function initAsm (asmFactory): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         const errorMessage = (err: any): string => `[box2d]: box2d asm lib load failed: ${err}`;
+        if (typeof asmFactory !== 'function') {
+            reject(new Error(errorMessage(`asmFactory is not a function (got ${typeof asmFactory})`)));
+            return;
+        }
         asmFactory().then((instance: any) => {
             log('[box2d]:box2d asm lib loaded.');
             B2 = instance;
+            box2dWasmLoaded = true;
         }).then(resolve).catch((err: any) => reject(errorMessage(err)));
     });
 }

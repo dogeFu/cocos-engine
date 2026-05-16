@@ -44,6 +44,10 @@ const registerList: any[] = [];
 function initWasm (wasmFactory, wasmUrl: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         const errorMessage = (err: any): string => `[WebGPU]: WebGPU wasm load failed: ${err}`;
+        if (typeof wasmFactory !== 'function') {
+            reject(new Error(errorMessage(`wasmFactory is not a function (got ${typeof wasmFactory})`)));
+            return;
+        }
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         wasmFactory({
             instantiateWasm (
