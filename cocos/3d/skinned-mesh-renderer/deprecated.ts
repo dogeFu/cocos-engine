@@ -31,6 +31,7 @@ import { js, cclegacy } from '../../core';
  */
 export { SkinnedMeshRenderer as SkinningModelComponent };
 cclegacy.SkinningModelComponent = SkinnedMeshRenderer;
+cclegacy.SkinnedMeshRenderer = SkinnedMeshRenderer;
 js.setClassAlias(SkinnedMeshRenderer, 'cc.SkinningModelComponent');
 /**
  * Alias of [[SkinnedMeshUnit]]
@@ -38,6 +39,7 @@ js.setClassAlias(SkinnedMeshRenderer, 'cc.SkinningModelComponent');
  */
 export { SkinnedMeshUnit as SkinningModelUnit };
 cclegacy.SkinningModelUnit = SkinnedMeshUnit;
+cclegacy.SkinnedMeshUnit = SkinnedMeshUnit;
 js.setClassAlias(SkinnedMeshUnit, 'cc.SkinningModelUnit');
 /**
  * Alias of [[SkinnedMeshBatchRenderer]]
@@ -45,4 +47,5 @@ js.setClassAlias(SkinnedMeshUnit, 'cc.SkinningModelUnit');
  */
 export { SkinnedMeshBatchRenderer as BatchedSkinningModelComponent };
 cclegacy.BatchedSkinningModelComponent = SkinnedMeshBatchRenderer;
+cclegacy.SkinnedMeshBatchRenderer = SkinnedMeshBatchRenderer;
 js.setClassAlias(SkinnedMeshBatchRenderer, 'cc.BatchedSkinningModelComponent');

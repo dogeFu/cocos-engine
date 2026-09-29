@@ -30,4 +30,5 @@ import { SkeletalAnimation } from './skeletal-animation';
  */
 export { SkeletalAnimation as SkeletalAnimationComponent };
 cclegacy.SkeletalAnimationComponent = SkeletalAnimation;
+cclegacy.SkeletalAnimation = SkeletalAnimation;
 js.setClassAlias(SkeletalAnimation, 'cc.SkeletalAnimationComponent');

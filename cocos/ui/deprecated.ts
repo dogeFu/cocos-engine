@@ -61,6 +61,7 @@ legacyCC.UIReorderComponent = UIReorderComponent;
  */
 export { Button as ButtonComponent };
 legacyCC.ButtonComponent = Button;
+legacyCC.Button = Button;
 js.setClassAlias(Button, 'cc.ButtonComponent');
 /**
  * Alias of [[EditBox]]
@@ -68,6 +69,7 @@ js.setClassAlias(Button, 'cc.ButtonComponent');
  */
 export { EditBox as EditBoxComponent };
 legacyCC.EditBoxComponent = EditBox;
+legacyCC.EditBox = EditBox;
 js.setClassAlias(EditBox, 'cc.EditBoxComponent');
 /**
  * Alias of [[Layout]]
@@ -75,6 +77,7 @@ js.setClassAlias(EditBox, 'cc.EditBoxComponent');
  */
 export { Layout as LayoutComponent };
 legacyCC.LayoutComponent = Layout;
+legacyCC.Layout = Layout;
 js.setClassAlias(Layout, 'cc.LayoutComponent');
 /**
  * Alias of [[ProgressBar]]
@@ -82,6 +85,7 @@ js.setClassAlias(Layout, 'cc.LayoutComponent');
  */
 export { ProgressBar as ProgressBarComponent };
 legacyCC.ProgressBarComponent = ProgressBar;
+legacyCC.ProgressBar = ProgressBar;
 js.setClassAlias(ProgressBar, 'cc.ProgressBarComponent');
 /**
  * Alias of [[ScrollView]]
@@ -89,6 +93,7 @@ js.setClassAlias(ProgressBar, 'cc.ProgressBarComponent');
  */
 export { ScrollView as ScrollViewComponent };
 legacyCC.ScrollViewComponent = ScrollView;
+legacyCC.ScrollView = ScrollView;
 js.setClassAlias(ScrollView, 'cc.ScrollViewComponent');
 /**
  * Alias of [[ScrollBar]]
@@ -96,6 +101,7 @@ js.setClassAlias(ScrollView, 'cc.ScrollViewComponent');
  */
 export { ScrollBar as ScrollBarComponent };
 legacyCC.ScrollBarComponent = ScrollBar;
+legacyCC.ScrollBar = ScrollBar;
 js.setClassAlias(ScrollBar, 'cc.ScrollBarComponent');
 /**
  * Alias of [[Slider]]
@@ -103,6 +109,7 @@ js.setClassAlias(ScrollBar, 'cc.ScrollBarComponent');
  */
 export { Slider as SliderComponent };
 legacyCC.SliderComponent = Slider;
+legacyCC.Slider = Slider;
 js.setClassAlias(Slider, 'cc.SliderComponent');
 /**
  * Alias of [[Toggle]]
@@ -110,6 +117,7 @@ js.setClassAlias(Slider, 'cc.SliderComponent');
  */
 export { Toggle as ToggleComponent };
 legacyCC.ToggleComponent = Toggle;
+legacyCC.Toggle = Toggle;
 js.setClassAlias(Toggle, 'cc.ToggleComponent');
 /**
  * Alias of [[ToggleContainer]]
@@ -117,6 +125,7 @@ js.setClassAlias(Toggle, 'cc.ToggleComponent');
  */
 export { ToggleContainer as ToggleContainerComponent };
 legacyCC.ToggleContainerComponent = ToggleContainer;
+legacyCC.ToggleContainer = ToggleContainer;
 js.setClassAlias(ToggleContainer, 'cc.ToggleContainerComponent');
 /**
  * Alias of [[Widget]]
@@ -124,6 +133,7 @@ js.setClassAlias(ToggleContainer, 'cc.ToggleContainerComponent');
  */
 export { Widget as WidgetComponent };
 legacyCC.WidgetComponent = Widget;
+legacyCC.Widget = Widget;
 js.setClassAlias(Widget, 'cc.WidgetComponent');
 /**
  * Alias of [[PageView]]
@@ -131,6 +141,7 @@ js.setClassAlias(Widget, 'cc.WidgetComponent');
  */
 export { PageView as PageViewComponent };
 legacyCC.PageViewComponent = PageView;
+legacyCC.PageView = PageView;
 js.setClassAlias(PageView, 'cc.PageViewComponent');
 /**
  * Alias of [[PageViewIndicator]]
@@ -138,6 +149,7 @@ js.setClassAlias(PageView, 'cc.PageViewComponent');
  */
 export { PageViewIndicator as PageViewIndicatorComponent };
 legacyCC.PageViewIndicatorComponent = PageViewIndicator;
+legacyCC.PageViewIndicator = PageViewIndicator;
 js.setClassAlias(PageViewIndicator, 'cc.PageViewIndicatorComponent');
 /**
  * Alias of [[SafeArea]]
@@ -145,12 +157,15 @@ js.setClassAlias(PageViewIndicator, 'cc.PageViewIndicatorComponent');
  */
 export { SafeArea as SafeAreaComponent };
 legacyCC.SafeAreaComponent = SafeArea;
+legacyCC.SafeArea = SafeArea;
 js.setClassAlias(SafeArea, 'cc.SafeAreaComponent');
 /**
  * Alias of [[UICoordinateTracker]]
  * @deprecated Since v1.2
  */
 export { UICoordinateTracker as UICoordinateTrackerComponent };
+legacyCC.UICoordinateTrackerComponent = UICoordinateTracker;
+legacyCC.UICoordinateTracker = UICoordinateTracker;
 js.setClassAlias(UICoordinateTracker, 'cc.UICoordinateTrackerComponent');
 /**
  * Alias of [[BlockInputEvents]]
@@ -158,6 +173,7 @@ js.setClassAlias(UICoordinateTracker, 'cc.UICoordinateTrackerComponent');
  */
 export { BlockInputEvents as BlockInputEventsComponent };
 legacyCC.BlockInputEventsComponent = BlockInputEvents;
+legacyCC.BlockInputEvents = BlockInputEvents;
 js.setClassAlias(BlockInputEvents, 'cc.BlockInputEventsComponent');
 
 // #region deprecation on view

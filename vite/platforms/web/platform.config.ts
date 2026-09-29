@@ -73,6 +73,7 @@ export default definePlatformConfig({
   defaults: {
     features: {
       marionette: true,
+      "combo-core": true,
     },
     build: {
       sourceMap: true,

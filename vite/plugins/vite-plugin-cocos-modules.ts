@@ -69,6 +69,7 @@ const MODULE_EXPORTS: Record<string, string[]> = {
     "gfx-webgl": ["export * from '../../exports/gfx-webgl';"],
     "gfx-webgl2": ["export * from '../../exports/gfx-webgl2';"],
     "gfx-empty": ["export * from '../../exports/gfx-empty';"],
+    "combo-core": ["export * from '../../exports/combo-core';"],
     "gfx-webgpu": ["export * from '../../exports/gfx-webgpu';"],
 };
 
@@ -96,6 +97,7 @@ const MODULE_DEPENDENCIES: Record<string, string[]> = {
     "intersection-2d": ["2d"],
     "sorting-2d": ["2d"],
     "light-probe": ["3d"],
+    "combo-core": ["2d"],
     "geometry-renderer": ["3d"],
 };
 
@@ -119,6 +121,7 @@ function featuresToModules(features: CocosModulesOptions["features"]): {
     disabled: string[];
 } {
     if (!features) {
+        // No features specified — use a minimal safe default
         return {
             enabled: [
                 "base",
@@ -136,75 +139,60 @@ function featuresToModules(features: CocosModulesOptions["features"]): {
         };
     }
 
-    const enabled: string[] = [
-        "base",
-        "2d",
-        "3d",
-        "animation",
-        "audio",
-        "gfx-webgl",
-        "gfx-webgl2",
-        "gfx-empty",
-        "legacy-pipeline",
-        "tween",
-        "ui",
-        "video",
-        "webview",
-    ];
-    const disabled: string[] = [];
+    // Blacklist approach: start from ALL known modules, only disable
+    // what feature flags explicitly turn off. This is safer than a
+    // whitelist because new modules are included by default.
+    const allModules = Object.keys(MODULE_EXPORTS);
+    const disabled = new Set<string>();
+
+    // Platform-specific: gfx-webgpu requires native external files (glslang.js),
+    // never included in standard web builds
+    disabled.add("gfx-webgpu");
+
+    // -- Feature-gated modules (disabled unless feature is on) --
 
     if (features.spine) {
-        enabled.push(`spine-${features.spineVersion}`);
+        // Keep the selected version, disable the other
+        const wrongVersion = features.spineVersion === "4.2" ? "spine-3.8" : "spine-4.2";
+        disabled.add(wrongVersion);
     } else {
-        disabled.push("spine-3.8", "spine-4.2");
+        disabled.add("spine-3.8");
+        disabled.add("spine-4.2");
     }
 
-    if (features.dragonBones) {
-        enabled.push("dragon-bones");
-    } else {
-        disabled.push("dragon-bones");
+    if (!features.dragonBones) {
+        disabled.add("dragon-bones");
     }
 
-    if (features.vendorGoogle) {
-        enabled.push("vendor-google");
-    } else {
-        disabled.push("vendor-google");
+    if (!features.vendorGoogle) {
+        disabled.add("vendor-google");
     }
 
-    if (features.physics) {
-        enabled.push("physics-framework", "physics-builtin");
-    } else {
-        disabled.push("physics-framework", "physics-builtin");
+    if (!features.physics) {
+        disabled.add("physics-framework");
+        disabled.add("physics-builtin");
     }
 
-    if (features.physics2D) {
-        enabled.push("physics-2d-framework", "physics-2d-builtin", "physics-2d-box2d", "physics-2d-box2d-wasm");
-    } else {
-        disabled.push(
-            "physics-2d-framework",
-            "physics-2d-builtin",
-            "physics-2d-box2d",
-            "physics-2d-box2d-wasm",
-        );
+    if (!features.physics2D) {
+        disabled.add("physics-2d-framework");
+        disabled.add("physics-2d-builtin");
+        disabled.add("physics-2d-box2d");
+        disabled.add("physics-2d-box2d-wasm");
     }
 
-    if (features.particle) {
-        enabled.push("particle");
-    } else {
-        disabled.push("particle");
+    if (!features.particle) {
+        disabled.add("particle");
     }
 
-    if (features.particle2D) {
-        enabled.push("particle-2d");
-    } else {
-        disabled.push("particle-2d");
+    if (!features.particle2D) {
+        disabled.add("particle-2d");
     }
 
-    if (features.skeletalAnimation) {
-        enabled.push("skeletal-animation");
-    }
+    // skeletal-animation has no disable counterpart —
+    // it's an add-on to the animation module, always safe to include
 
-    return { enabled, disabled };
+    const enabled = allModules.filter((m) => !disabled.has(m));
+    return { enabled, disabled: [...disabled] };
 }
 
 function createBuildConstants(
@@ -324,7 +312,6 @@ export { SystemEventType } from '${path.resolve(engineRoot, "cocos/input/types")
             Object.entries(config.buildConstants).forEach(([key, value]) => {
                 define[`${key}`] = JSON.stringify(value);
             });
-
             return {
                 define,
             };

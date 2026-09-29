@@ -26,8 +26,6 @@ const CORE_KEYS = new Set([
     'Game', 'sys', 'screen', 'view', 'game', 'director',
     // Math utilities
     'math', 'v2', 'v3', 'v4', 'quat', 'mat4', 'color', 'size', 'rect',
-    'clamp01', 'lerp', 'toRadian', 'toDegree', 'random', 'nextPow2', 'repeat', 'pingPong',
-    'EPSILON',
     // Events
     'EventTarget', 'EventTouch', 'EventMouse', 'EventKeyboard', 'EventGamepad',
     'KeyCode', 'Touch', 'SystemEventType',

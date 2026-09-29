@@ -61,3 +61,11 @@ export * from '../cocos/native-binding/index';
 type Constructor_<T = unknown> = Constructor<T>;
 
 export type { Constructor_ as Constructor };
+
+// --- Legacy API compatibility: explicit re-exports for classes not
+//     in the standard export chain but expected on window.cc ---
+export { SimpleTexture } from "../cocos/asset/assets/simple-texture";
+export { TextureBase } from "../cocos/asset/assets/texture-base";
+export { Ambient, Fog, Shadows, Skybox } from '../cocos/render-scene/scene';
+
+export { vmath } from '../cocos/core/deprecated';

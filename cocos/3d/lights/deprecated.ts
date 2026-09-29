@@ -34,6 +34,7 @@ import { cclegacy, js, replaceProperty } from '../../core';
  */
 export { Light as LightComponent };
 cclegacy.LightComponent = Light;
+cclegacy.Light = Light;
 js.setClassAlias(Light, 'cc.LightComponent');
 /**
  * Alias of [[DirectionalLight]]
@@ -41,6 +42,7 @@ js.setClassAlias(Light, 'cc.LightComponent');
  */
 export { DirectionalLight as DirectionalLightComponent };
 cclegacy.DirectionalLightComponent = DirectionalLight;
+cclegacy.DirectionalLight = DirectionalLight;
 js.setClassAlias(DirectionalLight, 'cc.DirectionalLightComponent');
 /**
  * Alias of [[SphereLight]]
@@ -48,6 +50,7 @@ js.setClassAlias(DirectionalLight, 'cc.DirectionalLightComponent');
  */
 export { SphereLight as SphereLightComponent };
 cclegacy.SphereLightComponent = SphereLight;
+cclegacy.SphereLight = SphereLight;
 js.setClassAlias(SphereLight, 'cc.SphereLightComponent');
 /**
  * Alias of [[SpotLight]]
@@ -55,6 +58,7 @@ js.setClassAlias(SphereLight, 'cc.SphereLightComponent');
  */
 export { SpotLight as SpotLightComponent };
 cclegacy.SpotLightComponent = SpotLight;
+cclegacy.SpotLight = SpotLight;
 js.setClassAlias(SpotLight, 'cc.SpotLightComponent');
 
 replaceProperty(SpotLight.prototype, 'SpotLight.prototype', [

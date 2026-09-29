@@ -66,6 +66,7 @@ markAsWarning(Renderer.prototype, 'Renderer.prototype', [
  */
 export { Camera as CameraComponent };
 cclegacy.CameraComponent = Camera;
+cclegacy.Camera = Camera;
 js.setClassAlias(Camera, 'cc.CameraComponent');
 
 /**
@@ -74,4 +75,5 @@ js.setClassAlias(Camera, 'cc.CameraComponent');
  */
 export { ModelRenderer as RenderableComponent };
 cclegacy.RenderableComponent = ModelRenderer;
+cclegacy.ModelRenderer = ModelRenderer;
 js.setClassAlias(ModelRenderer, 'cc.RenderableComponent');

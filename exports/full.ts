@@ -60,5 +60,10 @@ export * from './spine';
 export * from './dragon-bones';
 export * from './skeletal-animation';
 
+export * from './combo-core';
+export * from './embedded-player';
+export * from './gfx-empty';
+export * from './physics-2d-box2d-wasm';
+export * from './vendor-google';
 export * from './gfx-webgl';
 export * from './gfx-webgl2';

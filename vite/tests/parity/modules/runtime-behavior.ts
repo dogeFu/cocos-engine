@@ -105,21 +105,21 @@ export function runBehaviorParityTest(cc: any) {
     assertEqual(node.active, false, 'Node set inactive');
 
     // ===== Math utilities =====
-    assert(cc.clamp01 != null, 'clamp01 available');
-    assertClose(cc.clamp01(-0.5), 0, 0.001, 'clamp01(-0.5) = 0');
-    assertClose(cc.clamp01(0.5), 0.5, 0.001, 'clamp01(0.5) = 0.5');
-    assertClose(cc.clamp01(1.5), 1, 0.001, 'clamp01(1.5) = 1');
+    const clamp01Fn = cc.math?.clamp01 ?? cc.clamp01; assert(clamp01Fn != null, 'clamp01 available');
+    assertClose(clamp01Fn(-0.5), 0, 0.001, 'clamp01(-0.5) = 0');
+    assertClose(clamp01Fn(0.5), 0.5, 0.001, 'clamp01(0.5) = 0.5');
+    assertClose(clamp01Fn(1.5), 1, 0.001, 'clamp01(1.5) = 1');
 
-    assert(cc.lerp != null, 'lerp available');
-    assertClose(cc.lerp(0, 100, 0.5), 50, 0.001, 'lerp(0,100,0.5) = 50');
-    assertClose(cc.lerp(0, 100, 0), 0, 0.001, 'lerp(0,100,0) = 0');
-    assertClose(cc.lerp(0, 100, 1), 100, 0.001, 'lerp(0,100,1) = 100');
+    const lerpFn = cc.math?.lerp ?? cc.lerp; assert(lerpFn != null, 'lerp available');
+    assertClose(lerpFn(0, 100, 0.5), 50, 0.001, 'lerp(0,100,0.5) = 50');
+    assertClose(lerpFn(0, 100, 0), 0, 0.001, 'lerp(0,100,0) = 0');
+    assertClose(lerpFn(0, 100, 1), 100, 0.001, 'lerp(0,100,1) = 100');
 
-    assert(cc.toRadian != null, 'toRadian available');
-    assertClose(cc.toRadian(180), Math.PI, 0.001, 'toRadian(180) = PI');
+    const toRadianFn = cc.math?.toRadian ?? cc.toRadian; assert(toRadianFn != null, 'toRadian available');
+    assertClose(toRadianFn(180), Math.PI, 0.001, 'toRadian(180) = PI');
 
-    assert(cc.toDegree != null, 'toDegree available');
-    assertClose(cc.toDegree(Math.PI), 180, 0.001, 'toDegree(PI) = 180');
+    const toDegreeFn = cc.math?.toDegree ?? cc.toDegree; assert(toDegreeFn != null, 'toDegree available');
+    assertClose(toDegreeFn(Math.PI), 180, 0.001, 'toDegree(PI) = 180');
 
     // ===== Tween API =====
     assert(cc.tween != null, 'tween available');

@@ -9,6 +9,11 @@ import { runBehaviorParityTest } from './modules/runtime-behavior';
 import { runWASMParityTest } from './modules/wasm-modules';
 import { runRenderingParityTest } from './modules/rendering';
 import { runCrossConfigParityTest } from './modules/cross-config';
+import { runPhysicsSimulationTest } from './modules/physics-simulation';
+import { runSceneLifecycleTest } from './modules/scene-lifecycle';
+import { runRuntimeAPITest } from './modules/runtime-apis';
+import { runModuleCoverageTest } from './modules/module-coverage';
+import { runKeyComparisonTest } from './modules/key-comparison';
 
 declare global {
     interface Window {
@@ -24,6 +29,11 @@ window.runAllParityTests = function (cc: any, features?: FeatureManifest): Parit
     runWASMParityTest(cc, features);
     runRenderingParityTest(cc);
     runCrossConfigParityTest(cc, features);
+    runPhysicsSimulationTest(cc);
+    runSceneLifecycleTest(cc);
+    runRuntimeAPITest(cc);
+    runModuleCoverageTest(cc, features);
+    runKeyComparisonTest(cc, features);
 
     const report = getReport();
     console.log(formatReport(report));

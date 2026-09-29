@@ -111,6 +111,7 @@ markAsWarning(UITransform.prototype, 'UITransform.prototype', [
  */
 export { UITransform as UITransformComponent };
 cclegacy.UITransformComponent = UITransform;
+cclegacy.UITransform = UITransform;
 js.setClassAlias(UITransform, 'cc.UITransformComponent');
 
 /**
@@ -118,6 +119,7 @@ js.setClassAlias(UITransform, 'cc.UITransformComponent');
  * @deprecated Since v1.2
  */
 export { UIRenderer as RenderComponent };
+cclegacy.UIRenderer = UIRenderer;
 /**
  * Alias of [[Renderable2D]]
  * @deprecated Since v3.0
@@ -131,6 +133,7 @@ js.setClassAlias(UIRenderer, 'cc.RenderComponent');
  */
 export { Canvas as CanvasComponent };
 cclegacy.CanvasComponent = Canvas;
+cclegacy.Canvas = Canvas;
 js.setClassAlias(Canvas, 'cc.CanvasComponent');
 
 /**

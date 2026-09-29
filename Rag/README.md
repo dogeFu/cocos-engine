@@ -18,6 +18,7 @@ Rag/
 │   └── native/     #   原生平台 — PAL/JSB/C++/CMake
 ├── build/          # 构建体系 — 引擎编译流程、Vite/Babel/宏配置/模块裁剪
 ├── extensions/     # 扩展模块 — Spine/DragonBones/杂项
+├── combo-core/      # 代码优先框架 — API 参考、代码优先模式、资产流程
 ├── aicocos/        # AiCocos 项目 — 引擎集成、CLI、运行时、迁移
 └── README.md       # 本文件
 ```
@@ -103,6 +104,15 @@ Rag/
 | [spine-dragonbones.md](extensions/spine-dragonbones.md) | `spine`、`dragon-bones` | Spine/DragonBones 运行时、缓存模式、骨骼挂点、WASM 集成 |
 | [misc.md](extensions/misc.md) | `video`、`web-view`、`profiler`、`misc`、`renderer` | 视频/WebView、性能分析器、MissingScript、Renderer 三层材质体系 |
 
+## 🎮 combo-core/ — 代码优先框架
+
+| 文档 | 覆盖模块 | 说明 |
+|------|---------|------|
+| [overview.md](combo-core/overview.md) | `app`、`scene`、`node`、`prefab`、`asset`、`resource-loader` | combo-core 接口设计、API 参考、Future Considerations |
+| [code-first-patterns.md](combo-core/code-first-patterns.md) | `@combo/core`、引擎内置资产、Sprite、Graphics、Button | 代码优先最佳实践、资产正确引用、常见陷阱速查表 |
+| [asset-flow.md](combo-core/asset-flow.md) | 资产管线、bundle 打包、运行时加载 | 引擎内置资产全链路：导入 → 功能查询 → 闭包解析 → 打包 → 运行时加载 |
+
+
 ## 🤖 aicocos/ — AiCocos 项目
 
 | 文档 | 覆盖模块 | 说明 |
@@ -115,7 +125,7 @@ Rag/
 
 ---
 
-**合计：35 篇文档，11 个分类目录，覆盖全部 31 个 `cocos/` 子模块及 AiCocos 项目。**
+**合计：38 篇文档，12 个分类目录，覆盖全部 31 个 `cocos/` 子模块及 AiCocos 项目。**
 
 ---
 

@@ -40,6 +40,7 @@ import { LabelShadow } from './label-shadow';
  */
 export { Mask as MaskComponent };
 cclegacy.MaskComponent = Mask;
+cclegacy.Mask = Mask;
 js.setClassAlias(Mask, 'cc.MaskComponent');
 /**
  * Alias of [[Label]]
@@ -47,6 +48,7 @@ js.setClassAlias(Mask, 'cc.MaskComponent');
  */
 export { Label as LabelComponent };
 cclegacy.LabelComponent = Label;
+cclegacy.Label = Label;
 js.setClassAlias(Label, 'cc.LabelComponent');
 /**
  * Alias of [[LabelOutline]]
@@ -54,6 +56,7 @@ js.setClassAlias(Label, 'cc.LabelComponent');
  */
 export { LabelOutline as LabelOutlineComponent };
 cclegacy.LabelOutlineComponent = LabelOutline;
+cclegacy.LabelOutline = LabelOutline;
 js.setClassAlias(LabelOutline, 'cc.LabelOutlineComponent');
 
 /**
@@ -62,6 +65,7 @@ js.setClassAlias(LabelOutline, 'cc.LabelOutlineComponent');
  */
 export { RichText as RichTextComponent };
 cclegacy.RichTextComponent = RichText;
+cclegacy.RichText = RichText;
 js.setClassAlias(RichText, 'cc.RichTextComponent');
 /**
  * Alias of [[Sprite]]
@@ -69,6 +73,7 @@ js.setClassAlias(RichText, 'cc.RichTextComponent');
  */
 export { Sprite as SpriteComponent };
 cclegacy.SpriteComponent = Sprite;
+cclegacy.Sprite = Sprite;
 js.setClassAlias(Sprite, 'cc.SpriteComponent');
 /**
  * Alias of [[UIMeshRenderer]]
@@ -76,6 +81,7 @@ js.setClassAlias(Sprite, 'cc.SpriteComponent');
  */
 export { UIMeshRenderer as UIModelComponent };
 cclegacy.UIModelComponent = UIMeshRenderer;
+cclegacy.UIMeshRenderer = UIMeshRenderer;
 js.setClassAlias(UIMeshRenderer, 'cc.UIModelComponent');
 /**
  * Alias of [[Graphics]]
@@ -83,18 +89,23 @@ js.setClassAlias(UIMeshRenderer, 'cc.UIModelComponent');
  */
 export { Graphics as GraphicsComponent };
 cclegacy.GraphicsComponent = Graphics;
+cclegacy.Graphics = Graphics;
 js.setClassAlias(Graphics, 'cc.GraphicsComponent');
 /**
  * Alias of [[UIStaticBatch]]
  * @deprecated Since v1.2
  */
 export { UIStaticBatch as UIStaticBatchComponent };
+cclegacy.UIStaticBatchComponent = UIStaticBatch;
+cclegacy.UIStaticBatch = UIStaticBatch;
 js.setClassAlias(UIStaticBatch, 'cc.UIStaticBatchComponent');
 /**
  * Alias of [[UIOpacity]]
  * @deprecated Since v1.2
  */
 export { UIOpacity as UIOpacityComponent };
+cclegacy.UIOpacityComponent = UIOpacity;
+cclegacy.UIOpacity = UIOpacity;
 js.setClassAlias(UIOpacity, 'cc.UIOpacityComponent');
 
 replaceProperty(Mask.prototype, 'Mask', [

@@ -43,6 +43,7 @@ const ENGINE_URLS = {
     vite: '/bin/vite/web/dev/cc.js',
     iife: '/bin/test-iife/cc.js',
     legacy: '/bin/dev/cc/index.js',
+    aligned: '/bin/vite/web/dev/aligned/cc.js',
 };
 
 // ===== Minimal static file server =====

@@ -20,6 +20,10 @@ const registerList: any[] = [];
 export function initWasm (wasmFactory, wasmUrl: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         const errorMessage = (err: any): string => `[Spine]: Spine wasm load failed: ${err}`;
+        if (typeof wasmFactory !== 'function') {
+            reject(new Error(errorMessage(`wasmFactory is not a function (got ${typeof wasmFactory})`)));
+            return;
+        }
         wasmFactory({
             instantiateWasm (
                 importObject: WebAssembly.Imports,

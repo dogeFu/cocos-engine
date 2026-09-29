@@ -40,4 +40,5 @@ removeProperty(MeshRenderer.prototype, 'MeshRenderer.prototype', [
  */
 export { MeshRenderer as ModelComponent };
 cclegacy.ModelComponent = MeshRenderer;
+cclegacy.MeshRenderer = MeshRenderer;
 js.setClassAlias(MeshRenderer, 'cc.ModelComponent');

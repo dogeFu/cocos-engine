@@ -50,6 +50,7 @@ replaceProperty(ParticleSystem.prototype, 'ParticleSystem.prototype', [
  */
 export { ParticleSystem as ParticleSystemComponent };
 cclegacy.ParticleSystemComponent = ParticleSystem;
+cclegacy.ParticleSystem = ParticleSystem;
 js.setClassAlias(ParticleSystem, 'cc.ParticleSystemComponent');
 /**
  * Alias of [[Billboard]]
@@ -57,6 +58,7 @@ js.setClassAlias(ParticleSystem, 'cc.ParticleSystemComponent');
  */
 export { Billboard as BillboardComponent };
 cclegacy.BillboardComponent = Billboard;
+cclegacy.Billboard = Billboard;
 js.setClassAlias(Billboard, 'cc.BillboardComponent');
 /**
  * Alias of [[Line]]
@@ -64,4 +66,5 @@ js.setClassAlias(Billboard, 'cc.BillboardComponent');
  */
 export { Line as LineComponent };
 cclegacy.LineComponent = Line;
+cclegacy.Line = Line;
 js.setClassAlias(Line, 'cc.LineComponent');

@@ -150,6 +150,7 @@ removeProperty(RigidBody.prototype, 'RigidBody.prototype', [
  */
 export { RigidBody as RigidBodyComponent };
 cclegacy.RigidBodyComponent = RigidBody;
+cclegacy.RigidBody = RigidBody;
 js.setClassAlias(RigidBody, 'cc.RigidBodyComponent');
 /**
  * Alias of [[Collider]]
@@ -157,6 +158,7 @@ js.setClassAlias(RigidBody, 'cc.RigidBodyComponent');
  */
 export { Collider as ColliderComponent };
 cclegacy.ColliderComponent = Collider;
+cclegacy.Collider = Collider;
 js.setClassAlias(Collider, 'cc.ColliderComponent');
 /**
  * Alias of [[BoxCollider]]
@@ -164,6 +166,7 @@ js.setClassAlias(Collider, 'cc.ColliderComponent');
  */
 export { BoxCollider as BoxColliderComponent };
 cclegacy.BoxColliderComponent = BoxCollider;
+cclegacy.BoxCollider = BoxCollider;
 js.setClassAlias(BoxCollider, 'cc.BoxColliderComponent');
 /**
  * Alias of [[SphereCollider]]
@@ -171,24 +174,31 @@ js.setClassAlias(BoxCollider, 'cc.BoxColliderComponent');
  */
 export { SphereCollider as SphereColliderComponent };
 cclegacy.SphereColliderComponent = SphereCollider;
+cclegacy.SphereCollider = SphereCollider;
 js.setClassAlias(SphereCollider, 'cc.SphereColliderComponent');
 /**
  * Alias of [[CapsuleCollider]]
  * @deprecated Since v1.2
  */
 export { CapsuleCollider as CapsuleColliderComponent };
+cclegacy.CapsuleColliderComponent = CapsuleCollider;
+cclegacy.CapsuleCollider = CapsuleCollider;
 js.setClassAlias(CapsuleCollider, 'cc.CapsuleColliderComponent');
 /**
  * Alias of [[MeshCollider]]
  * @deprecated Since v1.2
  */
 export { MeshCollider as MeshColliderComponent };
+cclegacy.MeshColliderComponent = MeshCollider;
+cclegacy.MeshCollider = MeshCollider;
 js.setClassAlias(MeshCollider, 'cc.MeshColliderComponent');
 /**
  * Alias of [[CylinderCollider]]
  * @deprecated Since v1.2
  */
 export { CylinderCollider as CylinderColliderComponent };
+cclegacy.CylinderColliderComponent = CylinderCollider;
+cclegacy.CylinderCollider = CylinderCollider;
 js.setClassAlias(CylinderCollider, 'cc.CylinderColliderComponent');
 /**
  * Alias of [[PhysicsMaterial]]
@@ -196,4 +206,5 @@ js.setClassAlias(CylinderCollider, 'cc.CylinderColliderComponent');
  */
 export { PhysicsMaterial as PhysicMaterial };
 cclegacy.PhysicMaterial = PhysicsMaterial;
+cclegacy.PhysicsMaterial = PhysicsMaterial;
 js.setClassAlias(PhysicsMaterial, 'cc.PhysicMaterial');
